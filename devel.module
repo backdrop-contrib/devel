@@ -19,8 +19,9 @@ function devel_init() {
 
 function devel_timer() {
   global $timer;
-  $stop = explode(" ", microtime());
-  $diff = round(($stop[0] - $timer[0])*1000, 2);
+  list($usec, $sec) = explode(" ", microtime());
+  $stop = (float)$usec + (float)$sec;
+  $diff = round(($stop - $timer)*1000, 2);
   return "Page execution time was $diff ms. ";
 }
 
