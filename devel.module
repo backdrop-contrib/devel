@@ -116,7 +116,9 @@ function devel_query_table($queries, $counts) {
 // handy pretty print of arrays and objects. like var_dump()
 function dprint_r($arr) {
   if (user_access('access devel information')) {
-    print '<pre>'. print_r($arr) .'</pre>';
+    print '<pre>';
+    print_r($arr);
+    print '</pre>';
   }
 }
 
