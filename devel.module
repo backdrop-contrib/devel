@@ -71,7 +71,7 @@ function devel_exit($destination = NULL) {
       $output .= '<div style="padding-top: 8em;">';
       $txt = strtr('Executed %queries queries in %time microseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2)));
       if (function_exists('theme_table')) {
-        $txt .= strtr('Queries taking longer than %threshhold ms, and queries executed more than once, are <span class="marker">hightlighted</span>.', array('%threshhold' => variable_get('devel_execution', 5)));
+        $txt .= strtr('Queries taking longer than %threshhold ms, and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshhold' => variable_get('devel_execution', 5)));
         if (variable_get('dev_timer', 0)) { $txt .= devel_timer(); }
         $output .= theme('box', t('Query log'), $output. $txt. devel_query_table($queries, $counts));
       }
