@@ -33,7 +33,7 @@ function create_comments($records, $users, $nodes, $comments) {
   $users = array_merge($users, array('0'));
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
-    $comment->cid = db_next_id("comments_cid");
+    $comment->cid = db_next_id("{comments}_cid");
     $comment->nid = array_rand($nodes);
 
     switch ($i % 3) {
