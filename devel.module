@@ -51,7 +51,10 @@ function devel_exit($destination = NULL) {
     }
   }
 
-  if (user_access('access devel information') && !strstr(drupal_get_headers(), 'xml')) { // try not to break the xml pages
+  if (function_exists('drupal_get_headers') && strstr(drupal_get_headers(), 'xml')) {
+    $is_xml = TRUE;
+  };
+  if (user_access('access devel information') && !$is_xml) { // try not to break the xml pages
     // Query log off, timer on
     if (!variable_get('dev_query', 0) && variable_get('dev_timer', 0)) {
       print '<div style="padding-top: 8em;">'. devel_timer() .'</div>';
