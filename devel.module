@@ -98,14 +98,18 @@ function devel_query_table($queries, $counts) {
 
 // handy pretty print of arrays and objects. like var_dump()
 function dprint_r($arr) {
-  print "<pre>";
-  print_r($arr);
-  print "</pre>";
+  if (user_access('access devel information')) {
+    print "<pre>";
+    print_r($arr);
+    print "</pre>";
+  }
 } 
 
 // handy pretty print of call stack. no xdebug dependency
 function ddebug_backtrace() {
-  dprint_r(debug_backtrace());
+  if (user_access('access devel information')) {
+    dprint_r(debug_backtrace());
+  }
 }
 
 function  devel_help($section) {
