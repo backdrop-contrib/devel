@@ -5,7 +5,7 @@
 
 function devel_exit() {
   if (variable_get("dev_query", 1)) {
-    print devel_query_table();
+    print "<div style=\"clear:both;\">" . devel_query_table() . "</div>";
   }
 }
 
