@@ -29,7 +29,7 @@ function devel_timer() {
 function devel_exit() {
   global $queries;
   
-  if (user_access('access devel information') && !strstr(request_uri(), 'feed')) { // try not to break the xml pages
+  if (user_access('access devel information') && !strstr(drupal_get_headers(), 'xml')) { // try not to break the xml pages
     $dev_block_start = "<div style=\"padding-top: 8em;\">";
     $dev_block_end = "</div>";
 
