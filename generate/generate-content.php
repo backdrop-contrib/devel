@@ -24,7 +24,7 @@ function create_nodes($records, $users) {
     node_save($node);
     
     // Setup a path:
-    db_query("INSERT INTO {url_alias} (src, dst) VALUES ('%s', '%s')", "node/view/$i", "$i");
+    db_query("INSERT INTO {url_alias} (src, dst) VALUES ('%s', '%s')", "node/$i", "$i");
     print "created node #$i with alias ". url($i) ."<br />";
   }
 }
