@@ -30,15 +30,15 @@
         foreach ($terms as $term) {
           $edit = array ("vid" => $vid, "name" => $term );
           $msg = taxonomy_save_term($edit);
-          print status($msg);
+          print $msg;
         }
       }
       else {
-        print status("You have insufficent permission to  administer taxonomya");  
+        print "You have insufficent permission to  administer taxonomy";
       }  
     }
     else {
-      print status("You have not activated term_loader. See $active variable at top of the source code");
+      print "You have not activated term_loader. See $active variable at top of the source code";
     }
 
 ?>
