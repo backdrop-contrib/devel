@@ -12,9 +12,27 @@
 // xdebug.output_dir='/php'
 // xdebug.default_enable
 
-// custom error handling is annoying when stepping though in a debugger
+/**
+ * Implementation of hook_init(). Avoids custom error handling for better
+ * behavior when stepping though in a debugger.
+ */
 function devel_init() {
   restore_error_handler();
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function devel_menu($may_cache) {
+  $items = array();
+
+  if ($may_cache) {
+    $items[] = array('path' => 'devel/cache/clear', 'title' => t('empty cache'),
+      'callback' => 'devel_cache_clear',
+      'access' => user_access('access devel information'));
+  }
+
+  return $items;
 }
 
 function devel_timer() {
@@ -93,6 +111,15 @@ function devel_exit($destination = NULL) {
   }
 }
 
+/**
+ * Menu callback; clears all caches, then redirects to the previous page.
+ */
+function devel_cache_clear() {
+  db_query('DELETE FROM {cache} WHERE 1');
+  header('Location: '. referer_uri());
+  exit();
+}
+
 function devel_query_table($queries, $counts) {
   $header = array ('ms', '#', 'query');
   $i = 0;
@@ -119,8 +146,19 @@ function devel_query_table($queries, $counts) {
   return theme('table', $header, $cell);
 }
 
+/**
+ * Print a message to the browser only for users with proper permissions.
+ */
+function dprint($str) {
+  if (user_access('access devel information')) {
+    print "<pre>$str</pre>";
+  }
+}
 
-// handy pretty print of arrays and objects. like var_dump()
+/**
+ * Pretty-print a variable such as an array or object to the browser.
+ * Displays only for users with proper permissions.
+ */
 function dprint_r($arr) {
   if (user_access('access devel information')) {
     print '<pre>';
@@ -129,20 +167,18 @@ function dprint_r($arr) {
   }
 }
 
-// handy pretty print of call stack. no xdebug dependency
+/**
+ * Print the function call stack. This works even without xdebug installed.
+ */
 function ddebug_backtrace() {
   if (user_access('access devel information')) {
     dprint_r(debug_backtrace());
   }
 }
 
-// handy print which won't show to regular users
-function dprint($str) {
-  if (user_access('access devel information')) {
-    print "<pre>$str</pre>";
-  }
-}
-
+/**
+ * Implementation of hook_help().
+ */
 function devel_help($section) {
   switch ($section) {
     case 'admin/modules#description':
@@ -150,15 +186,20 @@ function devel_help($section) {
   }
 }
 
+/**
+ * Implementation of hook_settings().
+ */
 function devel_settings() {
   $output  = form_select(t('Display Page Timer'), 'dev_timer', variable_get('dev_timer', 0), array(t('Disabled'), t('Enabled')), t('Display page execution time in the query log box.'));
   $output .= form_select(t('Display query log'), 'dev_query', variable_get('dev_query', 0), array(t('Disabled'), t('Enabled')), t('Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
   $output .= form_textfield(t('Query execution threshhold'), 'devel_execution', variable_get('devel_execution', 5), 4, 4, t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching.'));
   $output .= form_select(t('Display redirection page'), 'devel_redirect_page', variable_get('devel_redirect_page', 0), array(t('Disabled'), t('Enabled')), t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'));
   return $output;
-
 }
 
+/**
+ * Implementation of hook_perm().
+ */
 function devel_perm() {
   return array('access devel information');
 }
