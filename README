@@ -1,8 +1,6 @@
 README
 ======
 
-Requirements: Drupal CVS
-
 A module containing helper functions for Drupal developers and 
 inquisitive admins. Initially, this module prints out a summary of
 all database queries for each page request at the bottom of each page. The
@@ -16,11 +14,8 @@ development.
 Also prints stack trace and profileing info when the xdebug extension is active. 
 See http://www.xdebug.org/index.php
 
-Please contribute your own useful functions. Just edit and commit this module when you 
-get the urge. No need to submit a patch!
-
 -moshe weitzman
-weitzman@tejasa.com
+weitzman at tejasa.com
 
 NOTE
 ====
