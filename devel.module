@@ -27,32 +27,34 @@ function devel_timer() {
 // to work for cached pages
 function devel_exit() {
   global $queries;
-
-  if (variable_get("dev_query", 0)) {
-    foreach ($queries as $query) {
-    $text[] = $query[0];
-    $sum += $query[1];
-  }
   
-  $counts = array_count_values($text);
-  print "<div style=\"clear:both;\">";
-  
-  // don't t() this text. it has to work for a cached (aka bootstrap) page.
-  $txt = 'Executed '. count($queries). ' queries in '. round($sum * 1000, 2). ' microseconds. ';  
-    if (function_exists('theme_table')) {
-      $txt .= 'Queries taking longer than '. variable_get("devel_execution", 5). ' ms, and queries executed more than once, are <span class="marker">highlighted</span>. '. devel_timer();
-      print theme("box", t("Query log"), $txt. devel_query_table($queries, $counts));
+  if (!headers_sent()) { // don't output anything if we haven't already. prevents busting of XML pages
+    if (variable_get("dev_query", 0)) {
+      foreach ($queries as $query) {
+      $text[] = $query[0];
+      $sum += $query[1];
     }
-    else {
-      print $txt;
-      dprint_r($queries);
+    
+    $counts = array_count_values($text);
+    print "<div style=\"padding-top: 8em;\">";
+    
+    // don't t() this text. it has to work for a cached (aka bootstrap) page.
+    $txt = 'Executed '. count($queries). ' queries in '. round($sum * 1000, 2). ' microseconds. ';  
+      if (function_exists('theme_table')) {
+        $txt .= 'Queries taking longer than '. variable_get("devel_execution", 5). ' ms, and queries executed more than once, are <span class="marker">highlighted</span>. '. devel_timer();
+        print theme("box", t("Query log"), $txt. devel_query_table($queries, $counts));
+      }
+      else {
+        print $txt;
+        dprint_r($queries);
+      }
+      print "</div>";
     }
-    print "</div>";
+    // lots of profile info. not sure how to use it yet.
+    if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
+      xdebug_dump_function_profile(3);
+    };
   }
-  // lots of profile info. not sure how to use it yet.
-  if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
-    xdebug_dump_function_profile(3);
-  };
 }
 
 function devel_query_table($queries, $counts) {
