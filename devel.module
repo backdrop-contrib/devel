@@ -27,107 +27,54 @@ function devel_timer() {
 // to work for cached pages
 function devel_exit() {
   global $queries;
-  if (variable_get("dev_query", 0)) {
-    $output = devel_query_table();
-    print "<div style=\"clear:both;\">";
-    function_exists('theme_box') ? theme("box", t("Query log"), $output) : print $output; //there is no theme() for a cached (aka bootstrap) page
-    print "</div>";
-  }
-  // lots of profile info. not sure how to use it yet.
-  if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
-    xdebug_dump_function_profile(3);
-  };
-}
 
-function devel_query_table() {
-  global $queries;
-  
-  $header = array ("ms", "#", "query");  
-  foreach ($queries as $query) {
+  if (variable_get("dev_query", 0)) {
+    foreach ($queries as $query) {
     $text[] = $query[0];
     $sum += $query[1];
   }
-  $counts = array_count_values($text);
   
-  $i = 0;
-  foreach ($queries as $query) {
-    $diff = round($query[1]*1000,2);
-    $count = $counts[$query[0]];    
-    if ($diff > 5) {
-      $cell[$i][] = array ("data" => $diff, "class" => "marker");
+  $counts = array_count_values($text);
+  print "<div style=\"clear:both;\">";
+  
+  // don't t() this text. it has to work for a cached (aka bootstrap) page.
+  $output = 'Executed '. count($queries). ' count queries in '. round($sum * 1000, 2). ' microseconds. ';  
+    if (function_exists('theme_table')) {
+      $output .= 'Queries taking longer than '. variable_get("devel_execution", 5). ' ms are <span class="marker">highlighted</span>. '. devel_timer();
+      $output .= theme("box", t("Query log"), $output. devel_query_table($queries, $counts));
     }
     else {
       print $output;
       dprint_r($queries);
     }
+    $output .= "</div>";
+  }
+  // lots of profile info. not sure how to use it yet.
+  if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
+    xdebug_dump_function_profile(3);
+  };
+  print $output;
+}
+
+function devel_query_table($queries, $counts) {
+  $header = array ("ms", "#", "query");  
+  $i = 0;
+  foreach ($queries as $query) {
+    // dprint_r($query);
+    $diff = round($query[1]*1000,2);
+    $count = $counts[$query[0]];
+    if ($diff > variable_get("devel_execution", 5)) {
+      $cell[$i][] = array ("data" => $diff, "class" => "marker");
+    }
     else {
       $cell[$i][] = $count;
     }
-    $cell[$i][] = htmlspecialchars($query[0], ENT_NOQUOTES) ; //can't use drupal_specialchars() during a bootstrap
+    $cell[$i][] = drupal_specialchars($query[0]);
     $i++;
   }
-  // don't t() this text. it has to work for a cached (aka bootstrap) page.
-  $output = 'Executed '. count($queries). ' count queries in '. round($sum * 1000, 2). ' microseconds. '.
-            'Queries taking longer than '. variable_get("devel_execution", 5). ' ms are <span class="marker">highlighted</span>. '.
-            devel_timer();
-  if (function_exists('theme_table')) {
-    $output .= theme("table", $header, $cell);
-  }
-  else {
-    $output .= devel_table($header, $cell);
-  }
-  return $output;
+  return theme("table", $header, $cell);
 }
 
-// basic implementation of theme_table() for bootstrapped pages that didn't include common.inc
-function devel_table($header, $rows) {
-  $output = "<table>\n";
-
-  $output .= " <tr>";
-  foreach ($header as $cell) {
-    $output .= devel_table_cell($cell, 1);
-  }
-  $output .= " </tr>\n";
-  
-  if (is_array($rows)) {
-    foreach ($rows as $number => $row) {
-      if ($number % 2 == 1) {
-        $output .= " <tr class=\"light\">";
-      }
-      else {
-        $output .= " <tr class=\"dark\">";
-      }
-
-      foreach ($row as $cell) {
-        $output .= devel_table_cell($cell, 0);
-      }
-      $output .= " </tr>\n";
-    }
-  }
-  $output .= "</table>\n";
-  return $output;
-}
-
-function devel_table_cell($cell, $header = 0) {
-  if (is_array($cell)) {
-    $data = $cell["data"];
-    foreach ($cell as $key => $value) {
-      if ($key != "data")  {
-        $attributes .= " $key=\"$value\"";
-      }
-    }
-  }
-  else {
-    $data = $cell;
-  }
-  
-  if ($header) {
-    return "<th$attributes>$data</th>";
-  }
-  else {
-    return "<td$attributes>$data</td>";
-  }
-}
 
 // handy pretty print of arrays and objects. like var_dump()
 function dprint_r($arr) {
