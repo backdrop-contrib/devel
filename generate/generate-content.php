@@ -203,6 +203,7 @@ function get_terms() {
 
 db_query("DELETE FROM {comments}");
 db_query("DELETE FROM {node}");
+db_query("DELETE FROM {node_comment_statistics}");
 db_query("DELETE FROM {forum}");
 db_query("DELETE FROM {page}");
 db_query("DELETE FROM {url_alias}");
