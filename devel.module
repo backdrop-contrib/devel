@@ -1,0 +1,60 @@
+<?php
+
+// This module is holds functions useful for Drupal development.
+// Please contribute!
+
+function devel_exit() {
+  if (variable_get("dev_query", 1)) {
+    print devel_query_table();
+  }
+}
+
+function devel_query_table() {
+  global $queries;
+  
+  $header = array ("ms", "#", "query");  
+  foreach ($queries as $query) {
+    $text[] = $query[0];
+  }
+  $counts = array_count_values($text);
+  
+  $i = 0;
+  foreach ($queries as $query) {
+    $diff = round($query[1]*1000,2);
+    $count = $counts[$query[0]];    
+    if ($diff > 5) {
+      $cell[$i][] = array ("data" => $diff, "style" => "color: red; \" class=\"error\"");
+    }
+    else {
+      $cell[$i][] = $diff;
+    }    
+    if ($count > 1) {
+      $cell[$i][] = array ("data" => $count, "style" => "color: red;", "class" => "error");
+    }
+    else {
+      $cell[$i][] = $count;
+    }
+    $cell[$i][] = $query[0];
+    $i++;
+  }  
+  return table($header, $cell);
+}  
+
+function dprint_r($arr) {
+  print "<pre>";
+  print_r($arr);
+  print "</pre>";
+} 
+
+function devel_system($field) {
+  $system["description"] = t("Development helper functions");
+  return $system[$field];
+}
+
+function devel_conf_options() {  
+  $output = form_select(t("Display query log"), "devel_query", variable_get("dev_query", 1), array(t("Disabled"), t("Enabled")), t("Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching."));
+  $output .= form_textfield("Query execution threshhold", "devel_execution", variable_get("devel_execution", 5), 4, 4, t("Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching."));
+  return $output;
+}
+
+?>
