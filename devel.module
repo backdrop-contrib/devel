@@ -26,6 +26,7 @@ function devel_timer() {
 // don't move this to _footer() hook since this must run after drupal_page_footer() in order 
 // to work for cached pages
 function devel_exit() {
+  global $queries;
   if (variable_get("dev_query", 0)) {
     $output = devel_query_table();
     print "<div style=\"clear:both;\">";
@@ -56,10 +57,8 @@ function devel_query_table() {
       $cell[$i][] = array ("data" => $diff, "class" => "marker");
     }
     else {
-      $cell[$i][] = $diff;
-    }    
-    if ($count > 1) {
-      $cell[$i][] = array ("data" => $count, "class" => "marker");
+      print $output;
+      dprint_r($queries);
     }
     else {
       $cell[$i][] = $count;
@@ -161,3 +160,4 @@ function devel_settings() {
 }
 
 ?>
+
