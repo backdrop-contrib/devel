@@ -83,7 +83,7 @@ function devel_exit($destination = NULL) {
   if (user_access('access devel information') && !$is_xml) { // try not to break the xml pages
     // Query log off, timer on
     if (!variable_get('dev_query', 0) && variable_get('dev_timer', 0)) {
-      $output = '<div style="padding-top: 8em;">'. devel_timer() .'</div>';
+      $output = '<div style="padding-top: 4em;">'. devel_timer() .'</div>';
     }
 
     // Query log on
