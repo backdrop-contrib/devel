@@ -12,8 +12,6 @@ function devel_exit() {
 function devel_query_table() {
   global $queries;
   
-  print "q ";
-  dprint_r($queries);
   $header = array ("ms", "#", "query");  
   foreach ($queries as $query) {
     $text[] = $query[0];
