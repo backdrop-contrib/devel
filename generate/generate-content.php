@@ -23,7 +23,7 @@ function create_nodes($records, $users) {
     node_save($node);
     
     // Setup a path:
-    db_query("INSERT INTO {path} (src, dst) VALUES ('%s', '%s')", "node/view/$i", "$i");
+    db_query("INSERT INTO {url_alias} (src, dst) VALUES ('%s', '%s')", "node/view/$i", "$i");
     print "created node #$i with alias ". url($i) ."<br />";
   }
 }
@@ -204,7 +204,7 @@ db_query("DELETE FROM {comments}");
 db_query("DELETE FROM {node}");
 db_query("DELETE FROM {forum}");
 db_query("DELETE FROM {page}");
-db_query("DELETE FROM {path}");
+db_query("DELETE FROM {url_alias}");
 db_query("UPDATE {sequences} SET id = '0' WHERE name = 'node_nid'");
 db_query("UPDATE {sequences} SET id = '0' WHERE name = 'comments_cid'");
 db_query("ALTER TABLE {node} AUTO_INCREMENT = 1");
