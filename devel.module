@@ -112,6 +112,13 @@ function ddebug_backtrace() {
   }
 }
 
+// handy print which won't show to regular users
+function dprint($str) {
+  if (user_access('access devel information')) {
+    print "<pre>$str</pre>";
+  }
+}
+
 function  devel_help($section) {
   $output = "";
 
