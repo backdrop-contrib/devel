@@ -3,7 +3,7 @@
 // This module is holds functions useful for Drupal development.
 // Please contribute!
 
-function devel_exit() {
+function devel_footer() {
   if (variable_get("dev_query", 1)) {
     print "<div style=\"clear:both;\">" . devel_query_table() . "</div>";
   }
@@ -40,6 +40,7 @@ function devel_query_table() {
   return table($header, $cell);
 }  
 
+// handy pretty print of arrays and objects. like var_dump()
 function dprint_r($arr) {
   print "<pre>";
   print_r($arr);
