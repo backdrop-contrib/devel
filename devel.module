@@ -52,6 +52,11 @@ function dprint_r($arr) {
   print "</pre>";
 } 
 
+// handy pretty print of call stack
+function ddebug_backtrace($arr) {
+  dprint_r(debug_backtrace());
+}
+
 function devel_system($field) {
   $system["description"] = t("Development helper functions");
   return $system[$field];
