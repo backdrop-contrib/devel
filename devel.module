@@ -48,7 +48,7 @@ function devel_timer() {
   list($usec, $sec) = explode(' ', microtime());
   $stop = (float)$usec + (float)$sec;
   $diff = round(($stop - $timer) * 1000, 2);
-  return t('Page execution time was %time ms.', array('%time' => $diff));
+  return t(' Page execution time was %time ms.', array('%time' => $diff));
 }
 
 /**
@@ -94,12 +94,12 @@ function devel_exit($destination = NULL) {
       }
       $counts = array_count_values($text);
 
-      $output .= '<div style="padding-top: 8em;">';
+      $output .= '<div style="padding-top: 2em;">';
       $txt = strtr('Executed %queries queries in %time microseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2)));
       if (function_exists('theme_table')) {
-        $txt .= strtr('Queries taking longer than %threshhold ms, and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshhold' => variable_get('devel_execution', 5)));
+        $txt .= strtr(' Queries taking longer than %threshhold ms, and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshhold' => variable_get('devel_execution', 5)));
         if (variable_get('dev_timer', 0)) { $txt .= devel_timer(); }
-        $output .= theme('box', t('Query log'), $output. $txt. devel_query_table($queries, $counts));
+        $output .= $txt. devel_query_table($queries, $counts);
       }
       else {
         $output .= $txt;
@@ -148,7 +148,7 @@ function devel_query_table($queries, $counts) {
     else {
       $cell[$i][] = $count;
     }
-    $cell[$i][] = drupal_specialchars($query[0]);
+    $cell[$i][] = check_plain($query[0]);
     $i++;
     unset($diff, $count);
   }
