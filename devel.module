@@ -33,20 +33,24 @@ function devel_timer() {
  */
 function devel_exit($destination = NULL) {
   global $queries;
-  
+
   if (isset($destination)) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
     if (user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
       $output = '<p>The user is being redirected to <a href="'. $destination .'">'. $destination .'</a>.</p>';
       print theme('page', $output);
-    
+
       // Don't allow the automatic redirect to happen.
       drupal_page_footer();
       exit();
     }
+    else {
+      // Make sure not to print anything before the automatic redirect.
+      return;
+    }
   }
-  
+
   if (user_access('access devel information') && !strstr(drupal_get_headers(), 'xml')) { // try not to break the xml pages
     $dev_block_start = "<div style=\"padding-top: 8em;\">";
     $dev_block_end = "</div>";
@@ -55,7 +59,7 @@ function devel_exit($destination = NULL) {
     if (!variable_get("dev_query", 0) && variable_get("dev_timer", 0)) {
       print $dev_block_start . devel_timer() . $dev_block_end;
     }
-    
+
     // Query log on
     if (variable_get("dev_query", 0)) {
       foreach ($queries as $query) {
@@ -63,9 +67,9 @@ function devel_exit($destination = NULL) {
         $sum += $query[1];
       }
       $counts = array_count_values($text);
-    
+
       print $dev_block_start;
-      
+
       // don't t() this text. it has to work for a cached (aka bootstrap) page.
       $txt = 'Executed '. count($queries). ' queries in '. round($sum * 1000, 2). ' microseconds. ';
       if (function_exists('theme_table')) {
@@ -88,7 +92,7 @@ function devel_exit($destination = NULL) {
 }
 
 function devel_query_table($queries, $counts) {
-  $header = array ("ms", "#", "query");  
+  $header = array ("ms", "#", "query");
   $i = 0;
   foreach ($queries as $query) {
     // dprint_r($query);
@@ -121,7 +125,7 @@ function dprint_r($arr) {
     print_r($arr);
     print "</pre>";
   }
-} 
+}
 
 // handy pretty print of call stack. no xdebug dependency
 function ddebug_backtrace() {
@@ -148,13 +152,13 @@ function devel_help($section) {
   return $output;
 }
 
-function devel_settings() {  
+function devel_settings() {
   $output = form_select(t("Display Page Timer"), "dev_timer", variable_get("dev_timer", 0), array(t("Disabled"), t("Enabled")), t("Display page execution time in the query log box."));
   $output .= form_select(t("Display query log"), "dev_query", variable_get("dev_query", 0), array(t("Disabled"), t("Enabled")), t("Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching."));
   $output .= form_textfield("Query execution threshhold", "devel_execution", variable_get("devel_execution", 5), 4, 4, t("Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching."));
   $output .= form_select(t('Display redirection page'), 'devel_redirect_page', variable_get('devel_redirect_page', 0), array(t('Disabled'), t('Enabled')), t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'));
   return $output;
-  
+
 }
 
 function devel_perm() {
