@@ -1,5 +1,5 @@
-README
-======
+README.txt
+==========
 
 A module containing helper functions for Drupal developers and 
 inquisitive admins. Initially, this module prints out a summary of
@@ -21,4 +21,4 @@ NOTE
 ====
 
 The subdirectory generate/ includes some scripts that can be used to help testing
-on a Drupal site. See generate/README for details.
+on a Drupal site. See generate/README.txt for details.
