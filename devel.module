@@ -3,10 +3,37 @@
 // This module is holds functions useful for Drupal development.
 // Please contribute!
 
-function devel_footer() {
+// suggested profiling and stacktrace library from http://www.xdebug.org/index.php
+// if you activate this extension, this module will use it.
+// you probably want these php.ini or .htaccess directives:
+// xdebug.auto_profile=1
+// xdebug.auto_profile_mode=3
+// xdebug.output_dir="/php"
+// xdebug.default_enable
+
+// custom error handling is annoying when stepping though in a debugger
+function devel_init() {
+  restore_error_handler();
+}
+
+function devel_timer() {
+  global $timer;
+  $stop = explode(" ", microtime());
+  $diff = round(($stop[0] - $timer[0])*1000, 2);
+  return "Page execution time was $diff ms. ";
+}
+
+// don't move this to _footer() hook since this must run after drupal_page_footer() in order 
+// to work for cached pages
+function devel_exit() {
   if (variable_get("dev_query", 0)) {
-    print "<div style=\"clear:both;\">" . devel_query_table() . "</div>";
+    print "<div style=\"clear:both;\">" . devel_query_table();
   }
+  // lots of profile info. not sure how to use it yet.
+  if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
+    xdebug_dump_function_profile(3);
+  }
+  print "</div>";
 }
 
 function devel_query_table() {
@@ -40,7 +67,8 @@ function devel_query_table() {
   }
   $output =
     t('Executed %count queries in %msec microseconds. ', array ("%count" => count($queries), "%msec" => round($sum * 1000, 2))) .
-    t('Queries taking longer than %devel_execution milliseconds are <span class="marker">highlighted</span>.', array ("%devel_execution" => variable_get("devel_execution", 5))) ."\n".
+    t('Queries taking longer than %devel_execution ms are <span class="marker">highlighted</span>.', array ("%devel_execution" => variable_get("devel_execution", 5))) ."\n".
+    devel_timer(). 
     table($header, $cell);
   return theme("box", t("Query log"), $output);
 }  
@@ -52,18 +80,18 @@ function dprint_r($arr) {
   print "</pre>";
 } 
 
-// handy pretty print of call stack
+// handy pretty print of call stack. no xdebug dependency
 function ddebug_backtrace($arr) {
   dprint_r(debug_backtrace());
 }
 
-function devel_system($field) {
-  $system["description"] = t("Development helper functions");
-  return $system[$field];
+function devel_help() {
+  return t("Development helper functions");
 }
 
 function devel_settings() {  
-  $output = form_select(t("Display query log"), "dev_query", variable_get("dev_query", 0), array(t("Disabled"), t("Enabled")), t("Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching."));
+  $output = form_select(t("Display Page Timer"), "dev_timer", variable_get("dev_timer", 0), array(t("Disabled"), t("Enabled")), t("Display page execution time in the query log box."));
+  $output .= form_select(t("Display query log"), "dev_query", variable_get("dev_query", 0), array(t("Disabled"), t("Enabled")), t("Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching."));
   $output .= form_textfield("Query execution threshhold", "devel_execution", variable_get("devel_execution", 5), 4, 4, t("Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching."));
   return $output;
 }

@@ -13,6 +13,9 @@ summary includes how many times each query was executed on a page
 Also a dprint_r($array) function is provided, which pretty prints arrays. Useful during 
 development.
 
+Also prints stack trace and profileing info when the xdebug extension is active. 
+See http://www.xdebug.org/index.php
+
 Please contribute your own useful functions. Just edit and commit this module when you 
 get the urge. No need to submit a patch!
 
