@@ -69,7 +69,7 @@ function devel_query_table() {
     t('Executed %count queries in %msec microseconds. ', array ("%count" => count($queries), "%msec" => round($sum * 1000, 2))) .
     t('Queries taking longer than %devel_execution ms are <span class="marker">highlighted</span>.', array ("%devel_execution" => variable_get("devel_execution", 5))) ."\n".
     devel_timer(). 
-    print theme("table", $header, $cell);
+    theme("table", $header, $cell);
   return theme("box", t("Query log"), $output);
 }  
 
