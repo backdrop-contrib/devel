@@ -119,11 +119,11 @@ function dprint($str) {
   }
 }
 
-function  devel_help($section) {
+function devel_help($section) {
   $output = "";
 
   switch ($section) {
-    case 'admin/system/modules#description':
+    case 'admin/modules#description':
       $output = t("Development helper functions");;
       break;
   }
