@@ -15,6 +15,7 @@ function devel_query_table() {
   $header = array ("ms", "#", "query");  
   foreach ($queries as $query) {
     $text[] = $query[0];
+    $sum += $query[1];
   }
   $counts = array_count_values($text);
   
@@ -23,21 +24,25 @@ function devel_query_table() {
     $diff = round($query[1]*1000,2);
     $count = $counts[$query[0]];    
     if ($diff > 5) {
-      $cell[$i][] = array ("data" => $diff, "style" => "color: red; \" class=\"error\"");
+      $cell[$i][] = array ("data" => $diff, "class" => "marker");
     }
     else {
       $cell[$i][] = $diff;
     }    
     if ($count > 1) {
-      $cell[$i][] = array ("data" => $count, "style" => "color: red;", "class" => "error");
+      $cell[$i][] = array ("data" => $count, "class" => "marker");
     }
     else {
       $cell[$i][] = $count;
     }
-    $cell[$i][] = $query[0];
+    $cell[$i][] = drupal_specialchars($query[0]);
     $i++;
-  }  
-  return table($header, $cell);
+  }
+  $output =
+    t('Executed %count queries in %msec microseconds. ', array ("%count" => count($queries), "%msec" => round($sum * 1000, 2))) .
+    t('Queries taking longer than %devel_execution milliseconds are <span class="marker">highlighted</span>.', array ("%devel_execution" => variable_get("devel_execution", 5))) ."\n".
+    table($header, $cell);
+  return theme("box", t("Query log"), $output);
 }  
 
 // handy pretty print of arrays and objects. like var_dump()
