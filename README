@@ -21,3 +21,9 @@ get the urge. No need to submit a patch!
 
 -moshe weitzman
 weitzman@tejasa.com
+
+NOTE
+====
+
+The subdirectory generate/ includes some scripts that can be used to help testing
+on a Drupal site. See generate/README for details.
