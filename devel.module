@@ -30,9 +30,17 @@ function devel_menu($may_cache) {
     $items[] = array('path' => 'devel/cache/clear', 'title' => t('empty cache'),
       'callback' => 'devel_cache_clear',
       'access' => user_access('access devel information'));
+    $items[] = array('path' => 'devel/variable', 'title' => t('variable viewer'),
+      'callback' => 'devel_variable',
+      'access' => user_access('access devel information'));  
   }
 
   return $items;
+}
+
+function devel_variable() {                    
+  global$conf;
+  print theme('page', dprint_r($conf));
 }
 
 function devel_timer() {
@@ -103,7 +111,7 @@ function devel_exit($destination = NULL) {
     }
     // lots of profile info. not sure how to use it yet.
     if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
-     // comented out because generates too much output. output to log file instead. see xdebug docs
+     // commented out because generates too much output. output to log file instead. see xdebug docs
      // dprint_r(xdebug_get_function_profile());;
     };
     // TODO: gzip this text if we are sending a gzip page. see drupal_page_header()
