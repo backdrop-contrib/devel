@@ -40,7 +40,7 @@ function devel_exit() {
   // don't t() this text. it has to work for a cached (aka bootstrap) page.
   $txt = 'Executed '. count($queries). ' queries in '. round($sum * 1000, 2). ' microseconds. ';  
     if (function_exists('theme_table')) {
-      $txt .= 'Queries taking longer than '. variable_get("devel_execution", 5). ' ms are <span class="marker">highlighted</span>. '. devel_timer();
+      $txt .= 'Queries taking longer than '. variable_get("devel_execution", 5). ' ms, and queries executed more than once, are <span class="marker">highlighted</span>. '. devel_timer();
       print theme("box", t("Query log"), $txt. devel_query_table($queries, $counts));
     }
     else {
@@ -66,10 +66,17 @@ function devel_query_table($queries, $counts) {
       $cell[$i][] = array ("data" => $diff, "class" => "marker");
     }
     else {
+      $cell[$i][] = $diff;
+    }
+    if ($count > 1) {
+      $cell[$i][] = array ("data" => $count, "class" => "marker");
+    }
+    else {
       $cell[$i][] = $count;
     }
     $cell[$i][] = drupal_specialchars($query[0]);
     $i++;
+    unset($diff, $count);
   }
   return theme("table", $header, $cell);
 }
