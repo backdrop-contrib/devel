@@ -14,14 +14,6 @@
 
 // custom error handling is annoying when stepping though in a debugger
 function devel_init() {
-  if (user_access('access devel information')) {
-    if(variable_get('devel_menu_clear', 0)) {
-      menu_rebuild();
-    }
-    if(variable_get('devel_filter_clear', 0)) {
-      db_query("DELETE FROM {cache} WHERE cid LIKE 'filter:%';");
-    }
-  }
   restore_error_handler();
 }
 
@@ -59,7 +51,10 @@ function devel_exit($destination = NULL) {
     }
   }
 
-  if (user_access('access devel information') && !strstr(drupal_get_headers(), 'xml')) { // try not to break the xml pages
+  if (function_exists('drupal_get_headers') && strstr(drupal_get_headers(), 'xml')) {
+    $is_xml = TRUE;
+  };
+  if (user_access('access devel information') && !$is_xml) { // try not to break the xml pages
     // Query log off, timer on
     if (!variable_get('dev_query', 0) && variable_get('dev_timer', 0)) {
       print '<div style="padding-top: 8em;">'. devel_timer() .'</div>';
@@ -152,18 +147,10 @@ function devel_help($section) {
 }
 
 function devel_settings() {
-  $output = form_checkbox(t('Display Page Timer'), 'dev_timer', 1, variable_get('dev_timer', 0), t('Display page execution time in the query log box.'));
-  
-  $output .= form_checkbox(t('Display query log'), 'dev_query', 1, variable_get('dev_query', 0), t('Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
-  
+  $output  = form_select(t('Display Page Timer'), 'dev_timer', variable_get('dev_timer', 0), array(t('Disabled'), t('Enabled')), t('Display page execution time in the query log box.'));
+  $output .= form_select(t('Display query log'), 'dev_query', variable_get('dev_query', 0), array(t('Disabled'), t('Enabled')), t('Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
   $output .= form_textfield(t('Query execution threshhold'), 'devel_execution', variable_get('devel_execution', 5), 4, 4, t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching.'));
-  
-  $output .= form_checkbox(t('Display redirection page'), 'devel_redirect_page', 1, variable_get('devel_redirect_page', 0), t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'));
-
-  $output .= form_checkbox(t('Clear filter cache'), 'devel_filter_clear', 1, variable_get('devel_filter_clear', 0), t('Clears the filter cache on each page that is loaded by a user with the "access devel information" permission'));
-  
-  $output .= form_checkbox(t('Clear menu cache'), 'devel_menu_clear', 1, variable_get('devel_menu_clear', 0), t('Clears the menu cache on each page that is loaded by a user with the "access devel information" permission'));
-  
+  $output .= form_select(t('Display redirection page'), 'devel_redirect_page', variable_get('devel_redirect_page', 0), array(t('Disabled'), t('Enabled')), t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'));
   return $output;
 
 }
