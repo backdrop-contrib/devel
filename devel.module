@@ -27,13 +27,15 @@ function devel_timer() {
 // to work for cached pages
 function devel_exit() {
   if (variable_get("dev_query", 0)) {
-    print "<div style=\"clear:both;\">" . devel_query_table();
-    // lots of profile info. not sure how to use it yet.
-    if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
-      xdebug_dump_function_profile(3);
-    }
+    $output = devel_query_table();
+    print "<div style=\"clear:both;\">";
+    function_exists('theme_box') ? theme("box", t("Query log"), $output) : print $output; //there is no theme() for a cached (aka bootstrap) page
     print "</div>";
   }
+  // lots of profile info. not sure how to use it yet.
+  if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
+    xdebug_dump_function_profile(3);
+  };
 }
 
 function devel_query_table() {
@@ -62,16 +64,71 @@ function devel_query_table() {
     else {
       $cell[$i][] = $count;
     }
-    $cell[$i][] = drupal_specialchars($query[0]);
+    $cell[$i][] = htmlspecialchars($query[0], ENT_NOQUOTES) ; //can't use drupal_specialchars() during a bootstrap
     $i++;
   }
-  $output =
-    t('Executed %count queries in %msec microseconds. ', array ("%count" => count($queries), "%msec" => round($sum * 1000, 2))) .
-    t('Queries taking longer than %devel_execution ms are <span class="marker">highlighted</span>.', array ("%devel_execution" => variable_get("devel_execution", 5))) ."\n".
-    devel_timer(). 
-    theme("table", $header, $cell);
-  return theme("box", t("Query log"), $output);
-}  
+  // don't t() this text. it has to work for a cached (aka bootstrap) page.
+  $output = 'Executed '. count($queries). ' count queries in '. round($sum * 1000, 2). ' microseconds. '.
+            'Queries taking longer than '. variable_get("devel_execution", 5). ' ms are <span class="marker">highlighted</span>. '.
+            devel_timer();
+  if (function_exists('theme_table')) {
+    $output .= theme("table", $header, $cell);
+  }
+  else {
+    $output .= devel_table($header, $cell);
+  }
+  return $output;
+}
+
+// basic implementation of theme_table() for bootstrapped pages that didn't include common.inc
+function devel_table($header, $rows) {
+  $output = "<table>\n";
+
+  $output .= " <tr>";
+  foreach ($header as $cell) {
+    $output .= devel_table_cell($cell, 1);
+  }
+  $output .= " </tr>\n";
+  
+  if (is_array($rows)) {
+    foreach ($rows as $number => $row) {
+      if ($number % 2 == 1) {
+        $output .= " <tr class=\"light\">";
+      }
+      else {
+        $output .= " <tr class=\"dark\">";
+      }
+
+      foreach ($row as $cell) {
+        $output .= devel_table_cell($cell, 0);
+      }
+      $output .= " </tr>\n";
+    }
+  }
+  $output .= "</table>\n";
+  return $output;
+}
+
+function devel_table_cell($cell, $header = 0) {
+  if (is_array($cell)) {
+    $data = $cell["data"];
+    foreach ($cell as $key => $value) {
+      if ($key != "data")  {
+        $attributes .= " $key=\"$value\"";
+      }
+    }
+  }
+  else {
+    $data = $cell;
+  }
+  
+  if ($header) {
+    return "<th$attributes>$data</th>";
+  }
+  else {
+    return "<td$attributes>$data</td>";
+  }
+}
 
 // handy pretty print of arrays and objects. like var_dump()
 function dprint_r($arr) {
@@ -81,7 +138,7 @@ function dprint_r($arr) {
 } 
 
 // handy pretty print of call stack. no xdebug dependency
-function ddebug_backtrace($arr) {
+function ddebug_backtrace() {
   dprint_r(debug_backtrace());
 }
 
