@@ -1,5 +1,6 @@
 <?php
 // $Id$
+include_once "includes/bootstrap.inc";
 include_once "includes/common.inc";
 
 function create_nodes($records, $users) {
