@@ -57,7 +57,7 @@ function devel_exit($destination = NULL) {
   if (user_access('access devel information') && !$is_xml) { // try not to break the xml pages
     // Query log off, timer on
     if (!variable_get('dev_query', 0) && variable_get('dev_timer', 0)) {
-      print '<div style="padding-top: 8em;">'. devel_timer() .'</div>';
+      $output = '<div style="padding-top: 8em;">'. devel_timer() .'</div>';
     }
 
     // Query log on
@@ -68,24 +68,28 @@ function devel_exit($destination = NULL) {
       }
       $counts = array_count_values($text);
 
-      print '<div style="padding-top: 8em;">';
+      $output .= '<div style="padding-top: 8em;">';
       $txt = strtr('Executed %queries queries in %time microseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2)));
       if (function_exists('theme_table')) {
         $txt .= strtr('Queries taking longer than %threshhold ms, and queries executed more than once, are <span class="marker">hightlighted</span>.', array('%threshhold' => variable_get('devel_execution', 5)));
         if (variable_get('dev_timer', 0)) { $txt .= devel_timer(); }
-        print theme('box', t('Query log'), $txt. devel_query_table($queries, $counts));
+        $output .= theme('box', t('Query log'), $output. $txt. devel_query_table($queries, $counts));
       }
       else {
-        print $txt;
-        dprint_r($queries);
+        $output .= $txt;
+        ob_start();
+          dprint_r($queries);
+        $output .= ob_get_clean();
       }
-      print '</div>';
+      $output .= '</div>';
     }
     // lots of profile info. not sure how to use it yet.
     if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
      // comented out because generates too much output. output to log file instead. see xdebug docs
      // dprint_r(xdebug_get_function_profile());;
     };
+    // TODO: gzip this text if we are sending a gzip page. see drupal_page_header()
+    print $output;
   }
 }
 
