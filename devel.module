@@ -28,12 +28,12 @@ function devel_timer() {
 function devel_exit() {
   if (variable_get("dev_query", 0)) {
     print "<div style=\"clear:both;\">" . devel_query_table();
+    // lots of profile info. not sure how to use it yet.
+    if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
+      xdebug_dump_function_profile(3);
+    }
+    print "</div>";
   }
-  // lots of profile info. not sure how to use it yet.
-  if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
-    xdebug_dump_function_profile(3);
-  }
-  print "</div>";
 }
 
 function devel_query_table() {
