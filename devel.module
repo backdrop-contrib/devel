@@ -115,7 +115,8 @@ function devel_exit($destination = NULL) {
  * Menu callback; clears all caches, then redirects to the previous page.
  */
 function devel_cache_clear() {
-  db_query('DELETE FROM {cache} WHERE 1');
+  db_query('DELETE FROM {cache}');
+  drupal_set_message('cache cleared').
   header('Location: '. referer_uri());
   exit();
 }
