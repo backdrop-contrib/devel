@@ -85,8 +85,15 @@ function ddebug_backtrace($arr) {
   dprint_r(debug_backtrace());
 }
 
-function devel_help() {
-  return t("Development helper functions");
+function  devel_help($section) {
+  $output = "";
+
+  switch ($section) {
+    case 'admin/system/modules#description':
+      $output = t("Development helper functions");;
+      break;
+  }
+  return $output;
 }
 
 function devel_settings() {  
