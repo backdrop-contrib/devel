@@ -12,6 +12,8 @@ function devel_exit() {
 function devel_query_table() {
   global $queries;
   
+  print "q ";
+  dprint_r($queries);
   $header = array ("ms", "#", "query");  
   foreach ($queries as $query) {
     $text[] = $query[0];
@@ -52,7 +54,7 @@ function devel_system($field) {
 }
 
 function devel_settings() {  
-  $output = form_select(t("Display query log"), "dev_query", variable_get("dev_query", 1), array(t("Disabled"), t("Enabled")), t("Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching."));
+  $output = form_select(t("Display query log"), "dev_query", variable_get("dev_query", 0), array(t("Disabled"), t("Enabled")), t("Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching."));
   $output .= form_textfield("Query execution threshhold", "devel_execution", variable_get("devel_execution", 5), 4, 4, t("Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching."));
   return $output;
 }
