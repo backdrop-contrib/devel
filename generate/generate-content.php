@@ -5,27 +5,39 @@ include_once "includes/common.inc";
 
 function create_nodes($records, $users) {
 
-  $types = array("story", "blog", "forum", "page");
+  $possible_types = array("story", "blog", "forum", "page");
+  // Only use types that exist.
+  foreach ($possible_types as $type) {
+    if (module_exist($type)) {
+      $types[] = $type;
+    }
+  }
   $users = array_merge($users, array('0'));
 
-  // Insert new data:
-  for ($i = 1; $i <= $records; $i++) {
-    $node->uid = $users[array_rand($users)];
-    $node->type = $types[array_rand($types)];
-    $node->title = "node #$i ($node->type)";
-    $node->body = create_content();
-    $node->status = 1;
-    $node->promote = rand(0, 1);
-    $node->comment = 2;
-    $node->created = time();
-    $node->changed = time();
-    
-    // Save the node:
-    node_save($node);
-    
-    // Setup a path:
-    db_query("INSERT INTO {url_alias} (src, dst) VALUES ('%s', '%s')", "node/$i", "$i");
-    print "created node #$i with alias ". url($i) ."<br />";
+  if (is_array($types)) {
+    // Insert new data:
+    for ($i = 1; $i <= $records; $i++) {
+      $nid = db_result(db_query("SELECT id FROM {sequences} WHERE name = '{node}_nid'")) + 1;
+      $node->uid = $users[array_rand($users)];
+      $node->type = $types[array_rand($types)];
+      $node->title = "node #$nid ($node->type)";
+      $node->body = create_content();
+      $node->teaser = node_teaser($node->body);
+      $node->filter = variable_get('filter_default_format', 1);
+      $node->status = 1;
+      $node->promote = rand(0, 1);
+      $node->comment = 2;
+      $node->created = time();
+      $node->changed = time();
+
+      // Save the node:
+      node_save($node);
+
+      // Setup a path:
+      db_query("INSERT INTO {url_alias} (src, dst) VALUES ('%s', '%s')", "node/$nid", "node-$nid-$node->type");
+      print "created node #$nid with alias ". url("node-$nid-$node->type") ."<br />";
+      unset($node);
+    }
   }
 }
 
@@ -46,13 +58,13 @@ function create_comments($records, $users, $nodes, $comments) {
       default:
         $comment->pid = 0;
     }
- 
+
     $comment->subject = "comment #$i";
     $comment->comment = "body of comment #$i";
     $comment->uid = $users[array_rand($users)];
-    
+
     db_query("INSERT INTO {comments} (cid, nid, pid, uid, subject, comment, status, thread, timestamp) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d, %d)", $comment->cid, $comment->nid, $comment->pid, $comment->uid, $comment->subject, $comment->comment, 0, 0, time());
-    
+
     print "created comment #$i<br />";
   }
 }
@@ -103,52 +115,52 @@ return $output;
 }
 
 function create_greeking($words) {
-	$dictionary = array("abbas", "abdo", "abico", "abigo", "abluo", "accumsan",
-		"acsi", "ad", "adipiscing", "aliquam", "aliquip", "amet", "antehabeo",
-		"appellatio", "aptent", "at", "augue", "autem", "bene", "blandit",
-		"brevitas", "caecus", "camur", "capto", "causa", "cogo", "comis",
-		"commodo", "commoveo", "consectetuer", "consequat", "conventio", "cui",
-		"damnum", "decet", "defui", "diam", "dignissim", "distineo", "dolor",
-		"dolore", "dolus", "duis", "ea", "eligo", "elit", "enim", "erat",
-		"eros", "esca", "esse", "et", "eu", "euismod", "eum", "ex", "exerci",
-		"exputo", "facilisi", "facilisis", "fere", "feugiat", "gemino",
-		"genitus", "gilvus", "gravis", "haero", "hendrerit", "hos", "huic",
-		"humo", "iaceo", "ibidem", "ideo", "ille", "illum", "immitto",
-		"importunus", "imputo", "in", "incassum", "inhibeo", "interdico",
-		"iriure", "iusto", "iustum", "jugis", "jumentum", "jus", "laoreet",
-		"lenis", "letalis", "lobortis", "loquor", "lucidus", "luctus", "ludus",
-		"luptatum", "macto", "magna", "mauris", "melior", "metuo", "meus",
-		"minim", "modo", "molior", "mos", "natu", "neo", "neque", "nibh",
-		"nimis", "nisl", "nobis", "nostrud", "nulla", "nunc", "nutus", "obruo",
-		"occuro", "odio", "olim", "oppeto", "os", "pagus", "pala", "paratus",
-		"patria", "paulatim", "pecus", "persto", "pertineo", "plaga", "pneum",
-		"populus", "praemitto", "praesent", "premo", "probo", "proprius",
-		"quadrum", "quae", "qui", "quia", "quibus", "quidem", "quidne", "quis",
-		"ratis", "refero", "refoveo", "roto", "rusticus", "saepius",
-		"sagaciter", "saluto", "scisco", "secundum", "sed", "si", "similis",
-		"singularis", "sino", "sit", "sudo", "suscipere", "suscipit", "tamen",
-		"tation", "te", "tego", "tincidunt", "torqueo", "tum", "turpis",
-		"typicus", "ulciscor", "ullamcorper", "usitas", "ut", "utinam",
-		"utrum", "uxor", "valde", "valetudo", "validus", "vel", "velit",
-		"veniam", "venio", "vereor", "vero", "verto", "vicis", "vindico",
-		"virtus", "voco", "volutpat", "vulpes", "vulputate", "wisi", "ymo",
-		"zelus");
-	
-	$greeking = "";
-	
-	while ($words > 0) {
-		$sentence_length = rand(3,10);
-		
-		$greeking .= ucfirst($dictionary[array_rand($dictionary)]);
-		for ($i = 1; $i < $sentence_length; $i++) {
-			$greeking .= " " . $dictionary[array_rand($dictionary)];
-		}
-		
-		$greeking .= ". ";
-		$words -= $sentence_length;
-	}
-	
-	return $greeking;
+  $dictionary = array("abbas", "abdo", "abico", "abigo", "abluo", "accumsan",
+    "acsi", "ad", "adipiscing", "aliquam", "aliquip", "amet", "antehabeo",
+    "appellatio", "aptent", "at", "augue", "autem", "bene", "blandit",
+    "brevitas", "caecus", "camur", "capto", "causa", "cogo", "comis",
+    "commodo", "commoveo", "consectetuer", "consequat", "conventio", "cui",
+    "damnum", "decet", "defui", "diam", "dignissim", "distineo", "dolor",
+    "dolore", "dolus", "duis", "ea", "eligo", "elit", "enim", "erat",
+    "eros", "esca", "esse", "et", "eu", "euismod", "eum", "ex", "exerci",
+    "exputo", "facilisi", "facilisis", "fere", "feugiat", "gemino",
+    "genitus", "gilvus", "gravis", "haero", "hendrerit", "hos", "huic",
+    "humo", "iaceo", "ibidem", "ideo", "ille", "illum", "immitto",
+    "importunus", "imputo", "in", "incassum", "inhibeo", "interdico",
+    "iriure", "iusto", "iustum", "jugis", "jumentum", "jus", "laoreet",
+    "lenis", "letalis", "lobortis", "loquor", "lucidus", "luctus", "ludus",
+    "luptatum", "macto", "magna", "mauris", "melior", "metuo", "meus",
+    "minim", "modo", "molior", "mos", "natu", "neo", "neque", "nibh",
+    "nimis", "nisl", "nobis", "nostrud", "nulla", "nunc", "nutus", "obruo",
+    "occuro", "odio", "olim", "oppeto", "os", "pagus", "pala", "paratus",
+    "patria", "paulatim", "pecus", "persto", "pertineo", "plaga", "pneum",
+    "populus", "praemitto", "praesent", "premo", "probo", "proprius",
+    "quadrum", "quae", "qui", "quia", "quibus", "quidem", "quidne", "quis",
+    "ratis", "refero", "refoveo", "roto", "rusticus", "saepius",
+    "sagaciter", "saluto", "scisco", "secundum", "sed", "si", "similis",
+    "singularis", "sino", "sit", "sudo", "suscipere", "suscipit", "tamen",
+    "tation", "te", "tego", "tincidunt", "torqueo", "tum", "turpis",
+    "typicus", "ulciscor", "ullamcorper", "usitas", "ut", "utinam",
+    "utrum", "uxor", "valde", "valetudo", "validus", "vel", "velit",
+    "veniam", "venio", "vereor", "vero", "verto", "vicis", "vindico",
+    "virtus", "voco", "volutpat", "vulpes", "vulputate", "wisi", "ymo",
+    "zelus");
+
+  $greeking = "";
+
+  while ($words > 0) {
+    $sentence_length = rand(3,10);
+
+    $greeking .= ucfirst($dictionary[array_rand($dictionary)]);
+    for ($i = 1; $i < $sentence_length; $i++) {
+      $greeking .= " " . $dictionary[array_rand($dictionary)];
+    }
+
+    $greeking .= ". ";
+    $words -= $sentence_length;
+  }
+
+  return $greeking;
 }
 
 function add_terms($nodes, $terms) {
@@ -191,11 +203,11 @@ function get_comments() {
 
 function get_terms() {
   $terms = array();
-  $result = db_query("SELECT d.tid, v.vid, v.nodes FROM {vocabulary} v, {term_data} d WHERE v.vid = d.vid");
+  $result = db_query("SELECT d.tid, v.vid FROM {vocabulary} v, {term_data} d WHERE v.vid = d.vid");
   while($term = db_fetch_object($result)){
-    $types =explode(",", $term->nodes);
-    foreach($types as $type) {
-      $terms[$type][] = $term->tid;
+    $result2 = db_query("SELECT n.type FROM {vocabulary_node_types} n WHERE n.vid = %d", $term->vid);
+    while ($nt = db_fetch_object($result2)) {
+      $terms[$nt->type][] = $term->tid;
     }
   }
   return $terms;
@@ -205,7 +217,6 @@ db_query("DELETE FROM {comments}");
 db_query("DELETE FROM {node}");
 db_query("DELETE FROM {node_comment_statistics}");
 db_query("DELETE FROM {forum}");
-db_query("DELETE FROM {page}");
 db_query("DELETE FROM {url_alias}");
 db_query("UPDATE {sequences} SET id = '0' WHERE name = 'node_nid'");
 db_query("UPDATE {sequences} SET id = '0' WHERE name = 'comments_cid'");
