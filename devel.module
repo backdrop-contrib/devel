@@ -65,7 +65,7 @@ function devel_exit($destination = NULL) {
     // so that the developer can see the intermediate query log.
     if (user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
       $output = t('<p>The user is being redirected to %destination.</p>', array('%destination' => "<em><a href=\"$destination\">$destination</a></em>"));
-      return $output;
+      print theme('page', $output);
 
       // Don't allow the automatic redirect to happen.
       drupal_page_footer();
