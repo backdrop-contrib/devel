@@ -17,7 +17,6 @@ function create_nodes($records, $users) {
   if (is_array($types)) {
     // Insert new data:
     for ($i = 1; $i <= $records; $i++) {
-      $nid = db_result(db_query("SELECT id FROM {sequences} WHERE name = '{node}_nid'")) + 1;
       $node->uid = $users[array_rand($users)];
       $node->type = $types[array_rand($types)];
       $node->title = "node #$nid ($node->type)";
@@ -25,13 +24,14 @@ function create_nodes($records, $users) {
       $node->teaser = node_teaser($node->body);
       $node->filter = variable_get('filter_default_format', 1);
       $node->status = 1;
+      $node->revision = rand(0,1);
       $node->promote = rand(0, 1);
       $node->comment = 2;
       $node->created = time();
       $node->changed = time();
 
       // Save the node:
-      node_save($node);
+      $nid = node_save($node);
 
       // Setup a path:
       db_query("INSERT INTO {url_alias} (src, dst) VALUES ('%s', '%s')", "node/$nid", "node-$nid-$node->type");
