@@ -33,6 +33,10 @@ function devel_menu($may_cache) {
     $items[] = array('path' => 'devel/variable', 'title' => t('variable viewer'),
       'callback' => 'devel_variable',
       'access' => user_access('access devel information'));  
+    $items[] = array('path' => 'devel/switch', 'title' => t('switch user'),
+      'callback' => 'devel_switch_user',
+      'access' => user_access('access devel information'),
+      'type' => MENU_CALLBACK);  
   }
 
   return $items;
@@ -210,4 +214,55 @@ function devel_perm() {
   return array('access devel information');
 }
 
+/**
+ * Switch from original user to another user and back.
+ *
+ * Note: taken from mailhandler.module
+ *
+ * Note: You first need to run mailhandler_switch_user without
+ * argument to store the current user. Call mailhandler_switch_user
+ * without argument to set the user back to the original user.
+ *
+ * @param $uid The user ID to switch to
+ *
+ */
+function devel_switch_user($uid = NULL) {
+  global $user;
+  static $orig_user = array();
+
+  if (isset($uid)) {
+    $user = user_load(array('uid' => $uid));
+  }
+  // retrieve the initial user, can be called multiple times
+  else if (count($orig_user)) {
+    $user = array_shift($orig_user);
+    array_unshift($orig_user, $user);
+  }
+  // store the initial user
+  else {
+    $orig_user[] = $user;
+  }
+  drupal_goto();
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function devel_block($op = 'list', $delta = 0) {
+  if ($op == 'list') {
+    $blocks[0]['info'] = t('Switch user');
+    return $blocks;
+  }
+  else if ($op == 'view') {
+    $links = array();
+    $users = db_query('SELECT uid, name FROM {users} WHERE uid > 0');
+    while ($user = db_fetch_object($users)) {
+      $links[] = l(check_plain($user->name), 'devel/switch/'. $user->uid , array(), drupal_get_destination());
+    }
+    $block['subject'] = t('Switch user');
+    $block['content'] = theme('item_list', $links);
+
+    return $block;
+  }
+}
 ?>
