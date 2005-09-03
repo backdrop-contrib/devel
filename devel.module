@@ -35,7 +35,7 @@ function devel_menu($may_cache) {
       'access' => user_access('access devel information'));  
     $items[] = array('path' => 'devel/switch', 'title' => t('switch user'),
       'callback' => 'devel_switch_user',
-      'access' => user_access('access devel information'),
+      'access' => user_access('switch users'),
       'type' => MENU_CALLBACK);  
   }
 
@@ -211,7 +211,7 @@ function devel_settings() {
  * Implementation of hook_perm().
  */
 function devel_perm() {
-  return array('access devel information');
+  return array('access devel information', 'switch users');
 }
 
 /**
@@ -255,9 +255,11 @@ function devel_block($op = 'list', $delta = 0) {
   }
   else if ($op == 'view') {
     $links = array();
-    $users = db_query('SELECT uid, name FROM {users} WHERE uid > 0');
-    while ($user = db_fetch_object($users)) {
-      $links[] = l(check_plain($user->name), 'devel/switch/'. $user->uid , array(), drupal_get_destination());
+    if (user_access('switch users')) {
+      $users = db_query('SELECT uid, name FROM {users} WHERE uid > 0');
+      while ($user = db_fetch_object($users)) {
+        $links[] = l(check_plain($user->name), 'devel/switch/'. $user->uid , array(), drupal_get_destination());
+      }
     }
     $block['subject'] = t('Switch user');
     $block['content'] = theme('item_list', $links);
