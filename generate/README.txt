@@ -1,4 +1,9 @@
-generate-taxonomy-terms.php
+GENERAL
+===========================
+To use these scripts, copy them to the root of your Drupal site.
+When you are done, delete them since they are not access controlled.
+
+import-taxonomy-terms.php
 ===========================
 
 This simple script creates terms out of an array of names which you provide. unlike
@@ -29,21 +34,12 @@ terms will get assigned to the new nodes. Therefore you should run
 generate-taxonomy.php before this script.
 
 
-prefix-database.php
-===================
-
-This script can be used to add a prefix to all tables in database.mysql.
-To use it, copy it into your drupal root directory, make the database 
-directory writable by the www server and access the file through your browser.
-You will find a database definitions file with a d_ prefix in the database
-directory. You can change the prefix by editing prefix-database.php.
-
 update-teaser.php
 =================
 
 Use this script to regenerate the teasers in the node table.
 
-generate-users.php
+import-users.php
 ==================
 
 A small script that reads users from a csv formatted file and puts them into your database.

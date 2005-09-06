@@ -23,7 +23,8 @@ function create_nodes($records, $users) {
     for ($i = 1; $i <= $records; $i++) {
       $node->uid = $users[array_rand($users)];
       $node->type = $types[array_rand($types)];
-      $node->title = "node #$nid ($node->type)";
+      $next_nid = db_result(db_query("SELECT id FROM {sequences} WHERE name = '{node}_nid'"))+1;
+      $node->title = "node #$next_nid ($node->type)";
       $node->body = create_content();
       $node->teaser = node_teaser($node->body);
       $node->filter = variable_get('filter_default_format', 1);
@@ -35,11 +36,11 @@ function create_nodes($records, $users) {
       $node->changed = time();
 
       // Save the node:
-      $nid = node_save($node);
+      node_save($node);
 
       // Setup a path:
-      db_query("INSERT INTO {url_alias} (src, dst) VALUES ('%s', '%s')", "node/$nid", "node-$nid-$node->type");
-      print "created node #$nid with alias ". url("node-$nid-$node->type") ."<br />";
+      db_query("INSERT INTO {url_alias} (src, dst) VALUES ('%s', '%s')", "node/$node->nid", "node-$node->nid-$node->type");
+      print "created node #$node->nid with alias ". url("node-$node->nid-$node->type") ."<br />";
       unset($node);
     }
   }
