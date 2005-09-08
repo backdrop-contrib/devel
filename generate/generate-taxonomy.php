@@ -22,8 +22,9 @@ function create_vocabularies($records) {
     $voc->weight = rand(0,10);    
 
     taxonomy_save_vocabulary(object2array($voc));
-    print "created vocabulary #$i<br />";
+    $output .= "created vocabulary #$i<br />";
   }
+  return $output;
 }
 
 function create_terms($records, $vocs) {
@@ -34,12 +35,14 @@ function create_terms($records, $vocs) {
     switch ($i % 2) {
       case 1:
         $term->vid = $vocs[array_rand($vocs)];
-        $term->parent = 0;
+        // dont set a parent. handled by taxonomy_save_term()
+        // $term->parent = 0;
         break;
       case 2:
       default:
-        $parent = db_fetch_object(db_query("SELECT t.tid, v.vid FROM {term_data} t, {vocabulary} v WHERE v.vid = t.vid ORDER BY RAND() LIMIT 1"));
-        $term->parent = $parent->tid;
+        $parent = db_fetch_object(db_query_range("SELECT t.tid, v.vid FROM {term_data} t INNER JOIN {vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1));
+        dprint_r($parent);
+        $term->parent = array($parent->tid);
         $term->vid = $parent->vid;
         break;
     }
@@ -48,10 +51,12 @@ function create_terms($records, $vocs) {
     $term->description = "description of term #$i";
     $term->weight = rand(0,10);
    
-    taxonomy_save_term(object2array($term)); 
+    $status = taxonomy_save_term(object2array($term));
+    unset($term);
     
-    print "created term #$i<br />";
+    $output .= $status. ": #$i<br />";
   }
+  return $output;
 }
 
 function get_vocabularies() {
@@ -70,11 +75,14 @@ db_query("DELETE FROM {term_hierarchy}");
 db_query("DELETE FROM {term_relation}");
 db_query("DELETE FROM {term_synonym}");
 db_query("DELETE FROM {vocabulary}");
+db_query("DELETE FROM {vocabulary_node_types}");
 db_query("UPDATE sequences SET id = '0' WHERE name = 'vocabulary_vid'");
 db_query("UPDATE sequences SET id = '0' WHERE name = 'term_data_tid'");
 
-create_vocabularies(15);
+$output = create_vocabularies(15);
 $vocs = get_vocabularies();
-create_terms(50, $vocs);
+$output .= create_terms(50, $vocs);
+print theme('page', $output);
+drupal_page_footer();
 
 ?>
