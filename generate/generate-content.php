@@ -75,48 +75,51 @@ function create_comments($records, $users, $nodes, $comments) {
 }
 
 function create_content() {
+  $nparas = rand(1,12);
+  $type = rand(0,3);
 
-$nparas = rand(1,12);
-$type = rand(0,3);
+  $output = "";
+  switch($type % 3) {
+    case 1: // html
+      for ($i = 1; $i <= $nparas; $i++) {
+        $output .= create_para(rand(10,60),1);
+      }
+      break;
 
-$output = "";
-switch($type % 3) {
-  case 1: // html
-    for ($i = 1; $i <= $nparas; $i++) {
-      $output .= create_para(rand(10,60),1);
-    }
-    break;
-  case 2: // brs only
-    for ($i = 1; $i <= $nparas; $i++) {
-      $output .= create_para(rand(10,60),2);
-    }
-    break;
-  default: // plain text
-    for ($i = 1; $i <= $nparas; $i++) {
-      $output .= create_para(rand(10,60)) ."\n";
-    }
-}
+    case 2: // brs only
+      for ($i = 1; $i <= $nparas; $i++) {
+        $output .= create_para(rand(10,60),2);
+      }
+      break;
 
-return $output;
+    default: // plain text
+      for ($i = 1; $i <= $nparas; $i++) {
+        $output .= create_para(rand(10,60)) ."\n";
+      }
+  }
+
+  return $output;
 }
 
 function create_para($words, $type = 0) {
-$output = "";
-switch ($type) {
-  case 1:
-    $output .= "<p>";
-    $output .= create_greeking($words);
-    $output = trim($output) ."</p>";
-  break;
-  case 2:
-    $output .= create_greeking($words);
-    $output = trim($output) ."<br />";
-  break;
-  default:
-    $output .= create_greeking($words);
-    $output = trim($output);
-}
-return $output;
+  $output = "";
+  switch ($type) {
+    case 1:
+      $output .= "<p>";
+      $output .= create_greeking($words);
+      $output = trim($output) ."</p>";
+      break;
+
+    case 2:
+      $output .= create_greeking($words);
+      $output = trim($output) ."<br />";
+      break;
+
+    default:
+      $output .= create_greeking($words);
+      $output = trim($output);
+  }
+  return $output;
 }
 
 function create_greeking($words) {
