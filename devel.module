@@ -185,7 +185,12 @@ function dprint_r($arr) {
  */
 function ddebug_backtrace() {
   if (user_access('access devel information')) {
-    dprint_r(debug_backtrace());
+    if (function_exists('debug_print_backtrace')) {
+      debug_print_backtrace();
+    }
+    else {
+      dprint_r(debug_backtrace());
+    }
   }
 }
 
