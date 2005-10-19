@@ -208,11 +208,12 @@ function devel_help($section) {
  * Implementation of hook_settings().
  */
 function devel_settings() {
-  $output  = form_select(t('Display page timer'), 'dev_timer', variable_get('dev_timer', 0), array(t('Disabled'), t('Enabled')), t('Display page execution time in the query log box.'));
-  $output .= form_select(t('Display query log'), 'dev_query', variable_get('dev_query', 0), array(t('Disabled'), t('Enabled')), t('Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
-  $output .= form_textfield(t('Query execution threshold'), 'devel_execution', variable_get('devel_execution', 5), 4, 4, t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching.'));
-  $output .= form_select(t('Display redirection page'), 'devel_redirect_page', variable_get('devel_redirect_page', 0), array(t('Disabled'), t('Enabled')), t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'));
-  return $output;
+  $form['dev_timer'] = array('#type' => 'select', '#title' => t('Display page timer'), '#default_value' => variable_get('dev_timer', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Display page execution time in the query log box.'));
+  $form['dev_query'] = array('#type' => 'select', '#title' => t('Display query log'), '#default_value' => variable_get('dev_query', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
+  $form['devel_execution'] = array('#type' => 'textfield', '#title' => t('Query execution threshold'), '#default_value' => variable_get('devel_execution', 5), '#size' => 4, '#maxlength' => 4, '#description' => t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching.'));
+  $form['devel_redirect_page'] = array('#type' => 'select', '#title' => t('Display redirection page'), '#default_value' => variable_get('devel_redirect_page', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'));
+  
+  return $form;
 }
 
 /**
