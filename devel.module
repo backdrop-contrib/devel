@@ -37,6 +37,9 @@ function devel_menu($may_cache) {
       'callback' => 'devel_switch_user',
       'access' => user_access('switch users'),
       'type' => MENU_CALLBACK);  
+    $items[] = array('path' => 'devel/execute', 'title' => t('execute PHP code'),
+      'callback' => 'devel_execute',
+      'access' => user_access('execute php code'));
   }
 
   return $items;
@@ -220,7 +223,7 @@ function devel_settings() {
  * Implementation of hook_perm().
  */
 function devel_perm() {
-  return array('access devel information', 'switch users');
+  return array('access devel information', 'switch users', 'execute php code');
 }
 
 /**
@@ -252,6 +255,27 @@ function devel_switch_user($uid = NULL) {
     $orig_user[] = $user;
   }
   drupal_goto();
+}
+
+function devel_execute() {
+  if ($edit = $_POST['edit']) {
+    ob_start();
+    print eval($edit['code']);
+    $output = ob_get_contents();
+    ob_end_clean();
+  }
+
+  $form = array();
+  $form['code'] = array(
+      '#type' => 'textarea',
+      '#title' => t('PHP code to run'),
+      '#description' => t('Enter some code. Don\'t use a <code>&lt?php</code>.')
+      );
+  $form['op'] = array(
+      '#type' => 'submit',
+      '#value' => t('Execute')
+      );
+  return '<code>'. $output .'</code>'. drupal_get_form('devel_execute', $form);
 }
 
 /**
