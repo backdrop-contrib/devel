@@ -12,16 +12,16 @@ function create_vocabularies($records) {
 
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
-    $voc->name = "vocabulary #$i";
-    $voc->description = "description of vocabulary #$i";
-    $voc->nodes = array($types[array_rand($types)]);
-    $voc->multiple = 1;
-    $voc->required = 0;
-    $voc->relations = 1;
-    $voc->hierarchy = 1;
-    $voc->weight = rand(0,10);    
+    $voc['name'] = "vocabulary #$i";
+    $voc['description'] = "description of vocabulary #$i";
+    $voc['nodes'] = array($types[array_rand($types)]);
+    $voc['multiple'] = 1;
+    $voc['required'] = 0;
+    $voc['relations'] = 1;
+    $voc['hierarchy'] = 1;
+    $voc['weight'] = rand(0,10);    
 
-    taxonomy_save_vocabulary(object2array($voc));
+    taxonomy_save_vocabulary($voc);
     $output .= "created vocabulary #$i<br />";
   }
   return $output;
@@ -34,24 +34,23 @@ function create_terms($records, $vocs) {
 
     switch ($i % 2) {
       case 1:
-        $term->vid = $vocs[array_rand($vocs)];
+        $term['vid'] = $vocs[array_rand($vocs)];
         // dont set a parent. handled by taxonomy_save_term()
         // $term->parent = 0;
         break;
       case 2:
       default:
         $parent = db_fetch_object(db_query_range("SELECT t.tid, v.vid FROM {term_data} t INNER JOIN {vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1));
-        dprint_r($parent);
-        $term->parent = array($parent->tid);
-        $term->vid = $parent->vid;
+        $term['parent'] = array($parent->tid);
+        $term['vid'] = $parent->vid;
         break;
     }
  
-    $term->name = "term #$i";
-    $term->description = "description of term #$i";
-    $term->weight = rand(0,10);
+    $term['name'] = "term #$i";
+    $term['description'] = "description of term #$i";
+    $term['weight'] = rand(0,10);
    
-    $status = taxonomy_save_term(object2array($term));
+    $status = taxonomy_save_term($term);
     unset($term);
     
     $output .= $status. ": #$i<br />";
