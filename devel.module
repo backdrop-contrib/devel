@@ -215,7 +215,7 @@ function devel_settings() {
   $form['dev_query'] = array('#type' => 'select', '#title' => t('Display query log'), '#default_value' => variable_get('dev_query', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
   $form['devel_execution'] = array('#type' => 'textfield', '#title' => t('Query execution threshold'), '#default_value' => variable_get('devel_execution', 5), '#size' => 4, '#maxlength' => 4, '#description' => t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching.'));
   $form['devel_redirect_page'] = array('#type' => 'select', '#title' => t('Display redirection page'), '#default_value' => variable_get('devel_redirect_page', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'));
-  
+  $form['devel_form_weights'] = array('#type' => 'select', '#title' => t('Display form element weights'), '#default_value' => variable_get('devel_form_weights', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Form elements may have weights that determine their position in a form. Enabling this setting will show these weights.'));
   return $form;
 }
 
@@ -300,4 +300,32 @@ function devel_block($op = 'list', $delta = 0) {
     return $block;
   }
 }
-?>
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function devel_form_alter($form_id, &$form) {
+  if (variable_get('devel_form_weights', 0)) {
+    $children = element_children($form);
+    if (empty($children)) {
+      if ($form['#type'] != 'value') {
+        $form['#title'] .= " (weight: " . ($form['#weight'] ? $form['#weight'] : 0) . ")";
+      }
+    }
+    else {
+      foreach (element_children($form) as $key) {
+        // we need to add the weight to fieldsets
+        if (element_children($form[$key])) { // which are a container of others.
+          $form[$key]['#title'] .= " (weight: " . ($form[$key]['#weight'] ? $form[$key]['#weight'] : 0) . ")";
+        }
+        devel_form_alter($form_id, $form[$key]);
+      }
+    }
+  }
+}
+
+function devel_update_1() {
+  // new module weights in core: put devel as the very last in the chain.
+  $ret[] = update_sql("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
+  return $ret;
+}
