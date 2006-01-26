@@ -32,21 +32,43 @@ function devel_menu($may_cache) {
       'access' => user_access('access devel information'));
     $items[] = array('path' => 'devel/variable', 'title' => t('variable viewer'),
       'callback' => 'devel_variable',
-      'access' => user_access('access devel information'));  
+      'access' => user_access('access devel information'));
     $items[] = array('path' => 'devel/switch', 'title' => t('switch user'),
       'callback' => 'devel_switch_user',
       'access' => user_access('switch users'),
-      'type' => MENU_CALLBACK);  
+      'type' => MENU_CALLBACK);
     $items[] = array('path' => 'devel/execute', 'title' => t('execute PHP code'),
       'callback' => 'devel_execute',
       'access' => user_access('execute php code'));
+  }
+  else {
+    if (arg(0) == 'user' && is_numeric(arg(1))) {
+      $items[] = array(
+        'path' => 'user/'. arg(1) .'/object',
+        'title' => t('object structure'),
+        'callback' => 'devel_show_object',
+        'callback arguments' => array('user', arg(1)),
+        'access' => user_access('access devel information'),
+        'type' => MENU_LOCAL_TASK,
+      );
+    }
+    if (arg(0) == 'node' && is_numeric(arg(1))) {
+      $items[] = array(
+        'path' => 'node/'. arg(1) .'/object',
+        'title' => t('object structure'),
+        'callback' => 'devel_show_object',
+        'callback arguments' => array('node', arg(1)),
+        'access' => user_access('access devel information'),
+        'type' => MENU_LOCAL_TASK,
+      );
+    }
   }
 
   return $items;
 }
 
-function devel_variable() {                    
-  global$conf;
+function devel_variable() {
+  global $conf;
   return dprint_r($conf);
 }
 
@@ -332,6 +354,46 @@ function devel_form_alter($form_id, &$form) {
       }
     }
   }
+}
+
+
+/**
+ * Menu callback; prints the structure of the current node/user.
+ */
+function devel_show_object($type, $id) {
+  $output = '';
+
+  switch ($type) {
+    case 'node':
+      $object = node_load($id);
+      drupal_set_title(check_plain($object->title));
+      break;
+
+    case 'user':
+      $object = user_load(array('uid' => $id));
+      drupal_set_title(check_plain($object->name));
+      break;
+  }
+
+  foreach ($object as $field => $value) {
+    if (is_null($value)) {
+      $printed_value = 'NULL';
+    }
+    else if (is_array($value) || is_object($value)) {
+      ob_start();
+      print_r($value);
+      $printed_value = ob_get_contents();
+      $printed_value = '<pre>'. check_plain($printed_value) .'</pre>';
+      ob_end_clean();
+    }
+    else {
+      $printed_value = check_plain($value);
+    }
+
+    $output .= theme('box', $field, $printed_value);
+  }
+
+  return $output;
 }
 
 function devel_update_1() {
