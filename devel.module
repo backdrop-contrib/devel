@@ -263,8 +263,8 @@ function devel_perm() {
  *
  * Note: taken from mailhandler.module
  *
- * Note: You first need to run mailhandler_switch_user without
- * argument to store the current user. Call mailhandler_switch_user
+ * Note: You first need to run devel_switch_user without
+ * argument to store the current user. Call devel_switch_user
  * without argument to set the user back to the original user.
  *
  * @param $uid The user ID to switch to
@@ -327,7 +327,9 @@ function devel_block($op = 'list', $delta = 0) {
       }
     }
     $block['subject'] = t('Switch user');
-    $block['content'] = theme('item_list', $links);
+    if ($links) {
+      $block['content'] = theme('item_list', $links);
+    }
 
     return $block;
   }
