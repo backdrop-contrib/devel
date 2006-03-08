@@ -397,9 +397,3 @@ function devel_show_object($type, $id) {
 
   return $output;
 }
-
-function devel_update_1() {
-  // new module weights in core: put devel as the very last in the chain.
-  $ret[] = update_sql("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
-  return $ret;
-}

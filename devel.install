@@ -1,0 +1,21 @@
+<?php
+// $Id$
+/**
+ * Implementation of hook_install()
+ */
+function devel_install() {
+  // new module weights in core: put devel as the very last in the chain.
+  $ret[] = db_query("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
+  return $ret;
+}
+
+/**
+ * Do the update 1 again as the hook_install() was missing and new
+ * installations are not having the weight set.
+ */
+function devel_update_2() {
+  // new module weights in core: put devel as the very last in the chain.
+  $ret[] = update_sql("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
+  return $ret;
+}
+
