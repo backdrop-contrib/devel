@@ -40,6 +40,12 @@ function devel_menu($may_cache) {
     $items[] = array('path' => 'devel/execute', 'title' => t('execute PHP code'),
       'callback' => 'devel_execute',
       'access' => user_access('execute php code'));
+    $items[] = array(
+      'path' => 'devel/reinstall',
+      'title' => t('reinstall module'),
+      'callback' => 'devel_reinstall',
+      'access' => user_access('access devel information'),
+    );
   }
   else {
     if (arg(0) == 'user' && is_numeric(arg(1))) {
@@ -107,7 +113,7 @@ function devel_exit($destination = NULL) {
 
   if (function_exists('drupal_get_headers') && strstr(drupal_get_headers(), 'xml')) {
     $is_xml = TRUE;
-  };
+  }
   if (user_access('access devel information') && !$is_xml) { // try not to break the xml pages
     // Query log off, timer on
     if (!variable_get('dev_query', 0) && variable_get('dev_timer', 0)) {
@@ -236,6 +242,8 @@ function devel_help($section) {
   switch ($section) {
     case 'admin/modules#description':
       return t('Development helper functions');
+    case 'devel/reinstall':
+      return t('Clicking a module\'s reinstall button will simulate installing a module. <code>hook_install()</code> will be executed and the schema version number will be set to the most recent update number. Make sure to manually clear out any existing tables first.');
   }
 }
 
@@ -299,15 +307,47 @@ function devel_execute() {
 
   $form = array();
   $form['code'] = array(
-      '#type' => 'textarea',
-      '#title' => t('PHP code to run'),
-      '#description' => t('Enter some code. Don\'t use a <code>&lt?php</code>.')
-      );
+    '#type' => 'textarea',
+    '#title' => t('PHP code to run'),
+    '#description' => t('Enter some code. Don\'t use a <code>&lt?php</code>.')
+  );
   $form['op'] = array(
-      '#type' => 'submit',
-      '#value' => t('Execute')
-      );
+    '#type' => 'submit',
+    '#value' => t('Execute')
+  );
   return '<code>'. $output .'</code>'. drupal_get_form('devel_execute', $form);
+}
+
+function devel_execute_submit() {
+  return FALSE;
+}
+
+function devel_reinstall() {
+  $output = '';
+  foreach (module_list() as $module) {
+    $form = array(
+      'module' => array(
+        '#type' => 'value',
+        '#value' => $module,
+      ),
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Reinstall %name module', array('%name' => $module)),
+      )
+    );
+    $output .= drupal_get_form('devel_reinstall', $form);
+  }
+
+  return $output;
+}
+
+function devel_reinstall_submit($form_id, $form_values) {
+  include './includes/install.inc';
+  $module = $form_values['module'];
+  $versions = drupal_get_schema_versions($module);
+  drupal_set_installed_schema_version($module, $versions ? max($versions) : SCHEMA_INSTALLED);
+  module_invoke($module, 'install');
+  drupal_set_message(t('Reinstalled the %name module.', array('%name' => $module)));
 }
 
 /**
