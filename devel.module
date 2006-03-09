@@ -324,7 +324,9 @@ function devel_execute_submit() {
 
 function devel_reinstall() {
   $output = '';
-  foreach (module_list() as $module) {
+  $modules = module_list();
+  sort($modules);
+  foreach ($modules as $module) {
     $form = array(
       'module' => array(
         '#type' => 'value',
