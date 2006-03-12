@@ -46,6 +46,13 @@ function devel_menu($may_cache) {
       'callback' => 'devel_reinstall',
       'access' => user_access('access devel information'),
     );
+    if (module_exist('menu')) {
+      $items[] = array('path' => 'devel/menu/reset',
+        'title' => t('reset menus'),
+        'callback' => 'devel_menu_reset_form',
+        'access' => user_access('reset menus'),
+      );
+    }
   }
   else {
     if (arg(0) == 'user' && is_numeric(arg(1))) {
@@ -438,4 +445,25 @@ function devel_show_object($type, $id) {
   }
 
   return $output;
+}
+
+/**
+ * Menu callback; clear the database, resetting the menu to factory defaults.
+ */
+function devel_menu_reset_form() {
+  return confirm_form('devel_menu_reset_form', array(), t('Are you sure you want to reset all menu items to their default settings?'), 'admin/menu', t('Any custom additions or changes to the menu will be lost.'), t('Reset all'));
+}
+
+/**
+ * Process menu reset form submission.
+ */
+function devel_menu_reset_form_submit() {
+  db_query('DELETE FROM {menu}');
+  $mid = module_invoke('menu', 'edit_item_save', array('title' => t('Primary menu links'), 'pid' => 0, 'type' => MENU_CUSTOM_MENU));
+  variable_set('menu_primary_menu', $mid);
+  variable_set('menu_secondary_menu', $mid);
+  
+  drupal_set_message(t('The menu items have been reset to their default settings.'));
+  
+  return 'admin/menu';
 }
