@@ -17,6 +17,10 @@
  * behavior when stepping though in a debugger.
  */
 function devel_init() {
+  if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
+    global $memory_init;
+    $memory_init = memory_get_usage();
+  }
   restore_error_handler();
 }
 
@@ -97,7 +101,7 @@ function devel_timer() {
  * drupal_page_footer() in order to work for cached pages.
  */
 function devel_exit($destination = NULL) {
-  global $queries;
+  global $queries, $memory_init;
 
   $is_xml = FALSE;
   $output = '';
@@ -156,6 +160,16 @@ function devel_exit($destination = NULL) {
      // commented out because generates too much output. output to log file instead. see xdebug docs
      // dprint_r(xdebug_get_function_profile());;
     };
+
+    if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
+      $memory_exit = memory_get_usage();
+      $output .= '<div style="padding-top: 2em;">';
+      foreach (array('devel_init()' => $memory_init, 'devel_exit()' => $memory_exit) as $type => $value) {
+        $output .= t('Memory used at %type: %value MB<br />', array('%type' => $type, '%value' => round($value / 1024 / 1024, 2)));
+      }
+      $output .= '</div>';
+    }
+
     // TODO: gzip this text if we are sending a gzip page. see drupal_page_header()
     print $output;
   }
@@ -260,6 +274,7 @@ function devel_help($section) {
 function devel_settings() {
   $form['dev_timer'] = array('#type' => 'select', '#title' => t('Display page timer'), '#default_value' => variable_get('dev_timer', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Display page execution time in the query log box.'));
   $form['dev_query'] = array('#type' => 'select', '#title' => t('Display query log'), '#default_value' => variable_get('dev_query', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Display a log of the database queries needed to generate the current page, the and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
+  $form['dev_mem'] = array('#type' => 'select', '#title' => t('Display memory usage'), '#default_value' => variable_get('dev_mem', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Display how much memory is used to generate the current page.  This will show memory usage when devel_init() is called and when devel_exit() is called.  PHP must have been compiled with the <em>--enable-memory-limit</em> configuration option for this feature to work.'));
   $form['devel_execution'] = array('#type' => 'textfield', '#title' => t('Query execution threshold'), '#default_value' => variable_get('devel_execution', 5), '#size' => 4, '#maxlength' => 4, '#description' => t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching.'));
   $form['devel_redirect_page'] = array('#type' => 'select', '#title' => t('Display redirection page'), '#default_value' => variable_get('devel_redirect_page', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'));
   $form['devel_form_weights'] = array('#type' => 'select', '#title' => t('Display form element weights'), '#default_value' => variable_get('devel_form_weights', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Form elements may have weights that determine their position in a form. Enabling this setting will show these weights.'));
