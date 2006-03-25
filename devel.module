@@ -209,7 +209,7 @@ function devel_query_table($queries, $counts) {
     else {
       $cell[$i][] = $count;
     }
-    $cell[$i][] = $function;
+    $cell[$i][] = l($function, "http://api.drupal.org/api/HEAD/function/$function");
     $cell[$i][] = check_plain($query[0]);
     $i++;
     unset($diff, $count);
