@@ -186,10 +186,15 @@ function devel_cache_clear() {
 }
 
 function devel_query_table($queries, $counts) {
-  $header = array ('ms', '#', 'query');
+  $header = array ('ms', '#', 'where', 'query');
   $i = 0;
   foreach ($queries as $query) {
     // dprint_r($query);
+
+    $ar = explode("\n", $query[0]);
+    $query[0]=$ar[1];
+    $function=$ar[0];
+    
     $diff = round($query[1]*1000,2);
     $count = $counts[$query[0]];
     if ($diff > variable_get('devel_execution', 5)) {
@@ -204,6 +209,7 @@ function devel_query_table($queries, $counts) {
     else {
       $cell[$i][] = $count;
     }
+    $cell[$i][] = $function;
     $cell[$i][] = check_plain($query[0]);
     $i++;
     unset($diff, $count);
