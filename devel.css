@@ -1,0 +1,35 @@
+.dev-query, .dev-timer, .dev-memory-usage {
+  padding-top: 2em;
+}
+
+/* phpinfo() styling */
+.phpinfo .center {
+  text-align: center;
+}
+.phpinfo table {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+.phpinfo td, .phpinfo th {
+  border: 1px solid #000;
+  vertical-align: baseline;
+}
+.phpinfo .e {
+  background-color: #CCCCFF;
+  font-weight: bold;
+  color: #000;
+}
+.phpinfo .h {
+  background-color: #9999CC;
+  font-weight: bold;
+  color: #000;
+}
+.phpinfo .v {
+  background-color: #CCC;
+  color: #000;
+}
+.phpinfo img {
+  float: right;
+  border: 0px;
+}

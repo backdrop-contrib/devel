@@ -4,18 +4,19 @@
  * Implementation of hook_install()
  */
 function devel_install() {
-  // new module weights in core: put devel as the very last in the chain.
+  // New module weights in core: put devel as the very last in the chain.
   $ret[] = db_query("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
+  // Auto-enable the devel block for fresh installations.
+  $ret[] = db_query("INSERT INTO {blocks} (module, delta, theme, status, pages) VALUES ('devel', '1', '%s', 1, '')", variable_get('theme_default', 'bluemarine'));
   return $ret;
 }
 
 /**
- * Do the update 1 again as the hook_install() was missing and new
+ * Do update 1 again as the hook_install() was missing and new
  * installations are not having the weight set.
  */
 function devel_update_2() {
-  // new module weights in core: put devel as the very last in the chain.
+  // New module weights in core: put devel as the very last in the chain.
   $ret[] = update_sql("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
   return $ret;
 }
-
