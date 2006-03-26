@@ -379,7 +379,7 @@ function devel_menu_reset_form() {
  */
 function devel_menu_reset_form_submit() {
   db_query('DELETE FROM {menu}');
-  $mid = module_invoke('menu', 'edit_item_save', array('title' => t('Primary menu links'), 'pid' => 0, 'type' => MENU_CUSTOM_MENU));
+  $mid = module_invoke('menu', 'edit_item_save', array('title' => t('Primary links'), 'pid' => 0, 'type' => MENU_CUSTOM_MENU));
   variable_set('menu_primary_menu', $mid);
   variable_set('menu_secondary_menu', $mid);
 
