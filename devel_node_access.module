@@ -1,12 +1,12 @@
 <?php
 
 /**
- * @file 
- * 
+ * @file
+ *
  * This module gives developers feedback as to what there
  * node_access table contains, and which nodes are protected or
  * visible to the public.
- * 
+ *
  */
 
 define('DNA_ACCESS_VIEW', 'view devel_node_access information');
@@ -103,13 +103,13 @@ function dna_summary() {
 	$headers = array(t('realm'), t('public nodes'));
 	$rows = array();
 	while ($row = db_fetch_object($result)) {
-	  $rows[] = array($row->realm, 
+	  $rows[] = array($row->realm,
 					  array('data' => $row->node_count,
 							'align' => 'center'));
 	}
 	$output .= theme_table($headers, $rows, array(), t('Public Nodes'));
   }
-  
+
 
   // find specific nodes protected by node_access table
   $result = db_query('SELECT DISTINCT realm, COUNT(DISTINCT nid) as node_count FROM {node_access} WHERE gid != 0 AND nid > 0 GROUP BY realm');
@@ -121,13 +121,13 @@ function dna_summary() {
 	$headers = array(t('realm'), t('private nodes'));
 	$rows = array();
 	while ($row = db_fetch_object($result)) {
-	  $rows[] = array(l($row->realm, "devel/node_access/view/$row->realm"), 
+	  $rows[] = array(l($row->realm, "devel/node_access/view/$row->realm"),
 					  array('data' => $row->node_count,
 							'align' => 'center'));
 	}
 	$output .= theme_table($headers, $rows, array(), t('Protected Nodes'));
   }
-  
+
 
 
   return $output;
@@ -194,20 +194,20 @@ function devel_node_access_views_tables() {
 								  'sortable' => true,
 								  ),
 							),
-		  'filters' => 
-		  array('realm' => 
+		  'filters' =>
+		  array('realm' =>
 				array('name' => t('Node Access Realm'),
 					  'operator' => 'views_handler_operator_eqneq',
 					  ),
 				),
-		  
+		
 		  );
   return $tables;
 }
 
 function devel_node_access_views_arguments() {
-  $arguments = 
-	array('realm' => 
+  $arguments =
+	array('realm' =>
 		  array('name' => t('Node Access: Realm'),
 				'handler' => 'dna_handler_arg_realm',
 				),

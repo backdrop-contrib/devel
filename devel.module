@@ -507,7 +507,7 @@ function devel_query_table($queries, $counts) {
     $function=$ar[0];
 
     $diff = round($query[1] * 1000, 2);
-    $count = $counts[$query[0]];
+    $count = isset($counts[$query[0]]) ? $counts[$query[0]] : 0;
     if ($diff > variable_get('devel_execution', 5)) {
       $cell[$i][] = array ('data' => $diff, 'class' => 'marker');
     }
