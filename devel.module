@@ -160,6 +160,11 @@ function devel_block($op = 'list', $delta = 0) {
         if (user_access('execute php code')) {
           $links[] = l('execute PHP code', 'devel/execute');
         }
+		if (function_exists('devel_node_access_perm') &&
+			user_access(DNA_ACCESS_VIEW)) {
+		  // true only if devel_node_access enabled
+		  $links[] = l('node_access summary', 'devel/node_access/summary');
+		}
         break;
     }
     if ($links) {

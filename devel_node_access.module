@@ -44,6 +44,7 @@ function devel_node_access_menu($may_cache) {
 					 'title' => t('node_access summary'),
 					 'callback' => 'dna_summary',
 					 'access' => user_access(DNA_ACCESS_VIEW),
+					 'type' => MENU_CALLBACK,
 					 );
   }
   return $items;
