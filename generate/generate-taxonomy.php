@@ -12,9 +12,13 @@ function create_vocabularies($records) {
 
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
+    $voc = array();
     $voc['name'] = "vocabulary #$i";
     $voc['description'] = "description of vocabulary #$i";
-    $voc['nodes'] = array($types[array_rand($types)]);
+    $voc['nodes'] = array_flip(array($types[array_rand($types)]));
+    foreach ($voc['nodes'] as $key => $value) {
+      $voc['nodes'][$key] = $key;
+    }
     $voc['multiple'] = 1;
     $voc['required'] = 0;
     $voc['relations'] = 1;
@@ -60,7 +64,7 @@ function create_terms($records, $vocs) {
 
 function get_vocabularies() {
   $vocs = array();
-  $result = db_query("SELECT vid FROM vocabulary");
+  $result = db_query("SELECT vid FROM {vocabulary}");
   while($voc = db_fetch_object($result)){
     $vocs[] = $voc->vid;
   }
@@ -75,8 +79,8 @@ db_query("DELETE FROM {term_relation}");
 db_query("DELETE FROM {term_synonym}");
 db_query("DELETE FROM {vocabulary}");
 db_query("DELETE FROM {vocabulary_node_types}");
-db_query("UPDATE sequences SET id = '0' WHERE name = 'vocabulary_vid'");
-db_query("UPDATE sequences SET id = '0' WHERE name = 'term_data_tid'");
+db_query("UPDATE {sequences} SET id = '0' WHERE name = '{vocabulary_vid}'");
+db_query("UPDATE {sequences} SET id = '0' WHERE name = '{term_data_tid}'");
 
 $output = create_vocabularies(15);
 $vocs = get_vocabularies();
