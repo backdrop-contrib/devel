@@ -508,8 +508,8 @@ function devel_query_table($queries, $counts) {
   foreach ($queries as $query) {
     // dprint_r($query);
     $ar = explode("\n", $query[0]);
-    $query[0]=$ar[1];
-    $function=$ar[0];
+    $function=array_shift($ar);
+    $query[0]=join(' ',$ar);
 
     $diff = round($query[1] * 1000, 2);
     $count = isset($counts[$query[0]]) ? $counts[$query[0]] : 0;
