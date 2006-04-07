@@ -115,7 +115,10 @@ function devel_init() {
 
     $memory_init = memory_get_usage();
   }
-  restore_error_handler();
+  // update.php relies on the custom error handler
+  if (!strstr($_SERVER['PHP_SELF'], 'update.php')) {
+    restore_error_handler();
+  }
 }
 
 /**
