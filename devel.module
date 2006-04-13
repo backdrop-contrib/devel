@@ -146,7 +146,8 @@ function devel_block($op = 'list', $delta = 0) {
         if (user_access('switch users')) {
           $users = db_query('SELECT uid, name FROM {users} WHERE uid > 0');
           while ($user = db_fetch_object($users)) {
-            $links[] = l(check_plain($user->name), 'devel/switch/'. $user->uid, array(), drupal_get_destination());
+            $dest = drupal_get_destination();
+            $links[] = l(check_plain($user->name), 'devel/switch/'. $user->uid, array(), $dest);
           }
         }
         break;
@@ -204,6 +205,8 @@ function devel_form_alter($form_id, &$form) {
 /**
  * Implementation of hook_exit(). Displays developer information in the footer.
  *
+ * Don't use t() here. It isn't available for cached pages.
+ *
  * We can't move this to hook_footer() since this must run after
  * drupal_page_footer() in order to work for cached pages.
  */
@@ -216,7 +219,7 @@ function devel_exit($destination = NULL) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
     if (user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
-      $output = t('<p>The user is being redirected to <a href="%destination">%destination</a>.</p>', array('%destination' => $destination));
+      $output = strtr('<p>The user is being redirected to <a href="%destination">%destination</a>.</p>', array('%destination' => $destination));
       print theme('page', $output);
 
       // Don't allow the automatic redirect to happen.
@@ -273,9 +276,9 @@ function devel_exit($destination = NULL) {
       $memory_exit = memory_get_usage();
       $list = array();
       foreach (array('devel_init()' => $memory_init, 'devel_exit()' => $memory_exit) as $type => $value) {
-        $list[] = t('Memory used at %type: %value MB', array('%type' => $type, '%value' => round($value / 1024 / 1024, 2)));
+        $list[] = strtr('Memory used at %type: %value MB', array('%type' => $type, '%value' => round($value / 1024 / 1024, 2)));
       }
-      $output .= '<div class="dev-memory-usage"><h3>'. t('Memory usage:') .'</h3>'. theme('item_list', $list) .'</div>';
+      $output .= '<div class="dev-memory-usage"><h3>'. 'Memory usage:' .'</h3>'. theme('item_list', $list) .'</div>';
     }
     // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
     print $output;
