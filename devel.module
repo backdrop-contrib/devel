@@ -327,6 +327,24 @@ function devel_settings() {
     '#description' => t('Form elements may have weights that determine their position in a form. Enabling this setting will show these weights.'),
   );
 
+  // Save any old SMTP library
+  if (variable_get('smtp_library', '') != '' && variable_get('smtp_library', '') != drupal_get_filename('module', 'devel')) {
+    variable_set('devel_old_smtp_library', variable_get('smtp_library', ''));
+  }
+  $smtp_options = array(
+    '' => t('Default'),
+    drupal_get_filename('module', 'devel') => t('Log only'),
+  );
+  if (variable_get('devel_old_smtp_library', '') != '') {
+    $smtp_options[variable_get('devel_old_smtp_library', '')] = t('Other (%library)', array('%library' => variable_get('devel_old_smtp_library', '')));
+  }
+  $form['smtp_library'] = array(
+    '#type' => 'radios',
+    '#title' => t('SMTP library'),
+    '#options' => $smtp_options,
+    '#default_value' => variable_get('smtp_library', ''),
+  );
+
   return $form;
 }
 
@@ -593,5 +611,22 @@ function ddebug_backtrace() {
     else {
       dprint_r(debug_backtrace());
     }
+  }
+}
+
+// Only define our mail wrapper if the devel module is the current mail
+// wrapper.
+if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) {
+  /**
+   * Log the mails sent out instead of mailing.
+   */
+  function user_mail_wrapper($mail, $subject, $message, $header) {
+    watchdog('devel', t('Mail sent:<br />To: %mail<br />Subject: %subject<br />Message: %message<br />Additional headers: %header', array(
+      '%mail' => $mail,
+      '%subject' => $subject,
+      '%message' => $message,
+      '%header' => $header,
+    )));
+    return TRUE;
   }
 }
