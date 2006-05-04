@@ -425,9 +425,13 @@ function devel_reinstall() {
   $modules = module_list();
   sort($modules);
   foreach ($modules as $module) {
-    $form = array('module' => array('#type' => 'value', '#value' => $module), 'submit' => array('#type' => 'submit', '#value' => t('Reinstall %name module', array('%name' => $module))),
+    $form = array(
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Reinstall %name module', array('%name' => $module))
+      ),
     );
-    $output .= drupal_get_form('devel_reinstall', $form);
+    $output .= drupal_get_form('devel_reinstall_'. $module, $form, 'devel_reinstall');
   }
 
   return $output;
@@ -438,7 +442,7 @@ function devel_reinstall() {
  */
 function devel_reinstall_submit($form_id, $form_values) {
   include './includes/install.inc';
-  $module = $form_values['module'];
+  $module = str_replace('devel_reinstall_', '', $form_id);
   $versions = drupal_get_schema_versions($module);
   drupal_set_installed_schema_version($module, $versions ? max($versions) : SCHEMA_INSTALLED);
   module_invoke($module, 'install');
