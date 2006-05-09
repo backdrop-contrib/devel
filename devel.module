@@ -164,11 +164,10 @@ function devel_block($op = 'list', $delta = 0) {
         if (user_access('execute php code')) {
           $links[] = l('execute PHP code', 'devel/execute');
         }
-		if (function_exists('devel_node_access_perm') &&
-			user_access(DNA_ACCESS_VIEW)) {
-		  // true only if devel_node_access enabled
-		  $links[] = l('node_access summary', 'devel/node_access/summary');
-		}
+        if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
+          // True only if devel_node_access enabled.
+          $links[] = l('node_access summary', 'devel/node_access/summary');
+        }
         break;
     }
     if ($links) {
@@ -186,15 +185,21 @@ function devel_form_alter($form_id, &$form) {
   if (variable_get('devel_form_weights', 0)) {
     $children = element_children($form);
     if (empty($children)) {
-      if ($form['#type'] != 'value') {
-        $form['#title'] .= ' (weight: '. ($form['#weight'] ? $form['#weight'] : 0) .')';
+      if (isset($form['#type']) && !in_array($form['#type'], array('value', 'hidden'))) {
+        if (!isset($form['#title'])) {
+          $form['#title'] = '';
+        }
+        $form['#title'] .= ' (weight: '. (isset($form['#weight']) ? $form['#weight'] : 0) .')';
       }
     }
     else {
       foreach (element_children($form) as $key) {
         // We need to add the weight to fieldsets.
         if (element_children($form[$key])) { // Which are a container of others.
-          $form[$key]['#title'] .= ' (weight: '. ($form[$key]['#weight'] ? $form[$key]['#weight'] : 0) .')';
+          if (!isset($form[$key]['#title'])) {
+            $form[$key]['#title'] = '';
+          }
+          $form[$key]['#title'] .= ' (weight: '. (isset($form[$key]['#weight']) ? $form[$key]['#weight'] : 0) .')';
         }
         devel_form_alter($form_id, $form[$key]);
       }
