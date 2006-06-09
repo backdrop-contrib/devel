@@ -32,7 +32,7 @@ function gou_count_users() {
 }
 
 function gou_assign_users($nid, $admins, $limit = NULL) {
-  $sql = 'INSERT INTO og_uid ou (nid, uid, is_active) SELECT %d, uid, 1 FROM users u WHERE u.uid NOT IN ('. str_pad('', count($admins) * 3 - 1, '%d,') .') ORDER BY RAND()';
+  $sql = 'INSERT INTO og_uid ou (nid, uid, is_active, mail_type) SELECT %d, uid, 1, 1 FROM users u WHERE u.uid NOT IN ('. str_pad('', count($admins) * 3 - 1, '%d,') .') ORDER BY RAND()';
   if ($limit) {
     $sql .= " LIMIT $limit";
   }
