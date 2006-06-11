@@ -17,7 +17,7 @@ drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 function gom_get_groups() {
   $result = db_query("SELECT g.nid, g.recipient, u.uid, u.name, u.mail FROM {og2list_groups} g INNER JOIN {og_uid} o ON o.nid = g.nid INNER JOIN {users} u ON o.uid = u.uid WHERE u.status >= 1");
   $groups = array();
-  while ($group = db_fetch_array($result)) {
+  while ($group = db_fetch_object($result)) {
     $groups[$group['nid']]['recipient'] = $group->recipient;
     $groups[$group['nid']]['users'][] = array(
       'uid' => $group->uid,
