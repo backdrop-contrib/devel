@@ -357,9 +357,11 @@ function devel_settings() {
  * Menu callback; clears all caches, then redirects to the previous page.
  */
 function devel_cache_clear() {
+  global $base_url;
   db_query('DELETE FROM {cache}');
   drupal_set_message('cache cleared').
-  header('Location: '. referer_uri());
+  $referer = referer_uri();
+  header('Location: '. ($referer ? $referer : $base_url));
   exit();
 }
 
