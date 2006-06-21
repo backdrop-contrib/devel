@@ -6,8 +6,6 @@
 function devel_install() {
   // New module weights in core: put devel as the very last in the chain.
   $ret[] = db_query("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
-  // Auto-enable the devel block for fresh installations.
-  $ret[] = db_query("INSERT INTO {blocks} (module, delta, theme, status, pages) VALUES ('devel', '1', '%s', 1, '')", variable_get('theme_default', 'bluemarine'));
   return $ret;
 }
 

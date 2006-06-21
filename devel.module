@@ -168,6 +168,8 @@ function devel_block($op = 'list', $delta = 0) {
           // True only if devel_node_access enabled.
           $links[] = l('node_access summary', 'devel/node_access/summary');
         }
+        // Auto-enable the devel block for fresh installations.
+        $block['status'] = 1;
         break;
     }
     if ($links) {
