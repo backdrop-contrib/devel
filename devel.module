@@ -184,7 +184,7 @@ function devel_block($op = 'list', $delta = 0) {
  * Implementation of hook_form_alter().
  */
 function devel_form_alter($form_id, &$form) {
-  if (variable_get('devel_form_weights', 0)) {
+  if (user_access('access devel information') && variable_get('devel_form_weights', 0)) {
     $children = element_children($form);
     if (empty($children)) {
       if (isset($form['#type']) && !in_array($form['#type'], array('value', 'hidden'))) {
