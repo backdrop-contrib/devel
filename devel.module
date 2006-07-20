@@ -83,6 +83,12 @@ function devel_menu($may_cache) {
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK,
     );
+    $items[] = array('path' => 'devel/session',
+      'title' => t('session viewer'),
+      'callback' => 'devel_session',
+      'access' => user_access('access devel information'),
+      'type' => MENU_CALLBACK,
+    );
     $items[] = array('path' => 'devel/switch',
       'title' => t('switch user'),
       'callback' => 'devel_switch_user',
@@ -172,6 +178,7 @@ function devel_block($op = 'list', $delta = 0) {
           $links[] = l('reinstall modules', 'devel/reinstall');
           $links[] = l('reset menus', 'devel/menu/reset');
           $links[] = l('variable viewer', 'devel/variable');
+          $links[] = l('session viewer', 'devel/session');
         }
         if (user_access('execute php code')) {
           $links[] = l('execute PHP code', 'devel/execute');
@@ -529,6 +536,13 @@ function devel_reinstall_submit($form_id, $form_values) {
 function devel_variable() {
   global $conf;
   return dprint_r($conf);
+}
+
+/**
+ * Menu callback: display the session.
+ */
+function devel_session() {
+  return dprint_r($_SESSION, TRUE);
 }
 
 /**
