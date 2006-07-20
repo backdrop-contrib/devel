@@ -299,13 +299,13 @@ function devel_exit($destination = NULL) {
  * Implementation of hook_settings().
  */
 function devel_settings() {
-  $form['dev_timer'] = array('#type' => 'select',
+  $form['dev_timer'] = array('#type' => 'checkbox',
     '#title' => t('Display page timer'),
     '#default_value' => variable_get('dev_timer', 0),
     '#options' => array(t('Disabled'), t('Enabled')),
     '#description' => t('Display page execution time in the query log box.'),
   );
-  $form['dev_query'] = array('#type' => 'select',
+  $form['dev_query'] = array('#type' => 'checkbox',
     '#title' => t('Display query log'),
     '#default_value' => variable_get('dev_query', 0),
     '#options' => array(t('Disabled'), t('Enabled')),
@@ -317,26 +317,26 @@ function devel_settings() {
     '#options' => array(t('by source'), t('by duration')),
     '#description' => t('The query table can be sorted in the order that the queries were executed or by descending duration.'),
   );
-  $form['dev_mem'] = array('#type' => 'select',
-    '#title' => t('Display memory usage'),
-    '#default_value' => variable_get('dev_mem', 0),
-    '#options' => array(t('Disabled'), t('Enabled')),
-    '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called. PHP must have been compiled with the <em>--enable-memory-limit</em> configuration option for this feature to work.'),
-  );
   $form['devel_execution'] = array('#type' => 'textfield',
     '#title' => t('Query execution threshold'),
     '#default_value' => variable_get('devel_execution', 5),
     '#size' => 4,
     '#maxlength' => 4,
-    '#description' => t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibliy inefficient query, or a candidate for caching.'),
+    '#description' => t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibly inefficient query, or a candidate for caching.'),
   );
-  $form['devel_redirect_page'] = array('#type' => 'select',
+  $form['dev_mem'] = array('#type' => 'checkbox',
+    '#title' => t('Display memory usage'),
+    '#default_value' => variable_get('dev_mem', 0),
+    '#options' => array(t('Disabled'), t('Enabled')),
+    '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called. PHP must have been compiled with the <em>--enable-memory-limit</em> configuration option for this feature to work.'),
+  );
+  $form['devel_redirect_page'] = array('#type' => 'checkbox',
     '#title' => t('Display redirection page'),
     '#default_value' => variable_get('devel_redirect_page', 0),
     '#options' => array(t('Disabled'), t('Enabled')),
     '#description' => t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'),
   );
-  $form['devel_form_weights'] = array('#type' => 'select',
+  $form['devel_form_weights'] = array('#type' => 'checkbox',
     '#title' => t('Display form element weights'),
     '#default_value' => variable_get('devel_form_weights', 0),
     '#options' => array(t('Disabled'), t('Enabled')),
