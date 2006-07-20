@@ -95,6 +95,13 @@ function devel_menu($may_cache) {
       'access' => user_access('switch users'),
       'type' => MENU_CALLBACK,
     );
+    $items[] = array(
+      'path' => 'admin/settings/devel',
+      'title' => t('devel'),
+      'callback' => 'devel_admin_settings',
+      'access' => user_access('administer site configuration'),
+      'type' => MENU_NORMAL_ITEM
+    );
   }
   else {
     if (is_numeric(arg(1))) {
@@ -349,10 +356,7 @@ function devel_db_query($query) {
   return mysql_query($query, $active_db);
 }
 
-/**
- * Implementation of hook_settings().
- */
-function devel_settings() {
+function devel_admin_settings() {
   $form['queries'] = array('#type' => 'fieldset', '#title' => t('Query log'));
   $form['queries']['dev_query'] = array('#type' => 'checkbox',
     '#title' => t('Collect query info'),
@@ -424,7 +428,7 @@ function devel_settings() {
     '#default_value' => variable_get('smtp_library', ''),
   );
 
-  return $form;
+  return system_settings_form('devel_admin_settings', $form);
 }
 
 /**
