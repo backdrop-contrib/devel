@@ -346,61 +346,58 @@ function devel_db_query($query) {
  * Implementation of hook_settings().
  */
 function devel_settings() {
-  $form['dev_query'] = array('#type' => 'select',
+  $form['queries'] = array('#type' => 'fieldset', '#title' => t('Query log'));
+  $form['queries']['dev_query'] = array('#type' => 'checkbox',
     '#title' => t('Collect query info'),
     '#default_value' => variable_get('dev_query', 0),
-    '#options' => array(t('Disabled'), t('Enabled')),
-    '#description' => t("Collect query info. If you disable this setting the rest won't work."));
-  $form['dev_timer'] = array('#type' => 'select',
-    '#title' => t('Display page timer'),
-    '#default_value' => variable_get('dev_timer', 0),
-    '#options' => array(t('Disabled'), t('Enabled')),
-    '#description' => t('Display page execution time in the query log box.'),
-  );
-  $form['devel_query_display'] = array('#type' => 'select',
+    '#description' => t("Collect query info. If disabled, no query log functionality will work."));
+  $form['queries']['devel_query_display'] = array('#type' => 'checkbox',
     '#title' => t('Display query log'),
     '#default_value' => variable_get('devel_query_display', 0),
-    '#options' => array(t('Disabled'), t('Enabled')),
-    '#description' => t('Display a log of the database queries needed to generate the current page, and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
-  $form['dev_mem'] = array('#type' => 'select',
-    '#title' => t('Display memory usage'),
-    '#default_value' => variable_get('dev_mem', 0),
-    '#options' => array(t('Disabled'), t('Enabled')),
-    '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called. PHP must have been compiled with the <em>--enable-memory-limit</em> configuration option for this feature to work.'),
-  );
-  $form['devel_query_sort'] = array('#type' => 'radios',
+    '#description' => t('Display a log of the database queries needed to generate the current page, and the execution time for each. Also, queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
+  $form['queries']['devel_query_sort'] = array('#type' => 'radios',
     '#title' => t('Sort query log'),
     '#default_value' =>   variable_get('devel_query_sort', DEVEL_QUERY_SORT_BY_SOURCE),
     '#options' => array(t('by source'), t('by duration')),
     '#description' => t('The query table can be sorted in the order that the queries were executed or by descending duration.'),
   );
-  $form['devel_execution'] = array('#type' => 'textfield',
-    '#title' => t('Query execution threshold'),
+  $form['queries']['devel_execution'] = array('#type' => 'textfield',
+    '#title' => t('Slow query highlighting'),
     '#default_value' => variable_get('devel_execution', 5),
     '#size' => 4,
     '#maxlength' => 4,
     '#description' => t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibly inefficient query, or a candidate for caching.'),
   );
+  $form['queries']['devel_store_queries'] = array('#type' => 'checkbox', 
+    '#title' => t('Store executed queries'), 
+    '#default_value' => variable_get('devel_store_queries', 0), 
+    '#description' => t('Store statistics about executed queries. See the devel_x tables. This feature is currently only available for the MySQL database backend.'));
+  $form['queries']['devel_store_random'] = array('#type' => 'textfield', 
+    '#title' => t('Sampling interval'), 
+    '#default_value' => variable_get('devel_store_random', 1), 
+    '#size' => 4, 
+    '#description' => t('If storing query statistics, only store every nth page view. 1 means every page view, 2 every second, and so on.'));
+  
+  $form['dev_timer'] = array('#type' => 'checkbox',
+    '#title' => t('Display page timer'),
+    '#default_value' => variable_get('dev_timer', 0),
+    '#description' => t('Display page execution time in the query log box.'),
+  );
   $form['dev_mem'] = array('#type' => 'checkbox',
     '#title' => t('Display memory usage'),
     '#default_value' => variable_get('dev_mem', 0),
-    '#options' => array(t('Disabled'), t('Enabled')),
     '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called. PHP must have been compiled with the <em>--enable-memory-limit</em> configuration option for this feature to work.'),
   );
   $form['devel_redirect_page'] = array('#type' => 'checkbox',
     '#title' => t('Display redirection page'),
     '#default_value' => variable_get('devel_redirect_page', 0),
-    '#options' => array(t('Disabled'), t('Enabled')),
     '#description' => t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'),
   );
   $form['devel_form_weights'] = array('#type' => 'checkbox',
     '#title' => t('Display form element weights'),
     '#default_value' => variable_get('devel_form_weights', 0),
-    '#options' => array(t('Disabled'), t('Enabled')),
     '#description' => t('Form elements may have weights that determine their position in a form. Enabling this setting will show these weights.'),
   );
-  $form['devel_store_queries'] = array('#type' => 'select', '#title' => t('Store executed queries'), '#default_value' => variable_get('devel_store_queries', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Collect statistics about executed queries. This feature is currently only available for the MySQL database backend.'));
-  $form['devel_store_random'] = array('#type' => 'textfield', '#title' => t('Random weight'), '#default_value' => variable_get('devel_store_random', 1), '#size' => 4, '#description' => t('Collect statistics about executed queries every nth page view. 1 means every page view, 2 every second, and so on.'));
 
   // Save any old SMTP library
   if (variable_get('smtp_library', '') != '' && variable_get('smtp_library', '') != drupal_get_filename('module', 'devel')) {

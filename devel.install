@@ -5,8 +5,30 @@
  */
 function devel_install() {
   // New module weights in core: put devel as the very last in the chain.
-  $ret[] = db_query("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
-  return $ret;
+  db_query("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
+  
+  switch ($GLOBALS['db_type']) {
+    case 'mysqli':
+    case 'mysql':
+      $sql = "CREATE TABLE devel_queries (
+      qid int(10) NOT NULL auto_increment,
+      query varchar(255) NOT NULL default '',
+      hash varchar(255) NOT NULL default '',
+      PRIMARY KEY (`hash`),
+      KEY qid (qid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
+      db_query($sql);
+
+      $sql = "CREATE TABLE devel_times (
+        tid int(10) NOT NULL auto_increment,
+        qid int(10) NOT NULL default 0,
+        time float default NULL,
+        PRIMARY KEY (tid),
+        KEY qid (qid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
+      db_query($sql);
+      break;
+  }
 }
 
 /**
@@ -17,4 +39,29 @@ function devel_update_2() {
   // New module weights in core: put devel as the very last in the chain.
   $ret[] = update_sql("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
   return $ret;
+}
+
+function devel_update_3() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysqli':
+    case 'mysql':
+      $sql = "CREATE TABLE devel_queries (
+      qid int(10) NOT NULL auto_increment,
+      query varchar(255) NOT NULL default '',
+      hash varchar(255) NOT NULL default '',
+      PRIMARY KEY (`hash`),
+      KEY qid (qid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
+      $ret[] = update_sql($sql);
+
+      $sql = "CREATE TABLE devel_times (
+        tid int(10) NOT NULL auto_increment,
+        qid int(10) NOT NULL default 0,
+        time float default NULL,
+        PRIMARY KEY (tid),
+        KEY qid (qid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
+      $ret[] = update_sql($sql);
+      return $ret;
+  }
 }
