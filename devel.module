@@ -48,6 +48,15 @@ function devel_menu($may_cache) {
       'access' => user_access('execute php code'),
       'type' => MENU_CALLBACK,
     );
+    $items[] = array('path' => 'devel/queries',
+      'title' => t('database queries'),
+      'callback' => 'devel_queries',
+      'access' => user_access('access devel information'));
+    $items[] = array('path' => 'devel/queries/empty',
+      'title' => t('empty database queries'),
+      'callback' => 'devel_queries_empty',
+      'access' => user_access('access devel information'),
+      'type' => MENU_CALLBACK);
     $items[] = array('path' => 'devel/phpinfo',
       'title' => t('phpinfo()'),
       'callback' => 'devel_phpinfo',
@@ -247,13 +256,13 @@ function devel_exit($destination = NULL) {
   }
   if (user_access('access devel information') && !$is_xml) { // Try not to break the xml pages.
     // Query log off, timer on.
-    if (!variable_get('dev_query', 0) && variable_get('dev_timer', 0)) {
+    if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
       $output = '<div class="dev-timer">'. devel_timer() .'</div>';
     }
 
     // Query log on.
     $sum = 0;
-    if (variable_get('dev_query', 0)) {
+    if (variable_get('devel_query_display', 0)) {
       foreach ($queries as $query) {
         $text[] = $query[0];
         $sum += $query[1];
@@ -293,23 +302,71 @@ function devel_exit($destination = NULL) {
     // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
     print $output;
   }
+
+  if (variable_get('devel_store_queries', 0) && rand(1, variable_get('devel_store_random', 1)) == 1) {
+    global $active_db;
+    $qids = array();
+    $values = array();
+    $fields = array();
+
+    foreach ($queries as $query) {
+      $query[0] = preg_replace(array("/'.*'/s", "/\d.*\.\d.*/", "/\d.*/"), array("S", "F", "D"), $query[0]);
+      $hash = md5($query[0]);
+      if (!isset($qids[$hash])) {
+        $qids[$hash] = db_result(devel_db_query("SELECT qid FROM {devel_queries} WHERE hash = '%s'", $hash));
+        if (!$qids[$hash]) {
+          devel_db_query("INSERT INTO {devel_queries} (query, hash) VALUES ('%s', '%s')", $query[0], $hash);
+          $qids[$hash] = mysql_insert_id();
+        }
+      }
+      $fields[] = '(%d, %f)';
+      $values[] = $qids[$hash];
+      $values[] = $query[1];
+    }
+    if (count($fields)) {
+      devel_db_query('INSERT INTO {devel_times} (qid, time) VALUES '. implode(',', $fields), $values);
+    }
+  }
+}
+
+function devel_db_query($query) {
+  global $active_db;
+  $args = func_get_args();
+  array_shift($args);
+  $query = db_prefix_tables($query);
+  if (isset($args[0]) and is_array($args[0])) { // 'All arguments in one array' syntax
+    $args = $args[0];
+  }
+  _db_query_callback($args, TRUE);
+  $query = preg_replace_callback(DB_QUERY_REGEXP, '_db_query_callback', $query);
+  return mysql_query($query, $active_db);
 }
 
 /**
  * Implementation of hook_settings().
  */
 function devel_settings() {
-  $form['dev_timer'] = array('#type' => 'checkbox',
+  $form['dev_query'] = array('#type' => 'select',
+    '#title' => t('Collect query info'),
+    '#default_value' => variable_get('dev_query', 0),
+    '#options' => array(t('Disabled'), t('Enabled')),
+    '#description' => t("Collect query info. If you disable this setting the rest won't work."));
+  $form['dev_timer'] = array('#type' => 'select',
     '#title' => t('Display page timer'),
     '#default_value' => variable_get('dev_timer', 0),
     '#options' => array(t('Disabled'), t('Enabled')),
     '#description' => t('Display page execution time in the query log box.'),
   );
-  $form['dev_query'] = array('#type' => 'checkbox',
+  $form['devel_query_display'] = array('#type' => 'select',
     '#title' => t('Display query log'),
-    '#default_value' => variable_get('dev_query', 0),
+    '#default_value' => variable_get('devel_query_display', 0),
     '#options' => array(t('Disabled'), t('Enabled')),
-    '#description' => t('Display a log of the database queries needed to generate the current page and the execution time for each. Also, any queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'),
+    '#description' => t('Display a log of the database queries needed to generate the current page, and the execution time for each. Also, a queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
+  $form['dev_mem'] = array('#type' => 'select',
+    '#title' => t('Display memory usage'),
+    '#default_value' => variable_get('dev_mem', 0),
+    '#options' => array(t('Disabled'), t('Enabled')),
+    '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called. PHP must have been compiled with the <em>--enable-memory-limit</em> configuration option for this feature to work.'),
   );
   $form['devel_query_sort'] = array('#type' => 'radios',
     '#title' => t('Sort query log'),
@@ -342,6 +399,8 @@ function devel_settings() {
     '#options' => array(t('Disabled'), t('Enabled')),
     '#description' => t('Form elements may have weights that determine their position in a form. Enabling this setting will show these weights.'),
   );
+  $form['devel_store_queries'] = array('#type' => 'select', '#title' => t('Store executed queries'), '#default_value' => variable_get('devel_store_queries', 0), '#options' => array(t('Disabled'), t('Enabled')), '#description' => t('Collect statistics about executed queries. This feature is currently only available for the MySQL database backend.'));
+  $form['devel_store_random'] = array('#type' => 'textfield', '#title' => t('Random weight'), '#default_value' => variable_get('devel_store_random', 1), '#size' => 4, '#description' => t('Collect statistics about executed queries every nth page view. 1 means every page view, 2 every second, and so on.'));
 
   // Save any old SMTP library
   if (variable_get('smtp_library', '') != '' && variable_get('smtp_library', '') != drupal_get_filename('module', 'devel')) {
@@ -663,3 +722,39 @@ if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) 
     return TRUE;
   }
 }
+
+function devel_queries() {
+  $header = array(
+                  array('data' => t('Total time (ms)'), 'field' => 'total_time', 'sort' => 'desc'),
+                  array('data' => t('Average (ms)'), 'field' => 'average', 'sort' => 'desc'),
+                  array('data' => t('Standard deviation (ms)')),
+                  array('data' => t('Count'), 'field' => 'count'),
+                  array('data' => t('Query'), 'field' => 'q.query'),
+                  );
+
+  $result = pager_query('SELECT q.qid, q.query, t.*, COUNT(t.qid) AS count, SUM(t.time) AS total_time, AVG(t.time) AS average, STDDEV(t.time) AS stddev FROM {devel_queries} q INNER JOIN {devel_times} t ON q.qid = t.qid GROUP BY t.qid '. tablesort_sql($header), 30, 0, 'SELECT COUNT(qid) FROM {devel_queries}');
+  while ($log = db_fetch_object($result)) {
+    $rows[] = array(
+                    round($log->total_time, 3),
+                    round($log->average, 3),
+                    round($log->stddev, 3),
+                    $log->count,
+                    check_plain($log->query)
+                    );
+  }
+
+  drupal_set_title(check_plain($node->title));
+  $output = theme('table', $header, $rows);
+  $output .= theme('pager', NULL, 30, 0, tablesort_pager());
+  $output .= l(t('Delete collected query statistics'), 'devel/queries/empty');
+
+  return $output;
+}
+
+function devel_queries_empty() {
+  db_query('DELETE FROM {devel_queries}');
+  db_query('DELETE FROM {devel_times}');
+  drupal_set_message(t('Stored query statistics deleted.'));
+  drupal_goto('devel/queries');
+}
+
