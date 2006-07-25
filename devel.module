@@ -322,20 +322,22 @@ function devel_exit($destination = NULL) {
     $qids = array();
     $values = array();
     $fields = array();
-
-    foreach ($queries as $query) {
-      $query[0] = preg_replace(array("/'.*'/s", "/\d.*\.\d.*/", "/\d.*/"), array("S", "F", "D"), $query[0]);
-      $hash = md5($query[0]);
+    // We need this for the devel_queries insert below.
+    setlocale(LC_NUMERIC, 'C');
+    foreach ($queries as $value) {
+      list($function, $query) = explode("\n", $value[0]);
+      $query = preg_replace(array("/'.*'/s", "/\d.*\.\d.*/", "/\d.*/"), array("S", "F", "D"), $query);
+      $hash = md5($function . $query);
       if (!isset($qids[$hash])) {
         $qids[$hash] = db_result(devel_db_query("SELECT qid FROM {devel_queries} WHERE hash = '%s'", $hash));
         if (!$qids[$hash]) {
-          devel_db_query("INSERT INTO {devel_queries} (query, hash) VALUES ('%s', '%s')", $query[0], $hash);
+          devel_db_query("INSERT INTO {devel_queries} (query, function, hash) VALUES ('%s', '%s', '%s')", $query, $function, $hash);
           $qids[$hash] = mysql_insert_id();
         }
       }
-      $fields[] = '(%d, %f)';
+      $fields[] = "(%d, '%f')";
       $values[] = $qids[$hash];
-      $values[] = $query[1];
+      $values[] = $value[1];
     }
     if (count($fields)) {
       devel_db_query('INSERT INTO {devel_times} (qid, time) VALUES '. implode(',', $fields), $values);
@@ -744,23 +746,25 @@ function devel_queries() {
                   array('data' => t('Average (ms)'), 'field' => 'average', 'sort' => 'desc'),
                   array('data' => t('Standard deviation (ms)')),
                   array('data' => t('Count'), 'field' => 'count'),
+                  array('data' => t('Function'), 'field' => 'q.function'),
                   array('data' => t('Query'), 'field' => 'q.query'),
                   );
 
-  $result = pager_query('SELECT q.qid, q.query, t.*, COUNT(t.qid) AS count, SUM(t.time) AS total_time, AVG(t.time) AS average, STDDEV(t.time) AS stddev FROM {devel_queries} q INNER JOIN {devel_times} t ON q.qid = t.qid GROUP BY t.qid '. tablesort_sql($header), 30, 0, 'SELECT COUNT(qid) FROM {devel_queries}');
+  $result = pager_query('SELECT q.qid, q.query, q.function, t.*, COUNT(t.qid) AS count, SUM(t.time) AS total_time, AVG(t.time) AS average, STDDEV(t.time) AS stddev FROM {devel_queries} q INNER JOIN {devel_times} t ON q.qid = t.qid GROUP BY t.qid '. tablesort_sql($header), 30, 0, 'SELECT COUNT(qid) FROM {devel_queries}');
   while ($log = db_fetch_object($result)) {
     $rows[] = array(
                     round($log->total_time, 3),
                     round($log->average, 3),
                     round($log->stddev, 3),
                     $log->count,
+                    $log->function,
                     check_plain($log->query)
                     );
   }
 
   drupal_set_title(check_plain($node->title));
   $output = theme('table', $header, $rows);
-  $output .= theme('pager', NULL, 30, 0, tablesort_pager());
+  $output .= theme('pager', NULL, 30, 0);
   $output .= l(t('Delete collected query statistics'), 'devel/queries/empty');
 
   return $output;
