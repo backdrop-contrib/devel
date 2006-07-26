@@ -13,7 +13,7 @@ function devel_install() {
       $sql = "CREATE TABLE {devel_queries} (
       qid int(10) NOT NULL auto_increment,
       function varchar(255) NOT NULL default '',
-      query varchar(255) NOT NULL default '',
+      query text NOT NULL,
       hash varchar(255) NOT NULL default '',
       PRIMARY KEY (`hash`),
       KEY qid (qid)
@@ -73,6 +73,16 @@ function devel_update_4() {
     case 'mysqli':
     case 'mysql':
       $ret[] = update_sql("ALTER TABLE {devel_queries} ADD `function` varchar(255) NOT NULL default ''");
+  }
+  return $ret;
+}
+
+function devel_update_5() {
+  $ret = array();
+  switch ($GLOBALS['db_type']) {
+    case 'mysqli':
+    case 'mysql':
+      $ret[] = update_sql("ALTER TABLE {devel_queries} CHANGE query query text NOT NULL");
   }
   return $ret;
 }
