@@ -675,33 +675,44 @@ function devel_timer() {
 }
 
 /**
- * Print a message to the browser only for users with proper permissions. If
- * you want a string returned instead of a print, use the 2nd param. Useful
- * for watchdog() or for throwing into a drupal_set_message() or just
- * saving for later use.
+ * Prints the arguments for passed into the current function
  */
-function dprint($str, $return = FALSE) {
-  if (user_access('access devel information')) {
-    if ($return) ob_start();
-    print "<pre>$str</pre>";
-    if ($return) {
-      return ob_get_clean();
-    }
+function dargs($always = TRUE) {
+  static $printed;
+  if ($always || !$printed) {
+    $bt = debug_backtrace();
+    dsm($bt[1]['args']);
+    $printed = TRUE;
   }
 }
 
 /**
- * Pretty-print a variable such as an array or object to the browser.
- * Displays only for users with proper permissions. If
- * you want a string returned instead of a print, use the 2nd param. Useful
- * for watchdog() or for throwing into a drupal_set_message() or just
- * saving for later use.
+ * Print a variable to the 'message' area of the page. Uses drupal_set_message()
  */
-function dprint_r($arr, $return = FALSE) {
+ function dsm($input, $name = NULL) {
+  if (user_access('access devel information')) {
+    $export = dprint_r($input, TRUE, $name);
+    drupal_set_message($export);
+  }
+}
+
+/**
+ * An alias for dprint_r(). Saves carpal tunnel syndrome.
+ */
+function dpr($str, $return = FALSE, $name = NULL) {
+  dprint_r($str, $return, $name);
+}
+
+/**
+ * Pretty-print a variable to the browser.
+ * Displays only for users with proper permissions. If
+ * you want a string returned instead of a print, use the 2nd param.
+ */
+function dprint_r($input, $return = FALSE, $name = NULL) {
   if (user_access('access devel information')) {
     if ($return) ob_start();
-    print '<pre>';
-    print_r($arr);
+    print "<pre>  $name ";
+    print_r($input);
     print '</pre>';
     if ($return) {
       return ob_get_clean();
