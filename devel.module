@@ -541,7 +541,7 @@ function devel_reinstall_submit($form_id, $form_values) {
  */
 function devel_variable() {
   global $conf;
-  return dprint_r($conf);
+  return dprint_r($conf, TRUE);
 }
 
 /**
