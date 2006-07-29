@@ -152,7 +152,9 @@ function devel_node_access_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
 function devel_node_access_block($op = 'list', $delta = 0) {
   switch ($op) {
   case 'list':
-	$blocks[0]['info'] = t('Devel Node Access');
+	  $blocks[0]['info'] = t('Devel Node Access');
+	  $blocks[0]['status'] = 1;
+	  $blocks[0]['region'] = 'footer';
 	return $blocks;
 	break;
   case 'view':
