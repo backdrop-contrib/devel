@@ -42,12 +42,6 @@ function devel_menu($may_cache) {
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK,
     );
-    $items[] = array('path' => 'devel/execute',
-      'title' => t('execute PHP code'),
-      'callback' => 'devel_execute',
-      'access' => user_access('execute php code'),
-      'type' => MENU_CALLBACK,
-    );
     $items[] = array('path' => 'devel/queries',
       'title' => t('database queries'),
       'callback' => 'devel_queries',
@@ -160,14 +154,16 @@ function devel_block($op = 'list', $delta = 0) {
   if ($op == 'list') {
     $blocks[0]['info'] = t('Switch user');
     $blocks[1]['info'] = t('Devel');
+    $blocks[2]['info'] = t('Execute PHP');    
     
-    // Auto-enable the devel block for fresh installations.
+    // Auto-enable the devel blocks for fresh installations.
     $blocks[1]['status'] = 1;
+    $blocks[2]['status'] = 1;
+    $blocks[2]['footer'] = 1;
 
     return $blocks;
   }
   else if ($op == 'view') {
-    $links = array();
     switch ($delta) {
       case 0:
         $block['subject'] = t('switch user');
@@ -180,6 +176,7 @@ function devel_block($op = 'list', $delta = 0) {
         }
         break;
       case 1:
+        $links = array();
         $block['subject'] = t('devel');
         if (user_access('access devel information')) {
           $links[] = l('module settings', 'admin/settings/devel');
@@ -190,16 +187,20 @@ function devel_block($op = 'list', $delta = 0) {
           $links[] = l('variable viewer', 'devel/variable');
           $links[] = l('session viewer', 'devel/session');
         }
-        if (user_access('execute php code')) {
-          $links[] = l('execute PHP code', 'devel/execute');
-        }
         if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
           // True only if devel_node_access enabled.
           $links[] = l('node_access summary', 'devel/node_access/summary');
         }
-    }
-    if ($links) {
-      $block['content'] = theme('item_list', $links);
+        if ($links) {
+          $block['content'] = theme('item_list', $links);
+        }
+        break;
+      case 2:
+        if (user_access('execute php code')) {
+          $block['subject'] = t('execute php');
+          $block['content'] = devel_execute();
+        }
+        break;
     }
 
     return $block;
