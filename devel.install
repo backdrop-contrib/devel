@@ -11,13 +11,13 @@ function devel_install() {
     case 'mysqli':
     case 'mysql':
       $sql = "CREATE TABLE {devel_queries} (
-      qid int(10) NOT NULL auto_increment,
-      function varchar(255) NOT NULL default '',
-      query text NOT NULL,
-      hash varchar(255) NOT NULL default '',
-      PRIMARY KEY (`hash`),
-      KEY qid (qid)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
+        qid int(10) NOT NULL auto_increment,
+        function varchar(255) NOT NULL default '',
+        query text NOT NULL,
+        hash varchar(255) NOT NULL default '',
+        PRIMARY KEY (`hash`),
+        KEY qid (qid)
+        ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
       db_query($sql);
 
       $sql = "CREATE TABLE {devel_times} (
@@ -47,12 +47,12 @@ function devel_update_3() {
     case 'mysqli':
     case 'mysql':
       $sql = "CREATE TABLE {devel_queries} (
-      qid int(10) NOT NULL auto_increment,
-      query varchar(255) NOT NULL default '',
-      hash varchar(255) NOT NULL default '',
-      PRIMARY KEY (`hash`),
-      KEY qid (qid)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
+        qid int(10) NOT NULL auto_increment,
+        query varchar(255) NOT NULL default '',
+        hash varchar(255) NOT NULL default '',
+        PRIMARY KEY (`hash`),
+        KEY qid (qid)
+        ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
       $ret[] = update_sql($sql);
 
       $sql = "CREATE TABLE {devel_times} (

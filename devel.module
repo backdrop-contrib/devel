@@ -159,7 +159,7 @@ function devel_block($op = 'list', $delta = 0) {
     // Auto-enable the devel blocks for fresh installations.
     $blocks[1]['status'] = 1;
     $blocks[2]['status'] = 1;
-    $blocks[2]['footer'] = 1;
+    $blocks[2]['region'] = 'footer';
 
     return $blocks;
   }
