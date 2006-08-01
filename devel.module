@@ -23,7 +23,7 @@ function devel_help($section) {
     case 'admin/modules#description':
       return t('Development helper functions');
     case 'admin/settings/devel':
-      return '<p>'. t('Helper functions to assist Drupal developers. The devel blocks can be managed via the <a href="%admin-blocks">block administration</a> page.', array('%admin-blocks' => url('admin/block'))). '</p>';
+      return '<p>'. t('Helper functions to assist Drupal developers. The devel blocks can be managed via the <a href="%admin-blocks">block administration</a> page.', array('%admin-blocks' => url('admin/build/block'))). '</p>';
     case 'devel/reinstall':
       return '<p>'. t('Clicking a module\'s reinstall button will simulate installing a module. <code>hook_install()</code> will be executed and the schema version number will be set to the most recent update number. Make sure to manually clear out any existing tables first.'). '</p>';
   }
@@ -488,7 +488,7 @@ function devel_phpinfo() {
  * Menu callback; clear the database, resetting the menu to factory defaults.
  */
 function devel_menu_reset_form() {
-  return confirm_form('devel_menu_reset_form', array(), t('Are you sure you want to reset all menu items to their default settings?'), 'admin/menu', t('Any custom additions or changes to the menu will be lost.'), t('Reset all'));
+  return confirm_form('devel_menu_reset_form', array(), t('Are you sure you want to reset all menu items to their default settings?'), 'admin/build/menu', t('Any custom additions or changes to the menu will be lost.'), t('Reset all'));
 }
 
 /**
@@ -502,7 +502,7 @@ function devel_menu_reset_form_submit() {
 
   drupal_set_message(t('The menu items have been reset to their default settings.'));
 
-  return 'admin/menu';
+  return 'admin/build/menu';
 }
 
 /**
