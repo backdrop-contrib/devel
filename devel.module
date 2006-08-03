@@ -765,9 +765,9 @@ function devel_queries() {
   $result = pager_query('SELECT q.qid, q.query, q.function, t.*, COUNT(t.qid) AS count, SUM(t.time) AS total_time, AVG(t.time) AS average, STDDEV(t.time) AS stddev FROM {devel_queries} q INNER JOIN {devel_times} t ON q.qid = t.qid GROUP BY t.qid '. tablesort_sql($header), 30, 0, 'SELECT COUNT(qid) FROM {devel_queries}');
   while ($log = db_fetch_object($result)) {
     $rows[] = array(
-                    round($log->total_time, 3),
-                    round($log->average, 3),
-                    round($log->stddev, 3),
+                    round($log->total_time * 1000, 3),
+                    round($log->average * 1000, 3),
+                    round($log->stddev * 1000, 3),
                     $log->count,
                     $log->function,
                     check_plain($log->query)
