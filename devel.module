@@ -118,7 +118,7 @@ function devel_menu($may_cache) {
         );
       }
     }
-    theme_add_style(drupal_get_path('module', 'devel') .'/devel.css');
+    drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
   }
 
   return $items;
