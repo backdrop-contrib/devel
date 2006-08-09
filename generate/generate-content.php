@@ -184,7 +184,7 @@ function add_terms($nodes, $terms) {
 
 function get_users() {
   $users = array();
-  $result = db_query("SELECT uid FROM users");
+  $result = db_query("SELECT uid FROM {users}");
   while($user = db_fetch_object($result)){
     $users[] = $user->uid;
   }
@@ -193,7 +193,7 @@ function get_users() {
 
 function get_nodes() {
   $nodes = array();
-  $result = db_query("SELECT nid, type FROM node WHERE type IN ('story', 'blog', 'forum', 'page') AND comment = 2");
+  $result = db_query("SELECT nid, type FROM {node} WHERE type IN ('story', 'blog', 'forum', 'page') AND comment = 2");
   while($node = db_fetch_object($result)){
     $nodes[$node->nid] = $node->type ;
   }
@@ -202,7 +202,7 @@ function get_nodes() {
 
 function get_comments() {
   $comments = array();
-  $result = db_query("SELECT nid, cid FROM comments");
+  $result = db_query("SELECT nid, cid FROM {comments}");
   while($comment = db_fetch_object($result)){
     $comments[$comment->nid][] = $comment->cid ;
   }
