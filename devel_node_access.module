@@ -20,7 +20,7 @@ function devel_node_access_perm() {
  */
 function devel_node_access_help($section) {
   switch ($section) {
-  case 'admin/modules#description':
+  case 'admin/settings/modules#description':
 	return t('Development helper for node_access table');
 	break;
   case 'admin/help#devel_node_access':

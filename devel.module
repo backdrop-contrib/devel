@@ -20,7 +20,7 @@ define(DEVEL_QUERY_SORT_BY_DURATION, 1);
  */
 function devel_help($section) {
   switch ($section) {
-    case 'admin/modules#description':
+    case 'admin/settings/modules#description':
       return t('Development helper functions');
     case 'admin/settings/devel':
       return '<p>'. t('Helper functions to assist Drupal developers. The devel blocks can be managed via the <a href="%admin-blocks">block administration</a> page.', array('%admin-blocks' => url('admin/build/block'))). '</p>';
