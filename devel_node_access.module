@@ -300,5 +300,3 @@ function devel_node_access_views_default_views() {
 
   return $views;
 }
-
-?>
