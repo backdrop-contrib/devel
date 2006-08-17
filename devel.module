@@ -100,18 +100,25 @@ function devel_menu($may_cache) {
   else {
     if (is_numeric(arg(1))) {
       if (arg(0) == 'node') {
-        $items[] = array('path' => 'node/'. arg(1) .'/object',
-          'title' => t('object structure'),
-          'callback' => 'devel_show_object',
+        $items[] = array('path' => 'node/'. arg(1) .'/load',
+          'title' => t('devel load'),
+          'callback' => 'devel_load_object',
+          'callback arguments' => array('node', arg(1)),
+          'access' => user_access('access devel information'),
+          'type' => MENU_LOCAL_TASK,
+        );
+        $items[] = array('path' => 'node/'. arg(1) .'/render',
+          'title' => t('devel render'),
+          'callback' => 'devel_render_object',
           'callback arguments' => array('node', arg(1)),
           'access' => user_access('access devel information'),
           'type' => MENU_LOCAL_TASK,
         );
       }
       elseif (arg(0) == 'user') {
-        $items[] = array('path' => 'user/'. arg(1) .'/object',
-          'title' => t('object structure'),
-          'callback' => 'devel_show_object',
+        $items[] = array('path' => 'user/'. arg(1) .'/load',
+          'title' => t('devel load'),
+          'callback' => 'devel_load_object',
           'callback arguments' => array('user', arg(1)),
           'access' => user_access('access devel information'),
           'type' => MENU_LOCAL_TASK,
@@ -272,7 +279,7 @@ function devel_exit($destination = NULL) {
   if (function_exists('drupal_get_headers') && strstr(drupal_get_headers(), 'xml')) {
     $is_xml = TRUE;
   }
-  if (user_access('access devel information') && !$is_xml) { // Try not to break the xml pages.
+  if (function_exists('user_access') && user_access('access devel information') && !$is_xml) { // Try not to break the xml pages.
     // Query log off, timer on.
     if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
       $output = '<div class="dev-timer">'. devel_timer() .'</div>';
@@ -587,9 +594,9 @@ function devel_switch_user($uid = NULL) {
 }
 
 /**
- * Menu callback; prints the structure of the current node/user.
+ * Menu callback; prints the loaded structure of the current node/user.
  */
-function devel_show_object($type, $id) {
+function devel_load_object($type, $id) {
   $output = '';
 
   switch ($type) {
@@ -604,6 +611,30 @@ function devel_show_object($type, $id) {
       break;
   }
 
+  return devel_print_object($object);
+}
+
+/**
+ * Menu callback; prints the renderstructure of the current node.
+ */
+function devel_render_object($type, $id) {
+  $output = '';
+
+  switch ($type) {
+    case 'node':
+      $object = node_build_content(node_load($id), FALSE, FALSE);
+      drupal_set_title(check_plain($object->title));
+      break;
+
+    case 'user':
+      // not yet using fapi render model
+      break;
+  }
+
+  return devel_print_object($object);
+}
+
+function devel_print_object($object) {
   foreach ($object as $field => $value) {
     if (is_null($value)) {
       $printed_value = 'NULL';
@@ -620,7 +651,6 @@ function devel_show_object($type, $id) {
 
     $output .= theme('box', $field, $printed_value);
   }
-
   return $output;
 }
 
