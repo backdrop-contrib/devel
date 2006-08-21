@@ -30,6 +30,9 @@ function devel_install() {
       db_query($sql);
       break;
   }
+
+  // Enable the blocks automatically at install.
+  _block_rehash();
 }
 
 /**

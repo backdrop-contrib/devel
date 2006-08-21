@@ -491,7 +491,7 @@ function devel_phpinfo() {
   ob_start();
   phpinfo();
   preg_match("/<body>(.*)<\/body>/s", ob_get_clean(), $matches);
-  return '<div class="phpinfo">'. $matches[0] .'</div>';
+  return '<div class="phpinfo">'. $matches[1] .'</div>';
 }
 
 /**
@@ -734,7 +734,7 @@ function dargs($always = TRUE) {
  * An alias for dprint_r(). Saves carpal tunnel syndrome.
  */
 function dpr($str, $return = FALSE, $name = NULL) {
-  dprint_r($str, $return, $name);
+  return dprint_r($str, $return, $name);
 }
 
 /**
@@ -744,12 +744,14 @@ function dpr($str, $return = FALSE, $name = NULL) {
  */
 function dprint_r($input, $return = FALSE, $name = NULL) {
   if (user_access('access devel information')) {
-    if ($return) ob_start();
-    print "<pre>  $name ";
-    print_r($input);
-    print '</pre>';
+  	if ($name) $name .= ' => ';
+  	ob_start();
+  	print_r($input);
+  	$printed_value = '<pre>' . $name . check_plain(ob_get_clean()) . '</pre>';
     if ($return) {
-      return ob_get_clean();
+      return $printed_value;
+    } else {
+      print $printed_value;
     }
   }
 }
