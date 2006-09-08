@@ -11,8 +11,9 @@ function create_nodes($records, $users) {
 
   $possible_types = array("story", "blog", "forum", "page");
   // Only use types that exist.
+  $installed_types = array_keys(node_get_types('types'));
   foreach ($possible_types as $type) {
-    if (module_exist($type)) {
+    if (in_array($type, $installed_types)) {
       $types[] = $type;
     }
   }
@@ -225,7 +226,7 @@ db_query("DELETE FROM {comments}");
 db_query("DELETE FROM {node}");
 db_query("DELETE FROM {node_revisions}");
 db_query("DELETE FROM {node_comment_statistics}");
-db_query("DELETE FROM {forum}");
+if (db_table_exists(forum)) { db_query("DELETE FROM {forum}"); }
 db_query("DELETE FROM {url_alias}");
 db_query("UPDATE {sequences} SET id = '0' WHERE name = 'node_nid'");
 db_query("UPDATE {sequences} SET id = '0' WHERE name = 'comments_cid'");
