@@ -798,12 +798,19 @@ if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) 
   /**
    * Log the mails sent out instead of mailing.
    */
-  function user_mail_wrapper($mail, $subject, $message, $header) {
-    watchdog('devel', t('Mail sent:<br />To: %mail<br />Subject: %subject<br />Message: %message<br />Additional headers: %header', array(
-      '%mail' => $mail,
+  function drupal_mail_wrapper($mailkey, $to, $subject, $body, $from, $headers) {
+    $mimeheaders = array();
+    foreach ($headers as $name => $value) {
+      // the check_plain nicely encodes <> chars for web presentation
+      $mimeheaders[] = check_plain($name .': '. mime_header_encode($value));
+    }
+    watchdog('devel', t('Mail sent:<br />Key: %mailkey<br />To: %to<br />From: %from<br />Subject: %subject<br />Body: %body<br /><br />Additional headers: !header', array(
+      '%mailkey' => $mailkey,
+      '%to' => $to,
+      '%from' => $from,
       '%subject' => $subject,
-      '%message' => $message,
-      '%header' => $header,
+      '%body' => $body,
+      '!header' => implode("<br />", $mimeheaders),
     )));
     return TRUE;
   }
