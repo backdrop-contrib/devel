@@ -1,3 +1,4 @@
 ; $Id$
 name = Devel
 description = Various blocks, pages, and functions for developers.
+package = Development

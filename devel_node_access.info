@@ -1,3 +1,4 @@
 ; $Id$
 name = Devel Node Access
 description = Developer block and page illustrating relevant node_access records.
+package = Development
