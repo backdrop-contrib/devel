@@ -35,17 +35,17 @@ function devel_menu($may_cache) {
 
   if ($may_cache) {
     $items[] = array('path' => 'devel/cache/clear',
-      'title' => t('empty cache'),
+      'title' => t('Empty cache'),
       'callback' => 'devel_cache_clear',
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK,
     );
     $items[] = array('path' => 'devel/queries',
-      'title' => t('database queries'),
+      'title' => t('Database queries'),
       'callback' => 'devel_queries',
       'access' => user_access('access devel information'));
     $items[] = array('path' => 'devel/queries/empty',
-      'title' => t('empty database queries'),
+      'title' => t('Empty database queries'),
       'callback' => 'devel_queries_empty',
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK);
@@ -56,14 +56,14 @@ function devel_menu($may_cache) {
       'type' => MENU_CALLBACK,
     );
     $items[] = array('path' => 'devel/reinstall',
-      'title' => t('reinstall modules'),
+      'title' => t('Reinstall modules'),
       'callback' => 'devel_reinstall',
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK,
     );
     if (module_exists('menu')) {
       $items[] = array('path' => 'devel/menu/reset',
-        'title' => t('reset menus'),
+        'title' => t('Reset menus'),
         'callback' => 'drupal_get_form',
         'callback arguments' => 'devel_menu_reset_form',
         'access' => user_access('access devel information'),
@@ -71,26 +71,26 @@ function devel_menu($may_cache) {
       );
     }
     $items[] = array('path' => 'devel/variable',
-      'title' => t('variable viewer'),
+      'title' => t('Variable viewer'),
       'callback' => 'devel_variable',
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK,
     );
     $items[] = array('path' => 'devel/session',
-      'title' => t('session viewer'),
+      'title' => t('Session viewer'),
       'callback' => 'devel_session',
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK,
     );
     $items[] = array('path' => 'devel/switch',
-      'title' => t('switch user'),
+      'title' => t('Switch user'),
       'callback' => 'devel_switch_user',
       'access' => user_access('switch users'),
       'type' => MENU_CALLBACK,
     );
     $items[] = array(
       'path' => 'admin/settings/devel',
-      'title' => t('devel'),
+      'title' => t('Devel'),
       'callback' => 'drupal_get_form',
       'callback arguments' => array('devel_admin_settings'),
       'access' => user_access('administer site configuration'),
@@ -101,14 +101,14 @@ function devel_menu($may_cache) {
     if (is_numeric(arg(1))) {
       if (arg(0) == 'node') {
         $items[] = array('path' => 'node/'. arg(1) .'/load',
-          'title' => t('devel load'),
+          'title' => t('Devel load'),
           'callback' => 'devel_load_object',
           'callback arguments' => array('node', arg(1)),
           'access' => user_access('access devel information'),
           'type' => MENU_LOCAL_TASK,
         );
         $items[] = array('path' => 'node/'. arg(1) .'/render',
-          'title' => t('devel render'),
+          'title' => t('Devel render'),
           'callback' => 'devel_render_object',
           'callback arguments' => array('node', arg(1)),
           'access' => user_access('access devel information'),
@@ -117,7 +117,7 @@ function devel_menu($may_cache) {
       }
       elseif (arg(0) == 'user') {
         $items[] = array('path' => 'user/'. arg(1) .'/load',
-          'title' => t('devel load'),
+          'title' => t('Devel load'),
           'callback' => 'devel_load_object',
           'callback arguments' => array('user', arg(1)),
           'access' => user_access('access devel information'),
@@ -276,7 +276,7 @@ function devel_exit($destination = NULL) {
     }
   }
 
-  if (function_exists('drupal_get_headers') && strstr(drupal_get_headers(), 'xml') && strstr(drupal_get_headers(), 'javascript')) {
+  if (function_exists('drupal_get_headers') && (strstr(drupal_get_headers(), 'xml') || strstr(drupal_get_headers(), 'javascript'))) {
     $is_xml = TRUE;
   }
   if (function_exists('user_access') && user_access('access devel information') && !$is_xml) { // Try not to break the xml pages.
@@ -728,7 +728,8 @@ function _devel_table_sort($a, $b) {
  */
 function devel_timer() {
   $time = timer_read('page');
-  return t(' Page execution time was %time ms.', array('%time' => $time));
+  t() may not be available yet - cached pages
+  return strtr(' Page execution time was %time ms.', array('%time' => $time));
 }
 
 /**
