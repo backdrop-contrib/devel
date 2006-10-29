@@ -189,17 +189,17 @@ function devel_block($op = 'list', $delta = 0) {
         $links = array();
         $block['subject'] = t('devel');
         if (user_access('access devel information')) {
-          $links[] = l('module settings', 'admin/settings/devel');
-          $links[] = l('empty cache', 'devel/cache/clear', array(), drupal_get_destination());
-          $links[] = l('phpinfo()', 'devel/phpinfo');
-          $links[] = l('reinstall modules', 'devel/reinstall');
-          $links[] = l('reset menus', 'devel/menu/reset');
-          $links[] = l('variable viewer', 'devel/variable');
-          $links[] = l('session viewer', 'devel/session');
+          $links[] = l('Module settings', 'admin/settings/devel');
+          $links[] = l('Empty cache', 'devel/cache/clear', array(), drupal_get_destination());
+          $links[] = l('Phpinfo()', 'devel/phpinfo');
+          $links[] = l('Reinstall modules', 'devel/reinstall');
+          $links[] = l('Reset menus', 'devel/menu/reset');
+          $links[] = l('Variable viewer', 'devel/variable');
+          $links[] = l('Session viewer', 'devel/session');
         }
         if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
           // True only if devel_node_access enabled.
-          $links[] = l('node_access summary', 'devel/node_access/summary');
+          $links[] = l('Node_access summary', 'devel/node_access/summary');
         }
         if ($links) {
           $block['content'] = theme('item_list', $links);
@@ -207,7 +207,7 @@ function devel_block($op = 'list', $delta = 0) {
         break;
       case 2:
         if (user_access('execute php code')) {
-          $block['subject'] = t('execute php');
+          $block['subject'] = t('Execute php');
           $block['content'] = drupal_get_form('devel_execute_form');
         }
         break;
@@ -453,7 +453,7 @@ function devel_cache_clear() {
   foreach ($alltables as $table) {
     cache_clear_all('*', $table, TRUE);
   }
-  drupal_set_message('cache cleared');
+  drupal_set_message('Cache cleared.');
   drupal_goto();
 }
 
