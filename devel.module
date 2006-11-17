@@ -461,9 +461,10 @@ function devel_cache_clear() {
  * Generates the execute block form.
  */
 function devel_execute_form() {
-  $form['code'] = array('#type' => 'textarea',
+  $form['code'] = array(
+    '#type' => 'textarea',
     '#title' => t('PHP code to execute'),
-    '#description' => t('Enter some code. Do not use <code>&lt?php</code> tags.'),
+    '#description' => t('Enter some code. Do not use <code>&lt;?php ?&gt;</code> tags.')
   );
   $form['op'] = array('#type' => 'submit', '#value' => t('Execute'));
   $form['#redirect'] = FALSE;
