@@ -688,10 +688,10 @@ function devel_query_table($queries, $counts) {
     // dprint_r($query);
     $ar = explode("\n", $query[0]);
     $function=array_shift($ar);
+    $count = isset($counts[$query[0]]) ? $counts[$query[0]] : 0;
     $query[0]=join(' ',$ar);
 
     $diff = round($query[1] * 1000, 2);
-    $count = isset($counts[$query[0]]) ? $counts[$query[0]] : 0;
     if ($diff > variable_get('devel_execution', 5)) {
       $cell[$i][] = array ('data' => $diff, 'class' => 'marker');
     }
