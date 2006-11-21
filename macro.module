@@ -200,8 +200,10 @@ function macro_admin_settings() {
 + */
 function drupal_execute_macro($macro) {
   foreach ($macro as $key => $data) {
-    print_r($data);
-    $args = array( $data['form_id'], $data['values']) + unserialize($data['parameters']);
+    // print_r($data);
+    $param = unserialize($data['parameters']);
+    $args = array($data['form_id'], $data['values']);
+    $args = array_merge($args, $param);
     call_user_func_array('drupal_execute', $args);
     if (form_get_errors()) {
        drupal_set_message(t("An error has occured with macro #%macro_number , form_id %form_id. Please check the errors displayed for more details.", array('%macro_number' => $key, '%form_id' => $data['form_id'])));
