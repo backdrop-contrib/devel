@@ -70,6 +70,7 @@ function create_comments($records, $users, $nodes, $comments) {
     $comment->uid = $users[array_rand($users)];
 
     db_query("INSERT INTO {comments} (cid, nid, pid, uid, subject, comment, status, thread, timestamp) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d, %d)", $comment->cid, $comment->nid, $comment->pid, $comment->uid, $comment->subject, $comment->comment, 0, 0, time());
+    _comment_update_node_statistics($comment->nid);
 
     print "created comment #$i<br />";
   }
