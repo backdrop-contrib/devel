@@ -15,6 +15,10 @@
 define('DEVEL_QUERY_SORT_BY_SOURCE', 0);
 define('DEVEL_QUERY_SORT_BY_DURATION', 1);
 
+define('DEVEL_ERROR_HANDLER_NONE', 0);
+define('DEVEL_ERROR_HANDLER_STANDARD', 1);
+define('DEVEL_ERROR_HANDLER_BACKTRACE', 2);
+
 /**
  * Implementation of hook_help().
  */
@@ -141,9 +145,63 @@ function devel_init() {
 
     $memory_init = memory_get_usage();
   }
-  // update.php relies on the custom error handler
-  if (!strstr($_SERVER['PHP_SELF'], 'update.php')) {
-    restore_error_handler();
+  
+  if (strstr($_SERVER['PHP_SELF'], 'update.php')) {
+    // update.php relies on standard error handler
+  }
+  else{
+    $handler = variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD);
+    switch ($handler) {
+      case DEVEL_ERROR_HANDLER_STANDARD:
+        // do nothing
+        break;
+      case DEVEL_ERROR_HANDLER_BACKTRACE:
+        set_error_handler('backtrace_error_handler');
+        break;
+      case DEVEL_ERROR_HANDLER_NONE:
+        restore_error_handler();
+        break;
+    }
+  }
+}
+
+function backtrace_error_handler($errno, $message, $filename, $line) {
+  if ($errno & (E_ALL ^ E_NOTICE)) {
+    $types = array(1 => 'error', 2 => 'warning', 4 => 'parse error', 8 => 'notice', 16 => 'core error', 32 => 'core warning', 64 => 'compile error', 128 => 'compile warning', 256 => 'user error', 512 => 'user warning', 1024 => 'user notice', 2048 => 'strict warning');
+    $entry = $types[$errno] .': '. $message .' in '. $filename .' on line '. $line .'.';
+
+    if (variable_get('error_level', 1) == 1) {
+      $backtrace = debug_backtrace();
+      array_shift($backtrace);
+      $rows[0][] = array('data' => '<strong>'. $entry. '</strong>', 'colspan' => 3);
+      $i=1;
+      foreach ($backtrace as $trace) {
+        $rows[$i][] = $trace['class']. $trace['type']. l($trace['function'], "http://api.drupal.org/api/HEAD/function/". $trace['function']);
+        $rows[$i][] = $trace['file'] ? $trace['file']. ': '. $trace['line'] : '';
+        if (!empty($trace['args'])) {
+          foreach ($trace['args'] as $arg) {
+            if (is_array($arg) || is_object($arg)) {
+              $args[] = dpr($arg, TRUE);
+            }
+            else {
+              $args[] = check_plain($arg);
+            }
+          }
+        }
+        $rows[$i][] = implode(', ', $args);
+        $i++;
+        unset($args);
+      }
+      if (function_exists('theme_table')) {
+        $header = array('function', 'file: line', 'arguments');
+        print theme('table', $header, $rows);
+      }
+      else {
+        print_r($rows);
+      }
+    }
+
+    watchdog('php', t('%message in %file on line %line.', array('%error' => $types[$errno], '%message' => $message, '%file' => $filename, '%line' => $line)), WATCHDOG_ERROR);
   }
 }
 
@@ -425,6 +483,12 @@ function devel_admin_settings() {
     '#title' => t('Display form element keys and weights'),
     '#default_value' => variable_get('devel_form_weights', 0),
     '#description' => t('Form element names are needed for performing themeing or altering a form. Their weights determine the position of the element. Enabling this setting will show these keys and weights beside each form item.'),
+  );
+  $form['devel_error_handler'] = array('#type' => 'radios',
+    '#title' => t('Error handler'),
+    '#default_value' => variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD),
+    '#options' => array(DEVEL_ERROR_HANDLER_NONE => t('None'), DEVEL_ERROR_HANDLER_STANDARD => t('Standard drupal'), DEVEL_ERROR_HANDLER_BACKTRACE => t('Backtrace')),
+    '#description' => t('Choose an error handler for your site. <em>Backtrace</em> prints nice debug information when an error is noticed, and you !choose. <em>None</em> is a good option when stepping through the site in your debugger.', array('!choose' => l(t('to show errors on screen'), 'admin/settings/error-reporting'))),
   );
 
   // Save any old SMTP library
