@@ -276,7 +276,8 @@ function devel_exit($destination = NULL) {
     }
   }
 
-  if (function_exists('drupal_get_headers') && (strstr(drupal_get_headers(), 'xml') || strstr(drupal_get_headers(), 'javascript'))) {
+  $headers = drupal_get_headers();
+  if (function_exists('drupal_get_headers') && (strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain'))) {
     $is_xml = TRUE;
   }
   if (function_exists('user_access') && user_access('access devel information') && !$is_xml) { // Try not to break the xml pages.
