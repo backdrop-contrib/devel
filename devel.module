@@ -21,7 +21,7 @@ define('DEVEL_QUERY_SORT_BY_DURATION', 1);
 function devel_help($section) {
   switch ($section) {
     case 'admin/settings/devel':
-      return '<p>'. t('Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the <a href="%admin-blocks">block administration</a> page.', array('%admin-blocks' => url('admin/build/block'))). '</p>';
+      return '<p>'. t('Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the !block page.', array('!block' => l(t('block administration'), 'admin/build/block'))). '</p>';
     case 'devel/reinstall':
       return '<p>'. t('Clicking a module\'s reinstall button will simulate installing a module. <code>hook_install()</code> will be executed and the schema version number will be set to the most recent update number. Make sure to manually clear out any existing tables first.'). '</p>';
   }
