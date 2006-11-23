@@ -12,8 +12,8 @@
 // xdebug.output_dir='/php'
 // xdebug.default_enable
 
-define(DEVEL_QUERY_SORT_BY_SOURCE, 0);
-define(DEVEL_QUERY_SORT_BY_DURATION, 1);
+define('DEVEL_QUERY_SORT_BY_SOURCE', 0);
+define('DEVEL_QUERY_SORT_BY_DURATION', 1);
 
 /**
  * Implementation of hook_help().

@@ -5,7 +5,7 @@
  */
 function devel_install() {
   // New module weights in core: put devel as the very last in the chain.
-  db_query("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
+  db_query("UPDATE {system} SET weight = 88 WHERE name = 'devel'");
 
   switch ($GLOBALS['db_type']) {
     case 'mysqli':
