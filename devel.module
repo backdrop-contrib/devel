@@ -257,7 +257,7 @@ function devel_form_alter($form_id, &$form, $key_in = NULL) {
 function devel_exit($destination = NULL) {
   global $queries, $memory_init;
 
-  $is_xml = FALSE;
+  $avoid = FALSE;
   $output = '';
   if (isset($destination)) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
@@ -276,11 +276,14 @@ function devel_exit($destination = NULL) {
     }
   }
 
-  $headers = drupal_get_headers();
-  if (function_exists('drupal_get_headers') && (strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain'))) {
-    $is_xml = TRUE;
+  if (function_exists('drupal_get_headers') {
+    $headers = drupal_get_headers();
+    if(strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain')) {
+      $avoid = TRUE;
+    }
   }
-  if (function_exists('user_access') && user_access('access devel information') && !$is_xml) { // Try not to break the xml pages.
+  
+  if (function_exists('user_access') && user_access('access devel information') && !$avoid) { // Try not to break non html pages.
     // Query log off, timer on.
     if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
       $output = '<div class="dev-timer">'. devel_timer() .'</div>';
