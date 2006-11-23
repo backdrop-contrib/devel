@@ -756,26 +756,44 @@ function dargs($always = TRUE) {
 }
 
 /**
+ * Var_dump() a variable to the 'message' area of the page. Uses drupal_set_message()
+ */
+ function dvm($input, $name = NULL) {
+  if (user_access('access devel information')) {
+    $export = dprint_r($input, TRUE, $name, 'var_dump');
+    drupal_set_message($export);
+  }
+}
+/**
  * An alias for dprint_r(). Saves carpal tunnel syndrome.
  */
-function dpr($str, $return = FALSE, $name = NULL) {
-  return dprint_r($str, $return, $name);
+function dpr($input, $return = FALSE, $name = NULL) {
+  return dprint_r($input, $return, $name);
 }
+
+/**
+ * Like dpr, but uses var_dump() instead
+ */
+function dvr($input, $return = FALSE, $name = NULL) {
+  return dprint_r($input, $return, $name, 'var_dump');
+}
+
 
 /**
  * Pretty-print a variable to the browser.
  * Displays only for users with proper permissions. If
  * you want a string returned instead of a print, use the 2nd param.
  */
-function dprint_r($input, $return = FALSE, $name = NULL) {
+function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') {
   if (user_access('access devel information')) {
   	if ($name) $name .= ' => ';
   	ob_start();
-  	print_r($input);
+  	$function($input);
   	$printed_value = '<pre>' . $name . check_plain(ob_get_clean()) . '</pre>';
     if ($return) {
       return $printed_value;
-    } else {
+    } 
+    else {
       print $printed_value;
     }
   }
