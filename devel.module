@@ -276,7 +276,7 @@ function devel_exit($destination = NULL) {
     }
   }
 
-  if (function_exists('drupal_get_headers') {
+  if (function_exists('drupal_get_headers')) {
     $headers = drupal_get_headers();
     if(strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain')) {
       $avoid = TRUE;
