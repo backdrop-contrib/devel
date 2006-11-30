@@ -26,8 +26,14 @@ function devel_help($section) {
   switch ($section) {
     case 'admin/settings/devel':
       return '<p>'. t('Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the !block page.', array('!block' => l(t('block administration'), 'admin/build/block'))). '</p>';
+    case 'devel/reference':
+      return '<p>'. t('This is a list of defined user functions that generated this current request lifecycle. Click on a function name to view its documention.'). '</p>';
     case 'devel/reinstall':
       return '<p>'. t('Clicking a module\'s reinstall button will simulate installing a module. <code>hook_install()</code> will be executed and the schema version number will be set to the most recent update number. Make sure to manually clear out any existing tables first.'). '</p>';
+    case 'devel/session':
+      return '<p>'. t('Here are the contents of your <code>$_SESSION</code> variable.'). '</p>';
+    case 'devel/variable':
+      return '<p>'. t('This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href="@variable-get-doc">variable_get()</a> and <a href="@variable-set-doc">variable_set()</a>.', array('@variable-get-doc' => 'http://api.drupal.org/api/HEAD/function/variable_get', '@variable-set-doc' => 'http://api.drupal.org/api/HEAD/function/variable_set')). '</p>';
   }
 }
 
@@ -253,14 +259,14 @@ function devel_block($op = 'list', $delta = 0) {
         $links = array();
         $block['subject'] = t('devel');
         if (user_access('access devel information')) {
-          $links[] = l('Module settings', 'admin/settings/devel');
-          $links[] = l('Empty cache', 'devel/cache/clear', array(), drupal_get_destination());
+          $links[] = l('Devel settings', 'admin/settings/devel', array('title' => t('Adjust module settings for devel module')));
+          $links[] = l('Empty cache', 'devel/cache/clear', array('title' => t('Clear the database cache tables which store page, menu, node, and variable caches.')), drupal_get_destination());
           $links[] = l('Phpinfo()', 'devel/phpinfo');
-          $links[] = l('Function reference', 'devel/reference');
-          $links[] = l('Reinstall modules', 'devel/reinstall');
-          $links[] = l('Reset menus', 'devel/menu/reset');
-          $links[] = l('Variable viewer', 'devel/variable');
-          $links[] = l('Session viewer', 'devel/session');
+          $links[] = l('Function reference', 'devel/reference', array('title' => t('View a list of currently defined user functions with documentation links')));
+          $links[] = l('Reinstall modules', 'devel/reinstall', array('title' => t('Re-run hook_install() for a given module')));
+          $links[] = l('Reset menus', 'devel/menu/reset', array('title' => t('Resets all menu items to their default settings')));
+          $links[] = l('Variable viewer', 'devel/variable', array('title' => t('List the variables and their values currently stored in variables table')));
+          $links[] = l('Session viewer', 'devel/session', array('title' => t('List the contents of $_SESSION')));
         }
         if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
           // True only if devel_node_access enabled.
@@ -425,14 +431,18 @@ function devel_exit($destination = NULL) {
   }
 }
 
+/**
+ * Returns a list of all currently defined user functions in the current 
+ * request lifecycle, with links their documentation.
+ */
 function devel_function_reference() {
-    $functions = get_defined_functions();
-    $ufunctions = $functions['user'];
-    sort($ufunctions);
-    foreach($ufunctions as $function) {
-      $links[] = l($function, "http://api.drupal.org/api/HEAD/function/$function");
-    }
-    return theme('item_list', $links);
+  $functions = get_defined_functions();
+  $ufunctions = $functions['user'];
+  sort($ufunctions);
+  foreach($ufunctions as $function) {
+    $links[] = l($function, "http://api.drupal.org/api/HEAD/function/$function");
+  }
+  return theme('item_list', $links);
 }
  
 function devel_db_query($query) {
