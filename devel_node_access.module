@@ -69,7 +69,7 @@ function dna_summary() {
   if ($num = $result->num_nodes) {
 	$output .= '<h3>'.t('Legacy Nodes')."</h3>\n";
 	$output .= '<p>'.
-	  t('You have %num nodes in your node table which are not represented in your node_access table.  If you have an access control module installed, these nodes may be hidden from all users.  This could be caused by publishing nodes before enabling the access control module.  If this is the case, manually updating each node should add it to the node_access table and fix the problem.', array('%num' => l($num, 'devel/node_access/view/NULL'))).
+	  t('You have !num nodes in your node table which are not represented in your node_access table.  If you have an access control module installed, these nodes may be hidden from all users.  This could be caused by publishing nodes before enabling the access control module.  If this is the case, manually updating each node should add it to the node_access table and fix the problem.', array('!num' => l($num, 'devel/node_access/view/NULL'))).
 	  "</p>\n";
   }
   else {
