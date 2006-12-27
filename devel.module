@@ -270,7 +270,7 @@ function devel_block($op = 'list', $delta = 0) {
         }
         if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
           // True only if devel_node_access enabled.
-          $links[] = l('Node_access summary', 'devel/node_access/summary');
+          $links[] = l('Node access summary', 'devel/node_access/summary');
         }
         if ($links) {
           $block['content'] = theme('item_list', $links);

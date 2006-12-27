@@ -253,20 +253,20 @@ function devel_node_access_views_default_views() {
   $view->access = array (
 );
   $view->page = TRUE;
-  $view->page_title = 'Nodes in node_access table where realm is %1';
+  $view->page_title = 'Nodes in node_access table';
   $view->page_header = '';
   $view->page_header_format = '1';
   $view->page_type = 'table';
   $view->url = 'devel/node_access/view';
   $view->use_pager = TRUE;
-  $view->nodes_per_page = '10';
+  $view->nodes_per_page = '100';
   $view->sort = array (
   );
   $view->argument = array (
     array (
       'type' => 'realm',
       'argdefault' => '3',
-      'title' => 'node_access realms',
+      'title' => 'Nodes in node_access table where realm is %1',
       'options' => '',
     ),
   );
