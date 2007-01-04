@@ -33,7 +33,7 @@ function devel_help($section) {
     case 'devel/session':
       return '<p>'. t('Here are the contents of your <code>$_SESSION</code> variable.'). '</p>';
     case 'devel/variable':
-      return '<p>'. t('This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href="@variable-get-doc">variable_get()</a> and <a href="@variable-set-doc">variable_set()</a>.', array('@variable-get-doc' => 'http://api.drupal.org/api/HEAD/function/variable_get', '@variable-set-doc' => 'http://api.drupal.org/api/HEAD/function/variable_set')). '</p>';
+      return '<p>'. t('This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href="@variable-get-doc">variable_get()</a> and <a href="@variable-set-doc">variable_set()</a>. Variables that re too long can slow down your pages.', array('@variable-get-doc' => 'http://api.drupal.org/api/HEAD/function/variable_get', '@variable-set-doc' => 'http://api.drupal.org/api/HEAD/function/variable_set')).'</p>';
   }
 }
 
@@ -87,8 +87,23 @@ function devel_menu($may_cache) {
       );
     }
     $items[] = array('path' => 'devel/variable',
-      'title' => t('Variable viewer'),
-      'callback' => 'devel_variable',
+      'title' => t('Variable editor'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => array('devel_variable'),
+      'access' => user_access('access devel information'),
+      'type' => MENU_CALLBACK,
+    );
+    $items[] = array('path' => 'devel/variable/edit',
+      'title' => t('Variable editor'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => array('devel_variable_edit'),
+      'access' => user_access('access devel information'),
+      'type' => MENU_CALLBACK,
+    );
+    $items[] = array('path' => 'devel/variable/delete',
+      'title' => t('Variable editor'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => array('devel_variable_delete'),
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK,
     );
@@ -265,7 +280,7 @@ function devel_block($op = 'list', $delta = 0) {
           $links[] = l('Function reference', 'devel/reference', array('title' => t('View a list of currently defined user functions with documentation links')));
           $links[] = l('Reinstall modules', 'devel/reinstall', array('title' => t('Re-run hook_install() for a given module')));
           $links[] = l('Reset menus', 'devel/menu/reset', array('title' => t('Resets all menu items to their default settings')));
-          $links[] = l('Variable viewer', 'devel/variable', array('title' => t('List the variables and their values currently stored in variables table')));
+          $links[] = l('Variable editor', 'devel/variable', array('title' => t('Edit and delete site variables')));
           $links[] = l('Session viewer', 'devel/session', array('title' => t('List the contents of $_SESSION')));
         }
         if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
@@ -670,8 +685,95 @@ function devel_reinstall_submit($form_id, $form_values) {
  * Menu callback; display all variables.
  */
 function devel_variable() {
-  global $conf;
-  return dprint_r($conf, TRUE);
+  $header = array(
+    array(''),
+    array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),
+    array('data' => t('Value'), 'field' => 'value'),
+    array('data' => t('Length'), 'field' => 'length'),
+    array('data' => t('Operations')),
+  );
+  // TODO: we could get variables out of $conf but that would include hard coded ones too. ideally i would highlight overrridden/hard coded variables
+  $sql = "SELECT *, LENGTH(value) AS length FROM {variable}";
+  $result = db_query($sql. tablesort_sql($header));
+  while ($row = db_fetch_object($result)) {
+    $variables[$row->name] = '';
+    $form['name'][$row->name] = array('#value' => $row->name);
+    if (drupal_strlen($row->value) > 40) {
+      $value = drupal_substr($row->value, 0, 35) .'...';
+    }
+    else {
+      $value = $row->value;
+    }
+    $form[$row->name]['value'] = array('#value' => $value);
+    $form[$row->name]['length'] = array('#value' => $row->length);
+    $form[$row->name]['edit'] = array('#value' => l(t('edit'), "devel/variable/edit/$row->name"));
+  }
+  $form['variables'] = array('#type' => 'checkboxes', '#options' => $variables);
+  $form['submit'] = array(
+    '#type' => 'submit', 
+    '#value' => t('Delete'),
+  );
+  return $form;
+}
+
+function theme_devel_variable($form) {
+  $children = element_children($form['name']);
+  foreach ($children as $key) {      
+    $rows[] = array(
+      drupal_render($form['variables'][$key]),
+      drupal_render($form['name'][$key]),
+      drupal_render($form[$key]['value']),
+      drupal_render($form[$key]['length']),
+      drupal_render($form[$key]['edit']),
+    );
+  }
+  $header = array(
+    array(''),
+    array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),
+    array('data' => t('Value'), 'field' => 'value'),
+    array('data' => t('Length'), 'field' => 'length'),
+    array('data' => t('Operations'), 'colspan' => 2),
+  );
+  $output = theme('table', $header, $rows);
+  $output .= drupal_render($form);
+
+  return $output;
+}
+
+function devel_variable_submit($form_id, $form_values) {
+  $deletes = array_filter($form_values['variables']);
+  array_walk($deletes, 'variable_del');
+  drupal_set_message(t('!count variables deleted', array('!count' => count($deletes))));
+}
+
+function devel_variable_edit($name) {
+  $value = variable_get($name, 'not found');
+  $form['name'] = array(
+    '#type' => 'value', 
+    '#value' => $name
+  );
+  $form['value'] = array(
+    '#type' => 'item',
+    '#title' => t('Old value'), // maybe check_plain() done by fapi
+    '#value' => $value
+  );
+  $form['new'] = array(
+    '#type' => 'textarea', 
+    '#title' => t('New value'),
+    '#default_value' => $value
+  );
+  $form['submit'] = array(
+    '#type' => 'submit', 
+    '#value' => t('Submit'),
+  );
+  drupal_set_title($name);
+  return $form;
+}
+
+function devel_variable_edit_submit($form_id, $form_values) {
+  variable_set($form_values['name'], $form_values['new']);
+  drupal_set_message(t('Saved new value for %name', array('%name' => $form_values['name'])));
+  return 'devel/variable';
 }
 
 /**
