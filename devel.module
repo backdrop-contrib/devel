@@ -728,7 +728,7 @@ function theme_devel_variable($form) {
     );
   }
   $header = array(
-    array(''),
+    theme('table_select_header_cell'),
     array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),
     array('data' => t('Value'), 'field' => 'value'),
     array('data' => t('Length'), 'field' => 'length'),
