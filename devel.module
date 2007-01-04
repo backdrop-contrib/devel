@@ -951,9 +951,9 @@ if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) 
 
 function devel_queries() {
   $header = array(
-                  array('data' => t('Total time (ms)'), 'field' => 'total_time', 'sort' => 'desc'),
+                  array('data' => t('Total (ms)'), 'field' => 'total_time', 'sort' => 'desc'),
                   array('data' => t('Average (ms)'), 'field' => 'average', 'sort' => 'desc'),
-                  array('data' => t('Standard deviation (ms)')),
+                  array('data' => t('Std deviation (ms)')),
                   array('data' => t('Count'), 'field' => 'count'),
                   array('data' => t('Function'), 'field' => 'q.function'),
                   array('data' => t('Query'), 'field' => 'q.query'),
@@ -976,7 +976,7 @@ function devel_queries() {
   $output .= theme('pager', NULL, 30, 0);
   $output .= l(t('Delete collected query statistics'), 'devel/queries/empty');
 
-  return $output;
+  print theme('page', $output, FALSE);
 }
 
 function devel_queries_empty() {
