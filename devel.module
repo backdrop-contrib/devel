@@ -698,8 +698,8 @@ function devel_variable() {
   while ($row = db_fetch_object($result)) {
     $variables[$row->name] = '';
     $form['name'][$row->name] = array('#value' => $row->name);
-    if (drupal_strlen($row->value) > 40) {
-      $value = drupal_substr($row->value, 0, 35) .'...';
+    if (drupal_strlen($row->value) > 70) {
+      $value = drupal_substr($row->value, 0, 65) .'...';
     }
     else {
       $value = $row->value;
@@ -755,17 +755,26 @@ function devel_variable_edit($name) {
   $form['value'] = array(
     '#type' => 'item',
     '#title' => t('Old value'), // maybe check_plain() done by fapi
-    '#value' => $value
+    '#value' => dpr($value, TRUE),
   );
-  $form['new'] = array(
-    '#type' => 'textarea', 
-    '#title' => t('New value'),
-    '#default_value' => $value
-  );
-  $form['submit'] = array(
-    '#type' => 'submit', 
-    '#value' => t('Submit'),
-  );
+  if (is_string($value)) {
+    $form['new'] = array(
+      '#type' => 'textarea', 
+      '#title' => t('New value'),
+      '#default_value' => $value
+    );
+    $form['submit'] = array(
+      '#type' => 'submit', 
+      '#value' => t('Submit'),
+    );
+  }
+  else {
+    $form['new'] = array(
+      '#type' => 'item', 
+      '#title' => t('New value'),
+      '#value' => t('Sorry, complex variable types may not be edited yet. Use the <em>Execute PHP</em> block and the <a href="@variable-set-doc">variable_set()</a> function.', array('@variable-set-doc' => 'http://api.drupal.org/api/HEAD/function/variable_set'))
+    );
+  }
   drupal_set_title($name);
   return $form;
 }
