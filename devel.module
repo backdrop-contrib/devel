@@ -88,8 +88,7 @@ function devel_menu($may_cache) {
     }
     $items[] = array('path' => 'devel/variable',
       'title' => t('Variable editor'),
-      'callback' => 'drupal_get_form',
-      'callback arguments' => array('devel_variable'),
+      'callback' => 'devel_variable_page',
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK,
     );
@@ -684,6 +683,12 @@ function devel_reinstall_submit($form_id, $form_values) {
 /**
  * Menu callback; display all variables.
  */
+function devel_variable_page() {
+  // we print our own page so as to avoid blocks
+  $output = drupal_get_form('devel_variable');
+  print theme('page', $output, FALSE);
+}
+
 function devel_variable() {
   $header = array(
     array(''),
