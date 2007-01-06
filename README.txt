@@ -2,7 +2,7 @@ README.txt
 ==========
 
 A module containing helper functions for Drupal developers and
-inquisitive admins. This module cna print a log of
+inquisitive admins. This module can print a log of
 all database queries for each page request at the bottom of each page. The
 summary includes how many times each query was executed on a page
 (shouldn't run same query multiple times), and how long each query

@@ -246,12 +246,6 @@ function devel_block($op = 'list', $delta = 0) {
     $blocks[0]['info'] = t('Switch user');
     $blocks[1]['info'] = t('Devel');
     $blocks[2]['info'] = t('Execute PHP');    
-    
-    // Auto-enable the devel blocks for fresh installations.
-    $blocks[1]['status'] = 1;
-    $blocks[2]['status'] = 1;
-    $blocks[2]['region'] = 'footer';
-
     return $blocks;
   }
   else if ($op == 'view') {
