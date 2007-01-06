@@ -348,7 +348,7 @@ function devel_exit($destination = NULL) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
     if (user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
-      $output = strtr('<p>The user is being redirected to <a href="%destination">%destination</a>.</p>', array('%destination' => $destination));
+      $output = t('<p>The user is being redirected to <a href="%destination">%destination</a>.</p>', array('%destination' => $destination));
       print theme('page', $output);
 
       // Don't allow the automatic redirect to happen.
@@ -369,24 +369,21 @@ function devel_exit($destination = NULL) {
   }
   
   if (function_exists('user_access') && user_access('access devel information') && !$avoid) { // Try not to break non html pages.
+    $query_summary = devel_query_summary();
     // Query log off, timer on.
     if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
-      $output = '<div class="dev-timer">'. devel_timer() .'</div>';
+      $output = '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
     }
 
     // Query log on.
     $sum = 0;
     if (variable_get('devel_query_display', 0)) {
-      foreach ($queries as $query) {
-        $text[] = $query[0];
-        $sum += $query[1];
-      }
       $counts = array_count_values($text);
 
       $output .= '<div class="dev-query">';
-      $txt = strtr('Executed %queries queries in %time milliseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2)));
+      $output .= $query_summary;
       if (function_exists('theme_table')) {
-        $txt .= strtr(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
+        $txt .= t(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
         if (variable_get('dev_timer', 0)) {
           $txt .= devel_timer();
         }
@@ -409,7 +406,7 @@ function devel_exit($destination = NULL) {
       $memory_exit = memory_get_usage();
       $list = array();
       foreach (array('devel_init()' => $memory_init, 'devel_exit()' => $memory_exit) as $type => $value) {
-        $list[] = strtr('Memory used at %type: %value MB', array('%type' => $type, '%value' => round($value / 1024 / 1024, 2)));
+        $list[] = t('Memory used at %type: %value MB', array('%type' => $type, '%value' => round($value / 1024 / 1024, 2)));
       }
       $output .= '<div class="dev-memory-usage"><h3>'. 'Memory usage:' .'</h3>'. theme('item_list', $list) .'</div>';
     }
@@ -443,6 +440,15 @@ function devel_exit($destination = NULL) {
       devel_db_query('INSERT INTO {devel_times} (qid, time) VALUES '. implode(',', $fields), $values);
     }
   }
+}
+
+function devel_query_summary() {
+  global $queries;
+  foreach ($queries as $query) {
+    $text[] = $query[0];
+    $sum += $query[1];
+  }
+  return t('Executed %queries queries in %time milliseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2)));
 }
 
 /**
@@ -940,8 +946,7 @@ function _devel_table_sort($a, $b) {
  */
 function devel_timer() {
   $time = timer_read('page');
-  // t() may not be available yet - cached pages
-  return strtr(' Page execution time was %time ms.', array('%time' => $time));
+  return t(' Page execution time was %time ms.', array('%time' => $time));
 }
 
 /**
