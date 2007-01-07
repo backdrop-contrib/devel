@@ -363,7 +363,7 @@ function devel_exit($destination = NULL) {
   }
   
   if (function_exists('user_access') && user_access('access devel information') && !$avoid) { // Try not to break non html pages.
-    $query_summary = devel_query_summary();
+    list($counts, $query_summary) = devel_query_summary();
     // Query log off, timer on.
     if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
       $output = '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
@@ -372,8 +372,6 @@ function devel_exit($destination = NULL) {
     // Query log on.
     $sum = 0;
     if (variable_get('devel_query_display', 0)) {
-      $counts = array_count_values($text);
-
       $output .= '<div class="dev-query">';
       $output .= $query_summary;
       if (function_exists('theme_table')) {
@@ -442,7 +440,8 @@ function devel_query_summary() {
     $text[] = $query[0];
     $sum += $query[1];
   }
-  return t('Executed %queries queries in %time milliseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2)));
+  $counts = array_count_values($text);
+  return array($counts, t('Executed %queries queries in %time milliseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2))));
 }
 
 /**
