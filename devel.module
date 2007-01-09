@@ -556,7 +556,11 @@ function devel_admin_settings() {
  * Menu callback; clears all caches, then redirects to the previous page.
  */
 function devel_cache_clear() {
-  $core = array('cache', 'cache_filter', 'cache_menu', 'cache_page');
+  // clear preprocessor cache
+  drupal_clear_css_cache();
+  
+  // clear core tables
+  $core = array('cache', 'cache_filter', 'cache_menu', 'cache_page');  
   $alltables = $core + module_invoke_all('devel_caches');
   foreach ($alltables as $table) {
     cache_clear_all('*', $table, TRUE);
