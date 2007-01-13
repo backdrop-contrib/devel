@@ -51,27 +51,33 @@ function create_comments($records, $users, $nodes, $comments) {
   $users = array_merge($users, array('0'));
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
-    $comment->cid = db_next_id("{comments}_cid");
-    $comment->nid = array_rand($nodes);
+    $comment = array();
 
     switch ($i % 3) {
       case 1:
-        $comment->pid = db_result(db_query("SELECT cid FROM {comments} WHERE pid = 0 AND nid = %d ORDER BY RAND() LIMIT 1", $comment->nid));
+        $result = db_fetch_object(db_query("SELECT nid, cid FROM {comments} WHERE pid = 0 ORDER BY RAND() LIMIT 1"));
+        $comment['pid'] = $result->cid;
+        $comment['nid'] = $result->nid;
         break;
       case 2:
-        $comment->pid = db_result(db_query("SELECT cid FROM {comments} WHERE pid > 0 AND nid = %d ORDER BY RAND() LIMIT 1", $comment->nid));
+        $result = db_fetch_object(db_query("SELECT nid, cid FROM {comments} WHERE pid > 0 ORDER BY RAND() LIMIT 1"));
+        $comment['pid'] = $result->cid;
+	$comment['nid'] = $result->nid;
         break;
       default:
-        $comment->pid = 0;
+        $comment['nid'] = array_rand($nodes);
+        $comment['pid'] = 0;
     }
 
-    $comment->subject = "comment #$i";
-    $comment->comment = "body of comment #$i";
-    $comment->uid = $users[array_rand($users)];
+    $commen['subject'] = "comment #$i";
+    $comment['comment'] = "body of comment #$i";
+    $comment['uid'] = $users[array_rand($users)];
 
-    db_query("INSERT INTO {comments} (cid, nid, pid, uid, subject, comment, status, thread, timestamp) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d, %d)", $comment->cid, $comment->nid, $comment->pid, $comment->uid, $comment->subject, $comment->comment, 0, 0, time());
-    _comment_update_node_statistics($comment->nid);
-
+    if (!$comment['nid']) {
+      $comment['nid'] = array_rand($nodes);
+      $comment['pid'] = 0;
+    }
+    comment_save($comment);
     print "created comment #$i<br />";
   }
 }
