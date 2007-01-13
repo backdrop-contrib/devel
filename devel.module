@@ -342,7 +342,7 @@ function devel_exit($destination = NULL) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
     if (user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
-      $output = t('<p>The user is being redirected to <a href="%destination">%destination</a>.</p>', array('%destination' => $destination));
+      $output = t('<p>The user is being redirected to <a href="@destination">@destination</a>.</p>', array('@destination' => $destination));
       print theme('page', $output);
 
       // Don't allow the automatic redirect to happen.
