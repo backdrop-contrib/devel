@@ -751,7 +751,7 @@ function theme_devel_variable($form) {
 function devel_variable_submit($form_id, $form_values) {
   $deletes = array_filter($form_values['variables']);
   array_walk($deletes, 'variable_del');
-  drupal_set_message(t('!count variables deleted', array('!count' => count($deletes))));
+  drupal_set_message(format_plural(count($deletes), 'one variable deleted', '@count variables deleted'));
 }
 
 function devel_variable_edit($name) {
