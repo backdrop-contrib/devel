@@ -131,14 +131,14 @@ function devel_menu($may_cache) {
     if (is_numeric(arg(1))) {
       if (arg(0) == 'node') {
         $items[] = array('path' => 'node/'. arg(1) .'/load',
-          'title' => t('Devel load'),
+          'title' => t('Dev load'),
           'callback' => 'devel_load_object',
           'callback arguments' => array('node', arg(1)),
           'access' => user_access('access devel information'),
           'type' => MENU_LOCAL_TASK,
         );
         $items[] = array('path' => 'node/'. arg(1) .'/render',
-          'title' => t('Devel render'),
+          'title' => t('Dev render'),
           'callback' => 'devel_render_object',
           'callback arguments' => array('node', arg(1)),
           'access' => user_access('access devel information'),
