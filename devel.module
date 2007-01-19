@@ -59,12 +59,6 @@ function devel_menu($may_cache) {
       'callback' => 'devel_queries_empty',
       'access' => user_access('access devel information'),
       'type' => MENU_CALLBACK);
-    $items[] = array('path' => 'devel/phpinfo',
-      'title' => t('phpinfo()'),
-      'callback' => 'devel_phpinfo',
-      'access' => user_access('access devel information'),
-      'type' => MENU_CALLBACK,
-    );
     $items[] = array('path' => 'devel/reference',
       'title' => t('function reference'),
       'callback' => 'devel_function_reference',
@@ -269,7 +263,7 @@ function devel_block($op = 'list', $delta = 0) {
         if (user_access('access devel information')) {
           $links[] = l('Devel settings', 'admin/settings/devel', array('title' => t('Adjust module settings for devel module')));
           $links[] = l('Empty cache', 'devel/cache/clear', array('title' => t('Clear the database cache tables which store page, menu, node, and variable caches.')), drupal_get_destination());
-          $links[] = l('Phpinfo()', 'devel/phpinfo');
+          $links[] = l('Phpinfo()', 'admin/logs/status/php');
           $links[] = l('Function reference', 'devel/reference', array('title' => t('View a list of currently defined user functions with documentation links')));
           $links[] = l('Reinstall modules', 'devel/reinstall', array('title' => t('Re-run hook_install() for a given module')));
           $links[] = l('Reset menus', 'devel/menu/reset', array('title' => t('Resets all menu items to their default settings')));
@@ -592,18 +586,6 @@ function devel_execute_form_submit($form_id, $form) {
   ob_start();
   print eval($form['code']);
   dsm(ob_get_clean());
-}
-
-/**
- * Menu callback; display phpinfo() output.
- * As phpinfo() outputs an entire HTML page, this function extracts and displays only the data between
- * the <body> tag.
- */
-function devel_phpinfo() {
-  ob_start();
-  phpinfo();
-  preg_match("/<body>(.*)<\/body>/s", ob_get_clean(), $matches);
-  return '<div class="phpinfo">'. $matches[1] .'</div>';
 }
 
 /**
