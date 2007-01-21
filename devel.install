@@ -29,6 +29,23 @@ function devel_install() {
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
       db_query($sql);
       break;
+    case 'mssql':
+      $sql = "CREATE TABLE {devel_queries} (
+        qid INT IDENTITY(1,1),
+        \"function\" varchar(255) NOT NULL default '',
+        query text NOT NULL,
+        hash varchar(255) NOT NULL default '',
+        PRIMARY KEY (qid));";
+      db_query($sql);
+
+      $sql = "CREATE TABLE {devel_times} (
+        tid INT IDENTITY(1,1),
+        qid INT NOT NULL default 0,
+        time FLOAT default NULL,
+        PRIMARY KEY (tid)
+      );";
+      db_query($sql);
+      
   }
 
   // Enable the blocks automatically at install.
