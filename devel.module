@@ -19,6 +19,8 @@ define('DEVEL_ERROR_HANDLER_NONE', 0);
 define('DEVEL_ERROR_HANDLER_STANDARD', 1);
 define('DEVEL_ERROR_HANDLER_BACKTRACE', 2);
 
+define('DEVEL_MIN_TEXTAREA', 50);
+
 /**
  * Implementation of hook_help().
  */
@@ -940,12 +942,12 @@ function dargs($always = TRUE) {
     dsm($bt[1]['args']);
     $printed = TRUE;
   }
-}
+} 
 
 /**
  * Print a variable to the 'message' area of the page. Uses drupal_set_message()
  */
- function dsm($input, $name = NULL) {
+function dpm($input, $name = NULL) {
   if (user_access('access devel information')) {
     $export = dprint_r($input, TRUE, $name);
     drupal_set_message($export);
@@ -955,12 +957,18 @@ function dargs($always = TRUE) {
 /**
  * Var_dump() a variable to the 'message' area of the page. Uses drupal_set_message()
  */
- function dvm($input, $name = NULL) {
+function dvm($input, $name = NULL) {
   if (user_access('access devel information')) {
     $export = dprint_r($input, TRUE, $name, 'var_dump');
     drupal_set_message($export);
   }
 }
+
+// legacy function that was poorly named. use dpm() instead, since the 'p' maps to 'print_r'
+function dsm($input, $name = NULL) {
+  dpm($input, $name = NULL);
+}
+
 /**
  * An alias for dprint_r(). Saves carpal tunnel syndrome.
  */
@@ -975,7 +983,6 @@ function dvr($input, $return = FALSE, $name = NULL) {
   return dprint_r($input, $return, $name, 'var_dump');
 }
 
-
 /**
  * Pretty-print a variable to the browser.
  * Displays only for users with proper permissions. If
@@ -983,10 +990,19 @@ function dvr($input, $return = FALSE, $name = NULL) {
  */
 function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') {
   if (user_access('access devel information')) {
-  	if ($name) $name .= ' => ';
+  	if ($name) {
+  	  $name .= ' => ';
+  	}
   	ob_start();
   	$function($input);
-  	$printed_value = '<pre>' . $name . check_plain(ob_get_clean()) . '</pre>';
+  	$output = check_plain(ob_get_clean());
+    if (count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
+      // don't use fapi here because sometimes fapi will not be loaded
+      $printed_value = "<textarea rows=30 style=\"width: 100%;\">\n". $name . $output . '</textarea>';
+    }
+  	else {
+    	$printed_value = '<pre>' . $name . $output . '</pre>';
+  	}
     if ($return) {
       return $printed_value;
     } 
