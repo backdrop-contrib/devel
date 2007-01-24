@@ -162,6 +162,7 @@ function devel_menu($may_cache) {
  * behavior when stepping though in a debugger.
  */
 function devel_init() {
+  register_shutdown_function('devel_shutdown');
   if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
     global $memory_init;
 
@@ -321,19 +322,7 @@ function devel_form_alter($form_id, &$form, $key_in = NULL) {
   }
 }
 
-/**
- * Implementation of hook_exit(). Displays developer information in the footer.
- *
- * Don't use t() here. It isn't available for cached pages.
- *
- * We can't move this to hook_footer() since this must run after
- * drupal_page_footer() in order to work for cached pages.
- */
 function devel_exit($destination = NULL) {
-  global $queries, $memory_init;
-
-  $avoid = FALSE;
-  $output = '';
   if (isset($destination)) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
@@ -350,15 +339,26 @@ function devel_exit($destination = NULL) {
       return;
     }
   }
+}
 
+/**
+ * See devel_init() which registers this function as a shutdown function. Displays developer information in the footer.
+ */
+function devel_shutdown() {
+  global $queries, $memory_init;
+
+  $output = '';
+
+  // Try not to break non html pages.
   if (function_exists('drupal_get_headers')) {
     $headers = drupal_get_headers();
     if(strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain')) {
-      $avoid = TRUE;
+      return;
     }
   }
   
-  if (function_exists('user_access') && user_access('access devel information') && !$avoid) { // Try not to break non html pages.
+  if (function_exists('user_access') && user_access('access devel information')) {
+    
     list($counts, $query_summary) = devel_query_summary();
     // Query log off, timer on.
     if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
@@ -367,7 +367,7 @@ function devel_exit($destination = NULL) {
 
     // Query log on.
     $sum = 0;
-    if (variable_get('devel_query_display', 0)) {
+    if (variable_get('devel_query_display', FALSE)) {
       $output .= '<div class="dev-query">';
       $output .= $query_summary;
       if (function_exists('theme_table')) {
@@ -385,15 +385,11 @@ function devel_exit($destination = NULL) {
       }
       $output .= '</div>';
     }
-    // Lots of profile info. not sure how to use it yet.
-    if (extension_loaded('xdebug') && ini_get("xdebug.auto_profile")) {
-      // Commented out because generates too much output. output to log file instead. see xdebug docs
-      // dprint_r(xdebug_get_function_profile());;
-    };
-    if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
-      $memory_exit = memory_get_usage();
+    
+    if (variable_get('dev_mem', FALSE) && function_exists('memory_get_usage')) {
+      $memory_shutdown = memory_get_usage();
       $list = array();
-      foreach (array('devel_init()' => $memory_init, 'devel_exit()' => $memory_exit) as $type => $value) {
+      foreach (array('devel_init()' => $memory_init, 'devel_shutdown()' => $memory_shutdown) as $type => $value) {
         $list[] = t('Memory used at %type: %value MB', array('%type' => $type, '%value' => round($value / 1024 / 1024, 2)));
       }
       $output .= '<div class="dev-memory-usage"><h3>'. 'Memory usage:' .'</h3>'. theme('item_list', $list) .'</div>';
@@ -402,8 +398,12 @@ function devel_exit($destination = NULL) {
     print $output;
   }
 
+  devel_store_queries();
+}
+
+function devel_store_queries() {
   if (variable_get('devel_store_queries', 0) && rand(1, variable_get('devel_store_random', 1)) == 1) {
-    global $active_db;
+    global $active_db, $queries;
     $qids = array();
     $values = array();
     $fields = array();
