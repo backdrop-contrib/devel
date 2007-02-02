@@ -162,17 +162,15 @@ function devel_menu($may_cache) {
  * behavior when stepping though in a debugger.
  */
 function devel_init() {
-  register_shutdown_function('devel_shutdown');
-  if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
-    global $memory_init;
-
-    $memory_init = memory_get_usage();
-  }
-  
   if (strstr($_SERVER['PHP_SELF'], 'update.php')) {
-    // update.php relies on standard error handler
+    // update.php relies on standard error handler. Lets not output our gunk there for now.
   }
   else{
+    if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
+      global $memory_init;
+      $memory_init = memory_get_usage();
+    }
+    register_shutdown_function('devel_shutdown');
     $handler = variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD);
     switch ($handler) {
       case DEVEL_ERROR_HANDLER_STANDARD:
