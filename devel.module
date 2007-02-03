@@ -124,22 +124,28 @@ function devel_menu() {
   $items['node/%/load'] = array(
     'title' => t('Dev load'),
     'page callback' => 'devel_load_object',
-    'page arguments' => array('node', arg(1)),
+    'page arguments' => array(1),
+    'map arguments' => array('node_load', 1),
+    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
   );
   $items['node/%/render'] = array(
     'title' => t('Dev render'),
-    'page callback' => 'devel_render_object',
-    'page arguments' => array('node', arg(1)),
+    'page callback' => 'devel_render_node',
+    'page arguments' => array(1),
+    'map arguments' => array('node_load', 1),
+    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
   );
   $items['user/%/load'] = array(
     'title' => t('Devel load'),
     'page callback' => 'devel_load_object',
-    'page arguments' => array('user', arg(1)),
+    'page arguments' => array(1),
+    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
+    'map arguments' => array('user_load', 1),
     'type' => MENU_LOCAL_TASK,
   );
   return $items;
@@ -358,7 +364,7 @@ function devel_shutdown() {
       $output .= '<div class="dev-query">';
       $output .= $query_summary;
       if (function_exists('theme_table')) {
-        $txt .= t(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
+        $txt = t(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
         if (variable_get('dev_timer', 0)) {
           $txt .= devel_timer();
         }
@@ -420,6 +426,7 @@ function devel_store_queries() {
 function devel_query_summary() {
   if (variable_get('dev_query', FALSE)) {
     global $queries;
+    $sum = 0;
     foreach ($queries as $query) {
       $text[] = $query[0];
       $sum += $query[1];
@@ -807,45 +814,25 @@ function devel_switch_user($uid = NULL) {
 /**
  * Menu callback; prints the loaded structure of the current node/user.
  */
-function devel_load_object($type, $id) {
-  $output = '';
-
-  switch ($type) {
-    case 'node':
-      $object = node_load($id);
-      drupal_set_title(check_plain($object->title));
-      break;
-
-    case 'user':
-      $object = user_load(array('uid' => $id));
-      drupal_set_title(check_plain($object->name));
-      break;
-  }
-
+function devel_load_object($object) {
+  $title = $object->title ? $object->title : $object->name;
+  drupal_set_title(check_plain($title));
   return devel_print_object($object);
 }
 
 /**
- * Menu callback; prints the renderstructure of the current node.
+ * Menu callback; prints the render structure of the current node.
  */
-function devel_render_object($type, $id) {
+function devel_render_node($node) {
   $output = '';
-
-  switch ($type) {
-    case 'node':
-      $object = node_build_content(node_load($id), FALSE, FALSE);
-      drupal_set_title(check_plain($object->title));
-      break;
-
-    case 'user':
-      // not yet using fapi render model
-      break;
-  }
-
-  return devel_print_object($object);
+  $title = $node->title ? $node->title : $node->name;
+  drupal_set_title(check_plain($title));
+  $content = node_build_content($node, FALSE, FALSE);
+  return devel_print_object($content);
 }
 
 function devel_print_object($object) {
+  $output = '';
   foreach ($object as $field => $value) {
     if (is_null($value)) {
       $printed_value = 'NULL';
