@@ -156,10 +156,10 @@ function devel_menu() {
  * behavior when stepping though in a debugger.
  */
 function devel_init() {
-  if (strstr($_SERVER['PHP_SELF'], 'update.php')) {
+  if (strstr($_SERVER['PHP_SELF'], 'update.php') strstr($_GET['q'], 'autocomplete')) {
     // update.php relies on standard error handler. Lets not output our gunk there for now.
   }
-  else{
+  else {
     if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
       global $memory_init;
       $memory_init = memory_get_usage();
