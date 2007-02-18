@@ -156,7 +156,7 @@ function devel_menu() {
  * behavior when stepping though in a debugger.
  */
 function devel_init() {
-  if (strstr($_SERVER['PHP_SELF'], 'update.php') strstr($_GET['q'], 'autocomplete')) {
+  if (strstr($_SERVER['PHP_SELF'], 'update.php') || strstr($_GET['q'], 'autocomplete')) {
     // update.php relies on standard error handler. Lets not output our gunk there for now.
   }
   else {
