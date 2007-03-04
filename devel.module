@@ -1000,11 +1000,12 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') 
   	$function($input);
   	$output = check_plain(ob_get_clean());
     if (count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
+      // direction: ltr; comes from http://drupal.org/node/105732
       // don't use fapi here because sometimes fapi will not be loaded
-      $printed_value = "<textarea rows=30 style=\"width: 100%;\">\n". $name . $output . '</textarea>';
+      $printed_value = "<textarea rows=30 style=\"width: 100%; direction: ltr;\">\n". $name . $output . '</textarea>';
     }
   	else {
-    	$printed_value = '<pre>' . $name . $output . '</pre>';
+    	$printed_value = '<pre style="direction: ltr;">' . $name . $output . '</pre>';
   	}
     if ($return) {
       return $printed_value;
