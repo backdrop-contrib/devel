@@ -245,7 +245,7 @@ function devel_block($op = 'list', $delta = 0) {
         $links = array();
         $block['subject'] = t('switch user');
         if (user_access('switch users')) {
-          $users = db_query_range('SELECT uid, name FROM {users} WHERE uid > 0 ORDER BY access', 0, 10);
+          $users = db_query_range('SELECT uid, name FROM {users} WHERE uid > 0 ORDER BY access DESC', 0, 10);
           while ($account = db_fetch_object($users)) {
             $dest = drupal_get_destination();
             $links[] = l(check_plain($account->name), 'devel/switch/'. $account->name, array(), $dest);
