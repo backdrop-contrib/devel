@@ -203,10 +203,10 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
               $args[] = check_plain($arg);
             }
           }
+          $rows[$i][] = implode(', ', $args);
+          $i++;
+          unset($args);
         }
-        $rows[$i][] = implode(', ', $args);
-        $i++;
-        unset($args);
       }
       if (function_exists('theme_table')) {
         $header = array('function', 'file: line', 'arguments');
