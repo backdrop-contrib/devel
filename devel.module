@@ -246,13 +246,14 @@ function devel_block($op = 'list', $delta = 0) {
         $block['subject'] = t('switch user');
         if (user_access('switch users')) {
           $users = db_query_range('SELECT uid, name FROM {users} WHERE uid > 0 ORDER BY access', 0, 10);
-          while ($user = db_fetch_object($users)) {
+          while ($account = db_fetch_object($users)) {
             $dest = drupal_get_destination();
-            $links[] = l(check_plain($user->name), 'devel/switch/'. $user->uid, array(), $dest);
+            $links[] = l(check_plain($account->name), 'devel/switch/'. $account->name, array(), $dest);
           }
         }
         if ($links) {
           $block['content'] = theme('item_list', $links);
+          $block['content'] .= drupal_get_form('devel_switch_user_form');
         }
         break;
       case 1:
@@ -287,6 +288,32 @@ function devel_block($op = 'list', $delta = 0) {
     return $block;
   }
 }
+
+function devel_switch_user_form() {
+  $form['username'] = array(
+    '#type' => 'textfield',
+    '#description' => t('Enter username'),
+    '#size' => 16,
+    '#maxlength' => 255,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit', 
+    '#value' => t('Switch'),
+  );
+  return $form;
+  
+}
+
+function devel_switch_user_form_validate($form_id, $form_values) {
+  if (!$account = user_load(array('name' => $form_values['username']))) {
+    form_set_error('username', t('Username not found'));
+  } 
+}
+
+function devel_switch_user_form_submit($form_id, $form_values) {
+  return 'devel/switch/'. $form_values['username'];
+}
+
 
 /**
  * Implementation of hook_form_alter().
@@ -791,15 +818,15 @@ function devel_session() {
  * argument to store the current user. Call devel_switch_user
  * without argument to set the user back to the original user.
  *
- * @param $uid The user ID to switch to.
+ * @param $name The username to switch to.
  *
  */
-function devel_switch_user($uid = NULL) {
+function devel_switch_user($name = NULL) {
   global $user;
   static $orig_user = array();
 
-  if (isset($uid)) {
-    $user = user_load(array('uid' => $uid));
+  if (isset($name)) {
+    $user = user_load(array('name' => $name));
   }
   // Retrieve the initial user. Can be called multiple times.
   else if (count($orig_user)) {
