@@ -155,7 +155,10 @@ function devel_menu() {
  * Implementation of hook_init(). Avoids custom error handling for better
  * behavior when stepping though in a debugger.
  */
-function devel_init() {
+function devel_init() {    
+  // ensure that jquery has been added to the page
+  drupal_add_js('', 'inline');
+  
   if (strstr($_SERVER['PHP_SELF'], 'update.php') || strstr($_GET['q'], 'autocomplete')) {
     // update.php relies on standard error handler. Lets not output our gunk there for now.
   }
@@ -416,9 +419,16 @@ function devel_shutdown() {
       }
       $output .= '<div class="dev-memory-usage"><h3>'. 'Memory usage:' .'</h3>'. theme('item_list', $list) .'</div>';
     }
-    // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
-    print $output;
-  }
+    // TODO: gzip this text if we are sending a gzip page. see drupal_page_header(). 
+    // this makes sure all of the HTML is within the <body> even though this <script> is outside it
+    print '<script type="text/javascript">
+      $(document).ready(function() {
+        $("body").append("'. str_replace(array("\r", "\n", "<", ">", "&"),
+                                         array('\r', '\n', '\x3c', '\x3e', '\x26'),
+                                         addslashes($output)) .'");
+      });
+    </script>';
+  }             
 
   devel_store_queries();
 }
