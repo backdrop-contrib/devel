@@ -9,7 +9,7 @@ summary includes how many times each query was executed on a page
  took (short is good - use cache for complex queries).
 
 Also a dpr() function is provided, which pretty prints arrays and strings. Useful during
-development.
+development. Many other nice functions like dsm(), dvm(), ...
 
 Included in this package is also: 
 - devel_node_access module which prints out the node_access records for a given node._
