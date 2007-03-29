@@ -11,6 +11,7 @@ function create_vocabularies($records) {
   $types = array("story", "blog", "forum", "page");
 
   // Insert new data:
+  $output = '';
   for ($i = 1; $i <= $records; $i++) {
     $voc = array();
     $voc['name'] = "vocabulary #$i";
@@ -34,6 +35,7 @@ function create_vocabularies($records) {
 function create_terms($records, $vocs) {
 
   // Insert new data:
+  $output = '';
   for ($i = 1; $i <= $records; $i++) {
 
     switch ($i % 2) {
