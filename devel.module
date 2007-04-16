@@ -152,6 +152,17 @@ function devel_menu() {
 }
 
 /**
+ * Implementation of hook_theme()
+ */
+function devel_theme() {
+  return array(
+    'devel_variable' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
+
+/**
  * Implementation of hook_init(). Avoids custom error handling for better
  * behavior when stepping though in a debugger.
  */
@@ -248,7 +259,7 @@ function devel_block($op = 'list', $delta = 0) {
           $users = db_query_range('SELECT uid, name FROM {users} WHERE uid > 0 ORDER BY access DESC', 0, 10);
           while ($account = db_fetch_object($users)) {
             $dest = drupal_get_destination();
-            $links[] = l(check_plain($account->name), 'devel/switch/'. $account->name, array(), $dest);
+            $links[] = l($account->name, 'devel/switch/'. $account->name, array('query' => $dest));
           }
         }
         if ($links) {
@@ -260,18 +271,18 @@ function devel_block($op = 'list', $delta = 0) {
         $links = array();
         $block['subject'] = t('devel');
         if (user_access('access devel information')) {
-          $links[] = l('Devel settings', 'admin/settings/devel', array('title' => t('Adjust module settings for devel module')));
-          $links[] = l('Empty cache', 'devel/cache/clear', array('title' => t('Clear the database cache tables which store page, menu, node, and variable caches.')), drupal_get_destination());
-          $links[] = l('Phpinfo()', 'admin/logs/status/php');
-          $links[] = l('Function reference', 'devel/reference', array('title' => t('View a list of currently defined user functions with documentation links')));
-          $links[] = l('Reinstall modules', 'devel/reinstall', array('title' => t('Re-run hook_install() for a given module')));
-          $links[] = l('Reset menus', 'devel/menu/reset', array('title' => t('Resets all menu items to their default settings')));
-          $links[] = l('Variable editor', 'devel/variable', array('title' => t('Edit and delete site variables')));
-          $links[] = l('Session viewer', 'devel/session', array('title' => t('List the contents of $_SESSION')));
+          $links[] = l(t('Devel settings'), 'admin/settings/devel', array('attributes' => array('title' => t('Adjust module settings for devel module.'))));
+          $links[] = l(t('Empty cache'), 'devel/cache/clear', array('attributes' => array('title' => t('Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.')), 'query' => drupal_get_destination()));
+          $links[] = l(t('PHPinfo()'), 'admin/logs/status/php', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
+          $links[] = l(t('Function reference'), 'devel/reference', array('attributes' => array('title' => t('View a list of currently defined user functions with documentation links.'))));
+          $links[] = l(t('Reinstall modules'), 'devel/reinstall', array('attributes' => array('title' => t('Re-run hook_install() for a given module.'))));
+          $links[] = l(t('Reset menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Resets all menu items to their default settings.'))));
+          $links[] = l(t('Variable editor'), 'devel/variable', array('attributes' => array('title' => t('Edit and delete site variables.'))));
+          $links[] = l(t('Session viewer'), 'devel/session', array('attributes' => array('title' => t('List the contents of $_SESSION.'))));
         }
         if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
           // True only if devel_node_access enabled.
-          $links[] = l('Node access summary', 'devel/node_access/summary');
+          $links[] = l(t('Node access summary'), 'devel/node_access/summary');
         }
         if ($links) {
           $block['content'] = theme('item_list', $links);
@@ -279,7 +290,7 @@ function devel_block($op = 'list', $delta = 0) {
         break;
       case 2:
         if (user_access('execute php code')) {
-          $block['subject'] = t('Execute php');
+          $block['subject'] = t('Execute PHP');
           $block['content'] = drupal_get_form('devel_execute_form');
         }
         break;
@@ -585,16 +596,18 @@ function devel_admin_settings() {
  * Menu callback; clears all caches, then redirects to the previous page.
  */
 function devel_cache_clear() {
-  // clear preprocessor cache
-  drupal_clear_css_cache();
-  
   // clear core tables
   $core = array('cache', 'cache_filter', 'cache_page');  
   $alltables = $core + module_invoke_all('devel_caches');
   foreach ($alltables as $table) {
     cache_clear_all('*', $table, TRUE);
   }
+
+  drupal_clear_css_cache();
+  menu_rebuild();
+
   drupal_set_message('Cache cleared.');
+
   drupal_goto();
 }
 
