@@ -1,0 +1,299 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_menu().
+ */
+function devel_generate_menu() {
+  $items = array();
+
+  $items['admin/user/generate'] = array(
+    'title' => t('Generate users'),
+    'description' => t('Generate a given number of users. Optionally delete current users.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('devel_generate_users_form'),
+    'access arguments' => array('administer users')
+  );
+  $items['admin/content/generate'] = array(
+    'title' => t('Generate content'),
+    'description' => t('Generate a given number of nodes and comments. Optionally delete current items.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('devel_generate_content_form'),
+    'access arguments' => array('administer nodes')
+  );
+  $items['admin/content/generate_taxonomy'] = array(
+    'title' => t('Generate categories'),
+    'description' => t('Generate a given number of vocabularies and terms. Optionally delete current categories.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('devel_generate_taxonomy_form'),
+    'access arguments' => array('administer nodes')
+  );
+
+  return $items;
+}
+
+/**
+ * Overview page for admin/generate page
+ */
+function devel_generate_overview() {
+  $menu = menu_get_item(NULL, 'admin/generate');
+  $content = system_admin_menu_block($menu);
+
+  $output = theme('admin_block_content', $content);
+
+  return $output;
+}
+
+function devel_generate_users_form() {
+  $form['num'] = array(
+    '#type' => 'textfield',
+    '#title' => t('How many users would you like to generate?'),
+    '#default_value' => 50,
+    '#size' => 10,
+  );
+  $form['kill_users'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete all users but user 1 before generating new users.'),
+    '#default_value' => FALSE,  
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Do it!'),
+  );
+  return $form;
+}
+
+function devel_generate_users_form_submit($form_id, $form_values) {
+  $url = parse_url($GLOBALS['base_url']);
+  $num = $form_values['num'];
+  // If not in 'safe mode', increase the maximum execution time:
+  if (!ini_get('safe_mode')) {
+    set_time_limit(240);
+  }
+  if ($form_values['kill_users']) {
+    db_query('DELETE FROM {users} WHERE uid > 1');
+    drupal_set_message(t('Users deleted.'));
+  }
+  for ($i = 2; $i <= $num; $i++) {
+    $uid = db_next_id('{users_uid}');
+    $length = rand(4, 12);
+    $name = devel_generate_word($length);
+    $pass = md5(user_password());
+    $mail = $name .'@'. $url['host'];
+    $status = 1;
+    db_query("INSERT INTO {users} (uid, name, pass, mail, status, created, access) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $uid, $name, $pass, $mail, $status, time(), time());
+  }
+  db_query("UPDATE {sequences} SET id = %d WHERE name = 'users_uid'", $uid);
+  drupal_set_message(t('%num users created.', array('%num' => $num)));
+}
+
+function devel_generate_word($length){
+  srand((double)microtime()*1000000); 
+  
+  $vowels = array("a", "e", "i", "o", "u"); 
+  $cons = array("b", "c", "d", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "u", "v", "w", "tr", 
+  "cr", "br", "fr", "th", "dr", "ch", "ph", "wr", "st", "sp", "sw", "pr", "sl", "cl", "sh"); 
+   
+  $num_vowels = count($vowels); 
+  $num_cons = count($cons); 
+
+  while(strlen($word) < $length){ 
+    $word .= $cons[rand(0, $num_cons - 1)] . $vowels[rand(0, $num_vowels - 1)]; 
+  } 
+
+  return substr($word, 0, $length);
+}
+
+function devel_generate_content_form() {
+  $form['num_nodes'] = array(
+    '#type' => 'textfield',
+    '#title' => t('How many nodes would you like to generate?'),
+    '#default_value' => 100,
+    '#size' => 10,
+  );
+  $form['num_comments'] = array(
+    '#type' => 'textfield',
+    '#title' => t('How many comments would you like to generate?'),
+    '#default_value' => 500,
+    '#size' => 10,
+  );
+  $form['kill_content'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete existing content before generating new content.'),
+    '#default_value' => FALSE,  
+  );
+  $form['title_length'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Max word length of titles'),
+    '#default_value' => 8,
+    '#size' => 10,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Do it!'),
+  );
+  return $form;
+}
+
+function devel_generate_content_form_submit($form_id, $form_values) {
+  $path = drupal_get_path('module', 'devel');
+  require_once('devel_generate.inc');
+  if ($form_values['kill_content']) {
+    db_query("DELETE FROM {comments}");
+    db_query("DELETE FROM {node}");
+    db_query("DELETE FROM {node_revisions}");
+    db_query("DELETE FROM {node_comment_statistics}");
+    if (db_table_exists(forum)) { db_query("DELETE FROM {forum}"); }
+    db_query("DELETE FROM {url_alias}");
+    db_query("UPDATE {sequences} SET id = '0' WHERE name = 'node_nid'");
+    db_query("UPDATE {sequences} SET id = '0' WHERE name = 'comments_cid'");
+    db_query("ALTER TABLE {node} AUTO_INCREMENT = 1");
+    db_query("ALTER TABLE {comments} AUTO_INCREMENT = 1");
+    drupal_set_message(t('Content deleted.'));
+  }
+  else {
+    $next_nid = db_result(db_query("SELECT id FROM {sequences} WHERE name = '{node}_nid'"))+1;
+  }
+
+  // get user id
+  $users = devel_get_users();
+
+  $terms = devel_get_terms();
+
+  // create 100 pseudo-random nodes:
+  devel_create_nodes($form_values['num_nodes'], $users, $form_values['title_length']);
+  drupal_set_message(t('%num nodes created.', array('%num' => $form_values['num_nodes'])));
+
+  $nodes = devel_get_nodes($next_nid);
+
+  devel_add_terms($nodes, $terms);
+
+  $comments = devel_get_comments();
+
+  devel_create_comments($form_values['num_comments'], $users, $nodes, $comments);
+  drupal_set_message(t('%num comments created.', array('%num' => $form_values['num_comments'])));
+}
+
+function devel_generate_vocabs($records, $maxlength = 12) {
+  $types = array("story", "blog", "forum", "page");
+
+  // Insert new data:
+  for ($i = 1; $i <= $records; $i++) {
+    $voc = array();
+    $voc['name'] = devel_generate_word(rand(2, $maxlength));
+    $voc['description'] = "description of ". $voc['name'];
+    $voc['nodes'] = array_flip(array($types[array_rand($types)]));
+    foreach ($voc['nodes'] as $key => $value) {
+      $voc['nodes'][$key] = $key;
+    }
+    $voc['multiple'] = 1;
+    $voc['required'] = 0;
+    $voc['relations'] = 1;
+    $voc['hierarchy'] = 1;
+    $voc['weight'] = rand(0,10);    
+
+    taxonomy_save_vocabulary($voc);
+    $output .= "created vocabulary ". $voc['name'];
+  }
+
+  return $output;
+}
+
+function devel_generate_terms($records, $vocs, $maxlength = 12) {
+  // Insert new data:
+  for ($i = 1; $i <= $records; $i++) {
+    switch ($i % 2) {
+      case 1:
+        $term['vid'] = $vocs[array_rand($vocs)];
+        // dont set a parent. handled by taxonomy_save_term()
+        // $term->parent = 0;
+        break;
+      case 2:
+      default:
+        $parent = db_fetch_object(db_query_range("SELECT t.tid, v.vid FROM {term_data} t INNER JOIN {vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1));
+        $term['parent'] = array($parent->tid);
+        $term['vid'] = $parent->vid;
+        break;
+    }
+
+    $term['name'] = devel_generate_word(rand(2, $maxlength));
+    $term['description'] = "description of ". $term['name'];
+    $term['weight'] = rand(0,10);
+
+    $status = taxonomy_save_term($term);
+
+    if ($status) {
+      $output .= t("Created term @term", array('@term' => $term['name'])). "<br />";
+    }
+    else {
+      $output .= t("There was an error creating term @term", array('@term' => $term['name'])). "<br />";
+    }
+    unset($term);
+  }
+  return $output;
+}
+
+function devel_generate_get_vocabs() {
+  $vocs = array();
+  $result = db_query("SELECT vid FROM {vocabulary}");
+  while($voc = db_fetch_object($result)){
+    $vocs[] = $voc->vid;
+  }
+  return $vocs;
+}
+
+function devel_generate_taxonomy_form() {
+  $form['num_vocab'] = array(
+    '#type' => 'textfield',
+    '#title' => t('How many vocabularies would you like to generate?'),
+    '#default_value' => 3,
+    '#size' => 10,
+  );
+  $form['num_terms'] = array(
+    '#type' => 'textfield',
+    '#title' => t('How many terms would you like to generate?'),
+    '#default_value' => 50,
+    '#size' => 10,
+  );
+  $form['kill_taxonomy'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete existing terms and vocabularies before generating new content.'),
+    '#default_value' => FALSE,  
+  );
+  $form['title_length'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Max word length of term/vocab names'),
+    '#default_value' => 12,
+    '#size' => 10,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Do it!'),
+  );
+  return $form;
+}
+
+function devel_generate_taxonomy_form_submit($form_id, $form_values) {
+  $vocs = array();
+  $result = db_query("SELECT vid FROM {vocabulary}");
+  while($voc = db_fetch_object($result)){
+    $vocs[] = $voc->vid;
+  }
+
+  if ($form_values['kill_taxonomy']) {
+    db_query("DELETE FROM {term_data}");
+    db_query("DELETE FROM {term_node}");
+    db_query("DELETE FROM {term_hierarchy}");
+    db_query("DELETE FROM {term_relation}");
+    db_query("DELETE FROM {term_synonym}");
+    db_query("DELETE FROM {vocabulary}");
+    db_query("DELETE FROM {vocabulary_node_types}");
+    db_query("UPDATE {sequences} SET id = '0' WHERE name = '{vocabulary_vid}'");
+    db_query("UPDATE {sequences} SET id = '0' WHERE name = '{term_data_tid}'");
+  }
+
+  $output = devel_generate_vocabs($form_values['num_vocab'], $form_values['title_length']);
+  $vocs = devel_generate_get_vocabs();
+  $output .= devel_generate_terms($form_values['num_terms'], $vocs, $form_values['title_length']);
+  drupal_set_message($output);
+}

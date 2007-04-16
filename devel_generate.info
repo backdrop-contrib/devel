@@ -1,0 +1,5 @@
+; $Id$
+name = Devel Generate
+description = Generate dummy users, nodes, and taxonomy terms.
+version = "$Name$"
+package = Development
