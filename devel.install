@@ -52,6 +52,19 @@ function devel_install() {
   _block_rehash();
 }
 
+
+
+/**
+ * Implementation of hook_disable().
+ */
+function devel_disable() {
+  // Query logging should probably not be set if devel.module is disabled.
+  if (variable_get('dev_query', 0)) {
+    variable_set('dev_query',0);
+    drupal_set_message(t('Disabled query logging since devel module is disabled.'));
+  }
+}
+
 /**
  * Do update 1 again as the hook_install() was missing and new
  * installations are not having the weight set.
