@@ -430,13 +430,15 @@ function devel_shutdown() {
     // TODO: gzip this text if we are sending a gzip page. see drupal_page_header(). 
     
     // this makes sure all of the HTML is within the <body> even though this <script> is outside it
-    print '<script type="text/javascript">
-      $(document).ready(function() {
-        $("body").append("'. str_replace(array("\r", "\n", "<", ">", "&"),
-                                         array('\r', '\n', '\x3c', '\x3e', '\x26'),
-                                         addslashes($output)) .'");
-      });
-    </script>';
+    if ($output) {
+      print '<script type="text/javascript">
+        $(document).ready(function() {
+          $("body").append("'. str_replace(array("\r", "\n", "<", ">", "&"),
+                                           array('\r', '\n', '\x3c', '\x3e', '\x26'),
+                                           addslashes($output)) .'");
+        });
+      </script>';
+    }
   }             
 
   devel_store_queries();
