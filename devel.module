@@ -175,20 +175,28 @@ function devel_init() {
       global $memory_init;
       $memory_init = memory_get_usage();
     }
-    drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
-    register_shutdown_function('devel_shutdown');
-    $handler = variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD);
-    switch ($handler) {
-      case DEVEL_ERROR_HANDLER_STANDARD:
-        // do nothing
-        break;
-      case DEVEL_ERROR_HANDLER_BACKTRACE:
-        set_error_handler('backtrace_error_handler');
-        break;
-      case DEVEL_ERROR_HANDLER_NONE:
-        restore_error_handler();
-        break;
+    // no css or handler if we are serving a cached page
+    if (function_exists('drupal_set_content')) {
+      drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
+      $handler = variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD);
+      switch ($handler) {
+        case DEVEL_ERROR_HANDLER_STANDARD:
+          // do nothing
+          break;
+        case DEVEL_ERROR_HANDLER_BACKTRACE:
+          set_error_handler('backtrace_error_handler');
+          break;
+        case DEVEL_ERROR_HANDLER_NONE:
+          restore_error_handler();
+          break;
+      }
     }
+    else {
+      // we need user_access() in the shutdown function
+      drupal_load('module', 'user');
+    }
+    
+    register_shutdown_function('devel_shutdown');
   }
 }
 
@@ -381,65 +389,62 @@ function devel_shutdown() {
   global $queries, $memory_init;
 
   $output = '';
-
-  // Try not to break non html pages.
-  if (function_exists('drupal_get_headers')) {
-    $headers = drupal_get_headers();
-    if(strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain')) {
-      return;
-    }
-  }
   
-  if (function_exists('user_access') && user_access('access devel information')) {
-    
-    list($counts, $query_summary) = devel_query_summary();
-    // Query log off, timer on.
-    if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
-      $output = '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
+  // use $GLOBALS['devel_shutdown'] = FALSE in order to supress devel footer for a page. not necessary if your page
+  // outputs a text/javascript or text/xml Content-type http header. Thats advised where applicable.
+  if ($GLOBALS['devel_shutdown'] !== FALSE) {
+    // Try not to break non html pages.
+    if (function_exists('drupal_get_headers')) {
+      $headers = drupal_get_headers();
+      if(strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain')) {
+        return;
+      }
     }
 
-    // Query log on.
-    $sum = 0;
-    if (variable_get('devel_query_display', FALSE)) {
-      $output .= '<div class="dev-query">';
-      $output .= $query_summary;
-      if (function_exists('theme_table')) {
-        $txt = t(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
-        if (variable_get('dev_timer', 0)) {
-          $txt .= devel_timer();
+    if (user_access('access devel information')) {
+      list($counts, $query_summary) = devel_query_summary();
+      // Query log off, timer on.
+      if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
+        $output = '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
+      }
+
+      // Query log on.
+      $sum = 0;
+      if (variable_get('devel_query_display', FALSE)) {
+        $output .= '<div class="dev-query">';
+        $output .= $query_summary;
+        if (function_exists('theme_table')) {
+          $txt = t(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
+          if (variable_get('dev_timer', 0)) {
+            $txt .= devel_timer();
+          }
+          $output .= $txt. devel_query_table($queries, $counts);
         }
-        $output .= $txt. devel_query_table($queries, $counts);
+        else {
+          $output .= $txt;
+          ob_start();
+          dprint_r($queries);
+          $output .= ob_get_clean();
+        }
+        $output .= '</div>';
       }
-      else {
-        $output .= $txt;
-        ob_start();
-        dprint_r($queries);
-        $output .= ob_get_clean();
+
+      if (variable_get('dev_mem', FALSE) && function_exists('memory_get_usage')) {
+        $memory_shutdown = memory_get_usage();
+        $list = array();
+        foreach (array('devel_init()' => $memory_init, 'devel_shutdown()' => $memory_shutdown) as $type => $value) {
+          $list[] = t('Memory used at %type: %value MB', array('%type' => $type, '%value' => round($value / 1024 / 1024, 2)));
+        }
+        $output .= '<div class="dev-memory-usage"><h3>'. 'Memory usage:' .'</h3>'. theme('item_list', $list) .'</div>';
       }
-      $output .= '</div>';
-    }
+      // TODO: gzip this text if we are sending a gzip page. see drupal_page_header(). 
+
+      if ($output) {
+        print $output;
+      }
+    }             
     
-    if (variable_get('dev_mem', FALSE) && function_exists('memory_get_usage')) {
-      $memory_shutdown = memory_get_usage();
-      $list = array();
-      foreach (array('devel_init()' => $memory_init, 'devel_shutdown()' => $memory_shutdown) as $type => $value) {
-        $list[] = t('Memory used at %type: %value MB', array('%type' => $type, '%value' => round($value / 1024 / 1024, 2)));
-      }
-      $output .= '<div class="dev-memory-usage"><h3>'. 'Memory usage:' .'</h3>'. theme('item_list', $list) .'</div>';
-    }
-    // TODO: gzip this text if we are sending a gzip page. see drupal_page_header(). 
-    
-    // this makes sure all of the HTML is within the <body> even though this <script> is outside it
-    if ($output) {
-      print '<script type="text/javascript">
-        $(document).ready(function() {
-          $("body").append("'. str_replace(array("\r", "\n", "<", ">", "&"),
-                                           array('\r', '\n', '\x3c', '\x3e', '\x26'),
-                                           addslashes($output)) .'");
-        });
-      </script>';
-    }
-  }             
+  }
 
   devel_store_queries();
 }
@@ -482,8 +487,13 @@ function devel_query_summary() {
       $sum += $query[1];
     }
     $counts = array_count_values($text);
-    return array($counts, t('Executed %queries queries in %time milliseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2))));
+    return array($counts, t_safe('Executed %queries queries in %time milliseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2))));
   }
+}
+
+function t_safe($string) {
+  $args = func_get_args();
+  return function_exists('t') ? call_user_func_array('t', $args) : call_user_func_array('strtr', $args);
 }
 
 /**
