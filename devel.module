@@ -177,18 +177,20 @@ function devel_init() {
     }
     // no css or handler if we are serving a cached page
     if (function_exists('drupal_set_content')) {
-      drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
-      $handler = variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD);
-      switch ($handler) {
-        case DEVEL_ERROR_HANDLER_STANDARD:
-          // do nothing
-          break;
-        case DEVEL_ERROR_HANDLER_BACKTRACE:
-          set_error_handler('backtrace_error_handler');
-          break;
-        case DEVEL_ERROR_HANDLER_NONE:
-          restore_error_handler();
-          break;
+      if (user_access('access devel information')) { 
+        drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
+        $handler = variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD);
+        switch ($handler) {
+          case DEVEL_ERROR_HANDLER_STANDARD:
+            // do nothing
+            break;
+          case DEVEL_ERROR_HANDLER_BACKTRACE:
+            set_error_handler('backtrace_error_handler');
+            break;
+          case DEVEL_ERROR_HANDLER_NONE:
+            restore_error_handler();
+            break;
+        }
       }
     }
     else {
