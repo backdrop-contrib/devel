@@ -44,15 +44,9 @@ function devel_install() {
         time FLOAT default NULL,
         PRIMARY KEY (tid)
       );";
-      db_query($sql);
-      
+      db_query($sql);      
   }
-
-  // Enable the blocks automatically at install.
-  _block_rehash();
 }
-
-
 
 /**
  * Implementation of hook_disable().
