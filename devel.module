@@ -636,6 +636,7 @@ function devel_execute_form() {
   );
   $form['op'] = array('#type' => 'submit', '#value' => t('Execute'));
   $form['#redirect'] = FALSE;
+  $form['#skip_duplicate_check'] = TRUE;
   return $form;
 }
 
