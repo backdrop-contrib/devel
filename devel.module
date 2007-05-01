@@ -594,7 +594,7 @@ function devel_admin_settings() {
     drupal_get_filename('module', 'devel') => t('Log only'),
   );
   if (variable_get('devel_old_smtp_library', '') != '') {
-    $smtp_options[variable_get('devel_old_smtp_library', '')] = t('Other (%library)', array('%library' => variable_get('devel_old_smtp_library', '')));
+    $smtp_options[variable_get('devel_old_smtp_library', '')] = t('Other (!library)', array('!library' => variable_get('devel_old_smtp_library', '')));
   }
   $form['smtp_library'] = array(
     '#type' => 'radios',
