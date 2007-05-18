@@ -263,17 +263,32 @@ function devel_block($op = 'list', $delta = 0) {
     $block = array();
     switch ($delta) {
       case 0:
+        $block['subject'] = t('Switch user');
         $links = array();
-        $block['subject'] = t('switch user');
         if (user_access('switch users')) {
-          $users = db_query_range('SELECT uid, name FROM {users} WHERE uid > 0 ORDER BY access DESC', 0, 10);
-          while ($account = db_fetch_object($users)) {
-            $dest = drupal_get_destination();
-            $links[] = l($account->name, 'devel/switch/'. $account->name, array('query' => $dest));
+          $dest = drupal_get_destination();
+          // Try to find at least 10 users that can switch.
+          $roles = user_roles(1, 'switch users');
+          $where = array('u.uid = 1');
+          if (count($roles)) {
+            $where[] = 'r.rid IN ('. implode(',', array_keys($roles)) .')';
+          }
+          $where_sql = implode(' OR ', $where);
+          $users = db_query_range("SELECT DISTINCT u.uid, u.name FROM {users} u LEFT JOIN {users_roles} r ON u.uid = r.uid WHERE $where_sql ORDER BY u.access DESC", 0, 10);
+          while ($user = db_fetch_object($users)) {
+            $links[$user->uid] = l(theme('placeholder', $user->name), 'devel/switch/'. $user->name, array('attributes' => array('title' => t('This user can switch back.')), 'query' => $dest, 'html' => TRUE));
+          }
+          $num_links = count($links);
+          if ($num_links < 10) {
+            // If we don't have enough, add distinct uids until we hit 10.
+            $users = db_query_range('SELECT uid, name FROM {users} WHERE uid NOT IN ('. implode(',', array_keys($links)) .') ORDER BY access DESC', 0, 10 - $num_links);
+            while (($user = db_fetch_object($users)) && count($links) < 10) {
+              $links[$user->uid] = l($user->name, 'devel/switch/'. $user->name, array('attributes' => array('title' => t('Caution: this user will be unable switch back.')), 'query' => $dest));
+            }
           }
         }
-        if ($links) {
-          $block['content'] = theme('item_list', $links);
+        if (!empty($links)) {
+          $block['content'] .= theme('item_list', $links);
           $block['content'] .= drupal_get_form('devel_switch_user_form');
         }
         break;
