@@ -5,6 +5,33 @@ if (!ini_get('safe_mode')) {
   set_time_limit(240);
 }
 
+/**
+ * Generate some random users.
+ *
+ * @param $num
+ *  Number of users to generate.
+ * @param $kill
+ *  Boolean that indicates if existing users should be removed first.
+ */
+function devel_create_users($num, $kill) {
+  $url = parse_url($GLOBALS['base_url']);
+  if ($kill) {
+    db_query('DELETE FROM {users} WHERE uid > 1');
+    drupal_set_message(t('Users deleted.'));
+  }
+  for ($i = 0; $i < $num; $i++) {
+    $uid = db_next_id('{users}_uid');
+    $length = rand(4, 12);
+    $name = devel_generate_word($length);
+    $pass = md5(user_password());
+    $mail = $name .'@'. $url['host'];
+    $now = time();
+    db_query("INSERT INTO {users} (uid, name, pass, mail, status, created, access) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $uid, $name, $pass, $mail, 1, $now, $now);
+  }
+  drupal_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
+}
+
+
 function devel_create_nodes($records, $users, $title_length = 8) {
 
   $possible_types = array("story", "blog", "forum", "page");

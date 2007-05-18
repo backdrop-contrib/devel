@@ -64,27 +64,8 @@ function devel_generate_users_form() {
 }
 
 function devel_generate_users_form_submit($form_id, $form_values) {
-  $url = parse_url($GLOBALS['base_url']);
-  $num = $form_values['num'];
-  // If not in 'safe mode', increase the maximum execution time:
-  if (!ini_get('safe_mode')) {
-    set_time_limit(240);
-  }
-  if ($form_values['kill_users']) {
-    db_query('DELETE FROM {users} WHERE uid > 1');
-    drupal_set_message(t('Users deleted.'));
-  }
-  for ($i = 2; $i <= $num; $i++) {
-    $uid = db_next_id('{users_uid}');
-    $length = rand(4, 12);
-    $name = devel_generate_word($length);
-    $pass = md5(user_password());
-    $mail = $name .'@'. $url['host'];
-    $status = 1;
-    db_query("INSERT INTO {users} (uid, name, pass, mail, status, created, access) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $uid, $name, $pass, $mail, $status, time(), time());
-  }
-  db_query("UPDATE {sequences} SET id = %d WHERE name = 'users_uid'", $uid);
-  drupal_set_message(t('%num users created.', array('%num' => $num)));
+  require_once('devel_generate.inc');
+  devel_create_users($form_values['num'], $form_values['kill_users']);
 }
 
 function devel_generate_word($length){
