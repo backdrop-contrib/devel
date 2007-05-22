@@ -13,6 +13,7 @@ development. Many other nice functions like dsm(), dvm(), ...
 
 Included in this package is also: 
 - devel_node_access module which prints out the node_access records for a given node._
+- devel_generate.module which bulk creates nodes, users, comment, terms for development
 - macro.module which records form submissions and can pay them back later or on another site. More
 information available at http://drupal.org/node/79900.
 
@@ -21,8 +22,3 @@ AUTHOR/MAINTAINER
 ======================
 -moshe weitzman
 weitzman at tejasa DOT com
-
-NOTE
-====
-The subdirectory generate/ includes some scripts that can be used to help testing
-on a Drupal site. See generate/README.txt for details.
