@@ -288,7 +288,7 @@ function devel_block($op = 'list', $delta = 0) {
           }
         }
         if (!empty($links)) {
-          $block['content'] .= theme('item_list', $links);
+          $block['content'] = theme('item_list', $links);
           $block['content'] .= drupal_get_form('devel_switch_user_form');
         }
         break;
