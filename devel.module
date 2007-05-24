@@ -626,7 +626,7 @@ function devel_admin_settings() {
  */
 function devel_cache_clear() {
   // clear core tables
-  $core = array('cache', 'cache_filter', 'cache_page');
+  $core = array('cache', 'cache_filter', 'cache_form', 'cache_page');
   $alltables = array_merge($core, module_invoke_all('devel_caches'));
   foreach ($alltables as $table) {
     cache_clear_all('*', $table, TRUE);
@@ -895,7 +895,7 @@ function devel_switch_user($name = NULL) {
  * Menu callback; prints the loaded structure of the current node/user.
  */
 function devel_load_object($object) {
-  $title = $object->title ? $object->title : $object->name;
+  $title = isset($object->title) ? $object->title : $object->name;
   drupal_set_title(check_plain($title));
   return devel_print_object($object);
 }
