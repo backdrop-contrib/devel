@@ -113,3 +113,5 @@ function devel_update_5() {
   }
   return $ret;
 }
+
+// attention: from now on numbering as per http://drupal.org/node/114774

@@ -121,31 +121,28 @@ function devel_menu() {
     'access arguments' => array('administer site configuration'),
     'type' => MENU_NORMAL_ITEM
   );
-  $items['node/%/load'] = array(
+  $items['node/%node/load'] = array(
     'title' => t('Dev load'),
     'page callback' => 'devel_load_object',
     'page arguments' => array(1),
-    'map arguments' => array('node_load', 1),
     'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
   );
-  $items['node/%/render'] = array(
+  $items['node/%node/render'] = array(
     'title' => t('Dev render'),
     'page callback' => 'devel_render_node',
     'page arguments' => array(1),
-    'map arguments' => array('node_load', 1),
     'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
   );
-  $items['user/%/load'] = array(
+  $items['user/%user/load'] = array(
     'title' => t('Devel load'),
     'page callback' => 'devel_load_object',
     'page arguments' => array(1),
     'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
-    'map arguments' => array('user_load', 1),
     'type' => MENU_LOCAL_TASK,
   );
   return $items;
@@ -238,7 +235,12 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
       }
     }
 
-    watchdog('php', t('%message in %file on line %line.', array('%error' => $types[$errno], '%message' => $message, '%file' => $filename, '%line' => $line)), WATCHDOG_ERROR);
+    watchdog(array(
+      'php', 
+      '%message in %file on line %line.', 
+      array('%error' => $types[$errno], '%message' => $message, '%file' => $filename, '%line' => $line),
+      WATCHDOG_ERROR,
+    ));
   }
 }
 
@@ -1109,14 +1111,19 @@ if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) 
       // the check_plain nicely encodes <> chars for web presentation
       $mimeheaders[] = check_plain($name .': '. mime_header_encode($value));
     }
-    watchdog('devel', t('Mail sent:<br />Key: %mailkey<br />To: %to<br />From: %from<br />Subject: %subject<br />Body: %body<br /><br />Additional headers: !header', array(
-      '%mailkey' => $mailkey,
-      '%to' => $to,
-      '%from' => $from,
-      '%subject' => $subject,
-      '%body' => $body,
-      '!header' => implode("<br />", $mimeheaders),
-    )));
+    watchdog(
+      'devel', 
+      'Mail sent:<br />Key: %mailkey<br />To: %to<br />From: %from<br />Subject: %subject<br />Body: %body<br /><br />Additional headers: !header',
+       array(
+         '%mailkey' => $mailkey,
+         '%to' => $to,
+         '%from' => $from,
+         '%subject' => $subject,
+         '%body' => $body,
+         '!header' => implode("<br />", $mimeheaders),
+         WATCHDOG_INFO,
+         )
+    );
     return TRUE;
   }
 }
