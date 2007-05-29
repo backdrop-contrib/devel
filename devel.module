@@ -823,7 +823,7 @@ function devel_reinstall() {
  */
 function devel_reinstall_submit($form, &$form_state, &$form_values) {
   include_once './includes/install.inc';
-  $module = str_replace('devel_reinstall_', '', $form_id);
+  $module = str_replace('devel_reinstall_', '', $form_values['form_id']);
   $versions = drupal_get_schema_versions($module);
   drupal_set_installed_schema_version($module, $versions ? max($versions) : SCHEMA_INSTALLED);
   module_invoke($module, 'install');
