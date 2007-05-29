@@ -26,8 +26,6 @@ define('DEVEL_MIN_TEXTAREA', 50);
  */
 function devel_help($section) {
   switch ($section) {
-    case 'admin/settings/devel':
-      return '<p>'. t('Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the !block page.', array('!block' => l(t('block administration'), 'admin/build/block'))). '</p>';
     case 'devel/reference':
       return '<p>'. t('This is a list of defined user functions that generated this current request lifecycle. Click on a function name to view its documention.'). '</p>';
     case 'devel/reinstall':
@@ -35,7 +33,8 @@ function devel_help($section) {
     case 'devel/session':
       return '<p>'. t('Here are the contents of your <code>$_SESSION</code> variable.'). '</p>';
     case 'devel/variable':
-      return '<p>'. t('This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href="@variable-get-doc">variable_get()</a> and <a href="@variable-set-doc">variable_set()</a>. Variables that are too long can slow down your pages.', array('@variable-get-doc' => 'http://api.drupal.org/api/HEAD/function/variable_get', '@variable-set-doc' => 'http://api.drupal.org/api/HEAD/function/variable_set')).'</p>';
+      $api = variable_get('devel_api_url', 'api.drupal.org');
+      return '<p>'. t('This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href="@variable-get-doc">variable_get()</a> and <a href="@variable-set-doc">variable_set()</a>. Variables that are too long can slow down your pages.', array('@variable-get-doc' => "http://$api/api/HEAD/function/variable_get", '@variable-set-doc' => 'http://$api/api/HEAD/function/variable_set')).'</p>';
   }
 }
 
@@ -51,15 +50,17 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
-  $items['devel/queries'] = array(
-    'title' => t('Database queries'),
-    'page callback' => 'devel_queries',
-    'access arguments' => array('access devel information'));
-  $items['devel/queries/empty'] = array(
-    'title' => t('Empty database queries'),
-    'page callback' => 'devel_queries_empty',
-    'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK);
+  if (variable_get('devel_store_queries', 0)) {
+    $items['devel/queries'] = array(
+      'title' => t('Database queries'),
+      'page callback' => 'devel_queries',
+      'access arguments' => array('access devel information'));
+    $items['devel/queries/empty'] = array(
+      'title' => t('Empty database queries'),
+      'page callback' => 'devel_queries_empty',
+      'access arguments' => array('access devel information'),
+      'type' => MENU_CALLBACK);
+  }
   $items['devel/reference'] = array(
     'title' => t('function reference'),
     'page callback' => 'devel_function_reference',
@@ -85,6 +86,19 @@ function devel_menu() {
   $items['devel/variable'] = array(
     'title' => t('Variable editor'),
     'page callback' => 'devel_variable_page',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK,
+  );
+  // we don't want the abbreviated version provided by status report
+  $items['devel/phpinfo'] = array(
+    'title' => t('PHPinfo()'),
+    'page callback' => 'devel_phpinfo',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['devel/theme/registry'] = array(
+    'title' => t('Theme registry'),
+    'page callback' => 'devel_theme_registry',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
@@ -116,6 +130,7 @@ function devel_menu() {
   );
   $items['admin/settings/devel'] = array(
     'title' => t('Devel'),
+    'description' =>  t('Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the !block page.', array('!block' => l(t('block administration'), 'admin/build/block'))),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_admin_settings'),
     'access arguments' => array('administer site configuration'),
@@ -151,52 +166,62 @@ function devel_menu() {
 /**
  * Implementation of hook_theme()
  */
-function devel_theme() {
-  return array(
-    'devel_variable' => array(
-      'arguments' => array('form' => NULL),
-    ),
-  );
+function devel_theme() { // &$cache, $type, $theme, $path
+  $functions['devel_variable_form'] = array('arguments' => array('form' => NULL));
+  return $functions;
 }
 
 /**
- * Implementation of hook_init(). Avoids custom error handling for better
- * behavior when stepping though in a debugger.
+ * Implementation of hook_init().
  */
 function devel_init() {    
-  if (strstr($_SERVER['PHP_SELF'], 'update.php') || strstr($_GET['q'], 'autocomplete')) {
-    // update.php relies on standard error handler. Lets not output our gunk there for now.
+  if (!devel_silent()) {
+    if (user_access('access devel information')) { 
+      devel_start();
+      drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
+      devel_set_handler(variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD));
+    } 
   }
-  else {
-    if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
-      global $memory_init;
-      $memory_init = memory_get_usage();
-    }
-    // no css or handler if we are serving a cached page
-    if (function_exists('drupal_set_content')) {
-      if (user_access('access devel information')) { 
-        drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
-        $handler = variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD);
-        switch ($handler) {
-          case DEVEL_ERROR_HANDLER_STANDARD:
-            // do nothing
-            break;
-          case DEVEL_ERROR_HANDLER_BACKTRACE:
-            set_error_handler('backtrace_error_handler');
-            break;
-          case DEVEL_ERROR_HANDLER_NONE:
-            restore_error_handler();
-            break;
-        }
-      }
-    }
-    else {
-      // we need user_access() in the shutdown function
-      drupal_load('module', 'user');
-    }
-    
-    register_shutdown_function('devel_shutdown');
+}
+
+function devel_set_handler($handler) {
+  switch ($handler) {
+    case DEVEL_ERROR_HANDLER_STANDARD:
+      // do nothing
+      break;
+    case DEVEL_ERROR_HANDLER_BACKTRACE:
+      set_error_handler('backtrace_error_handler');
+      break;
+    case DEVEL_ERROR_HANDLER_NONE:
+      restore_error_handler();
+      break;
   }
+}
+
+
+function devel_silent() {
+  return isset($GLOBALS['devel_shutdown']) || strstr($_SERVER['PHP_SELF'], 'update.php') || strstr($_GET['q'], 'autocomplete');
+}
+
+/**
+ * Implementation of hook_boot(). Runs even for cached pages.
+ */
+function devel_boot() {
+  if (!devel_silent()) {
+    devel_start();
+  }
+}
+
+// kickoff all our tricks. put here all code which must run for ached pages too. called from both hook_boot and hook_init.
+function devel_start() {
+  if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
+    global $memory_init;
+    $memory_init = memory_get_usage();
+  }
+
+  // we need user_access() in the shutdown function. make sure it gets loaded
+  drupal_load('module', 'user');
+  register_shutdown_function('devel_shutdown');
 }
 
 function backtrace_error_handler($errno, $message, $filename, $line) {
@@ -209,8 +234,9 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
       array_shift($backtrace);
       $rows[0][] = array('data' => '<strong>'. $entry. '</strong>', 'colspan' => 3);
       $i=1;
+      $api = variable_get('devel_api_url', 'api.drupal.org');
       foreach ($backtrace as $trace) {
-        $rows[$i][] = $trace['class']. $trace['type']. l($trace['function'], "http://api.drupal.org/api/HEAD/function/". $trace['function']);
+        $rows[$i][] = $trace['class']. $trace['type']. l($trace['function'], "http://$api/api/HEAD/function/". $trace['function']);
         $rows[$i][] = $trace['file'] ? $trace['file']. ': '. $trace['line'] : '';
         if (!empty($trace['args'])) {
           foreach ($trace['args'] as $arg) {
@@ -265,55 +291,10 @@ function devel_block($op = 'list', $delta = 0) {
     $block = array();
     switch ($delta) {
       case 0:
-        $block['subject'] = t('Switch user');
-        $links = array();
-        if (user_access('switch users')) {
-          $dest = drupal_get_destination();
-          // Try to find at least 10 users that can switch.
-          $roles = user_roles(1, 'switch users');
-          $where = array('u.uid = 1');
-          if (count($roles)) {
-            $where[] = 'r.rid IN ('. implode(',', array_keys($roles)) .')';
-          }
-          $where_sql = implode(' OR ', $where);
-          $users = db_query_range("SELECT DISTINCT u.uid, u.name FROM {users} u LEFT JOIN {users_roles} r ON u.uid = r.uid WHERE $where_sql ORDER BY u.access DESC", 0, 10);
-          while ($user = db_fetch_object($users)) {
-            $links[$user->uid] = l(theme('placeholder', $user->name), 'devel/switch/'. $user->name, array('attributes' => array('title' => t('This user can switch back.')), 'query' => $dest, 'html' => TRUE));
-          }
-          $num_links = count($links);
-          if ($num_links < 10) {
-            // If we don't have enough, add distinct uids until we hit 10.
-            $users = db_query_range('SELECT uid, name FROM {users} WHERE uid NOT IN ('. implode(',', array_keys($links)) .') ORDER BY access DESC', 0, 10 - $num_links);
-            while (($user = db_fetch_object($users)) && count($links) < 10) {
-              $links[$user->uid] = l($user->name, 'devel/switch/'. $user->name, array('attributes' => array('title' => t('Caution: this user will be unable switch back.')), 'query' => $dest));
-            }
-          }
-        }
-        if (!empty($links)) {
-          $block['content'] = theme('item_list', $links);
-          $block['content'] .= drupal_get_form('devel_switch_user_form');
-        }
+        $block = devel_block_switch_user();
         break;
       case 1:
-        $links = array();
-        $block['subject'] = t('devel');
-        if (user_access('access devel information')) {
-          $links[] = l(t('Devel settings'), 'admin/settings/devel', array('attributes' => array('title' => t('Adjust module settings for devel module.'))));
-          $links[] = l(t('Empty cache'), 'devel/cache/clear', array('attributes' => array('title' => t('Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.')), 'query' => drupal_get_destination()));
-          $links[] = l(t('PHPinfo()'), 'admin/logs/status/php', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
-          $links[] = l(t('Function reference'), 'devel/reference', array('attributes' => array('title' => t('View a list of currently defined user functions with documentation links.'))));
-          $links[] = l(t('Reinstall modules'), 'devel/reinstall', array('attributes' => array('title' => t('Re-run hook_install() for a given module.'))));
-          $links[] = l(t('Reset menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Resets all menu items to their default settings.'))));
-          $links[] = l(t('Variable editor'), 'devel/variable', array('attributes' => array('title' => t('Edit and delete site variables.'))));
-          $links[] = l(t('Session viewer'), 'devel/session', array('attributes' => array('title' => t('List the contents of $_SESSION.'))));
-        }
-        if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
-          // True only if devel_node_access enabled.
-          $links[] = l(t('Node access summary'), 'devel/node_access/summary');
-        }
-        if ($links) {
-          $block['content'] = theme('item_list', $links);
-        }
+        $block = devel_block_devel();
         break;
       case 2:
         if (user_access('execute php code')) {
@@ -322,9 +303,69 @@ function devel_block($op = 'list', $delta = 0) {
         }
         break;
     }
-
     return $block;
   }
+}
+
+function devel_block_devel() {
+  $links = array();
+  $block['subject'] = t('devel');
+  if (user_access('access devel information')) {
+    $links[] = l(t('Devel settings'), 'admin/settings/devel', array('attributes' => array('title' => t('Adjust module settings for devel module.'))));
+    $links[] = l(t('Empty cache'), 'devel/cache/clear', array('attributes' => array('title' => t('Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.')), 'query' => drupal_get_destination()));
+    $links[] = l(t('PHPinfo()'), 'devel/phpinfo', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
+    $links[] = l(t('Function reference'), 'devel/reference', array('attributes' => array('title' => t('View a list of currently defined user functions with documentation links.'))));
+    $links[] = l(t('Theme registry'), 'devel/theme/registry', array('attributes' => array('title' => t('View a list of available theme functions acros the whole site.'))));
+    $links[] = l(t('Reinstall modules'), 'devel/reinstall', array('attributes' => array('title' => t('Re-run hook_install() for a given module.'))));
+    $links[] = l(t('Reset menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Resets all menu items to their default settings.'))));
+    $links[] = l(t('Variable editor'), 'devel/variable', array('attributes' => array('title' => t('Edit and delete site variables.'))));
+    $links[] = l(t('Session viewer'), 'devel/session', array('attributes' => array('title' => t('List the contents of $_SESSION.'))));
+  }
+  if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
+    // True only if devel_node_access enabled.
+    $links[] = l(t('Node access summary'), 'devel/node_access/summary');
+  }
+  
+  if ($links) {
+    $block['content'] = theme('item_list', $links). drupal_get_form('devel_doc_function_form');
+    return $block;
+  }
+}
+
+function devel_block_switch_user() {
+  $block['subject'] = t('Switch user');
+  $links = array();
+  if (user_access('switch users')) {
+    $dest = drupal_get_destination();
+    // Try to find at least 10 users that can switch.
+    $roles = user_roles(1, 'switch users');
+    $where = array('u.uid = 1');
+    if (count($roles)) {
+      $where[] = 'r.rid IN ('. implode(',', array_keys($roles)) .')';
+    }
+    $where_sql = implode(' OR ', $where);
+    $users = db_query_range("SELECT DISTINCT u.uid, u.name FROM {users} u LEFT JOIN {users_roles} r ON u.uid = r.uid WHERE $where_sql ORDER BY u.access DESC", 0, 10);
+    while ($user = db_fetch_object($users)) {
+      $links[$user->uid] = l(theme('placeholder', $user->name), 'devel/switch/'. $user->name, array('attributes' => array('title' => t('This user can switch back.')), 'query' => $dest, 'html' => TRUE));
+    }
+    $num_links = count($links);
+    if ($num_links < 10) {
+      // If we don't have enough, add distinct uids until we hit 10.
+      $users = db_query_range('SELECT uid, name FROM {users} WHERE uid NOT IN ('. implode(',', array_keys($links)) .') ORDER BY access DESC', 0, 10 - $num_links);
+      while (($user = db_fetch_object($users)) && count($links) < 10) {
+        $links[$user->uid] = l($user->name ? $user->name : 'anon', 'devel/switch/'. $user->name, array('attributes' => array('title' => t('Caution: this user will be unable switch back.')), 'query' => $dest));
+      }
+    }
+  }
+  if (!empty($links)) {
+    $block['content'] = theme('item_list', $links);
+    $block['content'] .= drupal_get_form('devel_switch_user_form');
+    return $block;
+  }
+}
+
+function devel_phpinfo() {
+  return phpinfo();
 }
 
 function devel_switch_user_form() {
@@ -342,21 +383,45 @@ function devel_switch_user_form() {
   
 }
 
-function devel_switch_user_form_validate($form_id, $form_values) {
+function devel_doc_function_form() {
+  $version = drupal_major_version_map(VERSION);
+  $form['function'] = array(
+    '#type' => 'textfield',
+    '#description' => t('Enter function name for api lookup'),
+    '#size' => 16,
+    '#maxlength' => 255,
+  );
+  $form['version'] = array('#type' => 'value', '#value' => $version);
+  $form['submit_button'] = array(
+    '#type' => 'submit', 
+    '#value' => t('Submit'),
+  );
+  return $form;
+}
+
+function devel_doc_function_form_submit($form, &$form_state, &$form_values) {
+  $version = $form_values['version'];
+  $function = $form_values['function'];
+  $api = variable_get('devel_api_url', 'api.drupal.org');
+  $form_state['redirect'] =   "http://$api/api/$version/function/$function";
+}
+
+function devel_switch_user_form_validate($form, &$form_state, &$form_values) {
   if (!$account = user_load(array('name' => $form_values['username']))) {
     form_set_error('username', t('Username not found'));
   } 
 }
 
-function devel_switch_user_form_submit($form_id, $form_values) {
-  return 'devel/switch/'. $form_values['username'];
+function devel_switch_user_form_submit($form, &$form_state, &$form_values) {
+  $form_state['redirect'] = 'devel/switch/'. $form_values['username'];
 }
 
 
 /**
+ * TODO: i switched params as per http://drupal.org/node/144132#form-alter but needs work still
  * Implementation of hook_form_alter().
  */
-function devel_form_alter($form_id, &$form, $key_in = NULL) {
+function devel_form_alter(&$form, $form_id, $key_in = NULL) {
   if (user_access('access devel information') && variable_get('devel_form_weights', 0)) {
     $children = element_children($form);
     if (empty($children)) {
@@ -402,14 +467,13 @@ function devel_exit($destination = NULL) {
 }
 
 /**
- * See devel_init() which registers this function as a shutdown function. Displays developer information in the footer.
+ * See devel_start() which registers this function as a shutdown function. Displays developer information in the footer.
  */
 function devel_shutdown() {
   global $queries, $memory_init;
-
   $output = '';
-  
-  // use $GLOBALS['devel_shutdown'] = FALSE in order to supress devel footer for a page. not necessary if your page
+
+  // use $GLOBALS['devel_shutdown'] = FALSE in order to supress the devel footer for a page. not necessary if your page
   // outputs a text/javascript or text/xml Content-type http header. Thats advised where applicable.
   if ($GLOBALS['devel_shutdown'] !== FALSE) {
     // Try not to break non html pages.
@@ -421,6 +485,8 @@ function devel_shutdown() {
     }
 
     if (user_access('access devel information')) {
+      $output = devel_template_log();
+      
       list($counts, $query_summary) = devel_query_summary();
       // Query log off, timer on.
       if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
@@ -433,7 +499,7 @@ function devel_shutdown() {
         $output .= '<div class="dev-query">';
         $output .= $query_summary;
         if (function_exists('theme_table')) {
-          $txt = t(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
+          $txt = t_safe(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
           if (variable_get('dev_timer', 0)) {
             $txt .= devel_timer();
           }
@@ -450,21 +516,18 @@ function devel_shutdown() {
 
       if (variable_get('dev_mem', FALSE) && function_exists('memory_get_usage')) {
         $memory_shutdown = memory_get_usage();
-        $list = array();
-        foreach (array('devel_init()' => $memory_init, 'devel_shutdown()' => $memory_shutdown) as $type => $value) {
-          $list[] = t('Memory used at %type: %value MB', array('%type' => $type, '%value' => round($value / 1024 / 1024, 2)));
-        }
-        $output .= '<div class="dev-memory-usage"><h3>'. 'Memory usage:' .'</h3>'. theme('item_list', $list) .'</div>';
+        $args = array('%memory_init' => round($memory_init / 1024 / 1024, 2), '%memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2));
+        $msg = '<div class="dev-memory-usage"><h3>Memory usage:</h3> Memory used at: devel_init()=<strong>%memory_init</strong> MB, devel_shutdown()=<strong>%memory_shutdown</strong> MB.</div>';
+        // theme() may not be available. not t() either.
+        $output .= t_safe($msg, $args);
       }
       // TODO: gzip this text if we are sending a gzip page. see drupal_page_header(). 
 
       if ($output) {
         print $output;
       }
-    }             
-    
+    }               
   }
-
   devel_store_queries();
 }
 
@@ -510,9 +573,9 @@ function devel_query_summary() {
   }
 }
 
-function t_safe($string) {
-  $args = func_get_args();
-  return function_exists('t') ? call_user_func_array('t', $args) : call_user_func_array('strtr', $args);
+function t_safe($string, $args) {
+  $t = get_t();
+  return $t($string, $args);
 }
 
 /**
@@ -521,12 +584,25 @@ function t_safe($string) {
  */
 function devel_function_reference() {
   $functions = get_defined_functions();
+  $version = drupal_major_version_map(VERSION);
   $ufunctions = $functions['user'];
   sort($ufunctions);
+  $api = variable_get('devel_api_url', 'api.drupal.org');
   foreach($ufunctions as $function) {
-    $links[] = l($function, "http://api.drupal.org/api/HEAD/function/$function");
+    $links[] = l($function, "http://$api/api/$version/function/$function");
   }
   return theme('item_list', $links);
+}
+
+// verify the keys in map
+function drupal_major_version_map($version = NULL) {
+  $map = array(
+    '4.7' => '4.7',
+    '5.1' => '5.1',
+    '6.0' => '6.0',
+    '6.0-dev' => 'HEAD',
+  );
+  return $version ? $map[$version] : $map;
 }
  
 function devel_db_query($query) {
@@ -575,10 +651,19 @@ function devel_admin_settings() {
     '#size' => 4, 
     '#description' => t('If storing query statistics, only store every nth page view. 1 means every page view, 2 every second, and so on.'));
   
+  $form['devel_api_url'] = array('#type' => 'textfield', 
+    '#title' => t('API Site'), 
+    '#default_value' => variable_get('devel_api_url', 'api.drupal.org'),  
+    '#description' => t('The base URL for your developer documentation links. You might change this if you run <a href="!url">api.module</a> locally.', array('!url' => url('http://drupal.org/project/api'))));
   $form['dev_timer'] = array('#type' => 'checkbox',
     '#title' => t('Display page timer'),
     '#default_value' => variable_get('dev_timer', 0),
     '#description' => t('Display page execution time in the query log box.'),
+  );
+  $form['dev_template_log'] = array('#type' => 'checkbox',
+    '#title' => t('Display template log'),
+    '#default_value' => variable_get('dev_template_log', 0),
+    '#description' => t('Display the list of theme templates which can be used for a given page.'),
   );
   $form['dev_mem'] = array('#type' => 'checkbox',
     '#title' => t('Display memory usage'),
@@ -660,9 +745,9 @@ function devel_execute_form() {
 /**
  * Process PHP execute form submissions.
  */
-function devel_execute_form_submit($form_id, $form) {
+function devel_execute_form_submit($form, &$form_state, &$form_values) {
   ob_start();
-  print eval($form['code']);
+  print eval($form_values['code']);
   dsm(ob_get_clean());
 }
 
@@ -682,15 +767,15 @@ function devel_menu_reset_form() {
 /**
  * Process menu reset form submission.
  */
-function devel_menu_reset_form_submit() {
-  db_query('DELETE FROM {menu}');
-  $mid = module_invoke('menu', 'edit_item_save', array('title' => t('Primary links'), 'pid' => 0, 'type' => MENU_CUSTOM_MENU));
-  variable_set('menu_primary_menu', $mid);
-  variable_set('menu_secondary_menu', $mid);
+function devel_menu_reset_form_submit($form, &$form_state, &$form_values) {
+  // db_query('DELETE FROM {menu}');
+  //   $mid = module_invoke('menu', 'edit_item_save', array('title' => t('Primary links'), 'pid' => 0, 'type' => MENU_CUSTOM_MENU));
+  //   variable_set('menu_primary_menu', $mid);
+  //   variable_set('menu_secondary_menu', $mid);
 
-  drupal_set_message(t('The menu items have been reset to their default settings.'));
-
-  return 'admin/build/menu';
+  // drupal_set_message(t('The menu items have been reset to their default settings.'));
+  drupal_set_message('needs fixing for new menu system');
+  // return 'admin/build/menu';
 }
 
 /**
@@ -736,7 +821,7 @@ function devel_reinstall() {
 /**
  * Process reinstall menu form submissions.
  */
-function devel_reinstall_submit($form_id, $form_values) {
+function devel_reinstall_submit($form, &$form_state, &$form_values) {
   include_once './includes/install.inc';
   $module = str_replace('devel_reinstall_', '', $form_id);
   $versions = drupal_get_schema_versions($module);
@@ -746,15 +831,77 @@ function devel_reinstall_submit($form_id, $form_values) {
 }
 
 /**
+ * Show all theme templates that could have been used on this page.
+ * TODO: highlight the one that was actually used
+ **/
+function devel_template_log() {
+  if (variable_get('dev_template_log', 0)) {
+    $extension = devel_get_theme_extension();
+    $header = array('Template name', "Template files ($extension)");
+    if (isset($GLOBALS['devel_theme_functions'])) {
+      foreach ($GLOBALS['devel_theme_functions'] as $function) {
+        // TODO: path_to_theme() is not right in hook_footer()
+        // TODO: drupal_discover_template() needs leading './' so as to avoid lookup in whole include path
+        // $used = drupal_discover_template($function['template_files'], $extension);
+        // array_push($function['template_files'], $function['function']);
+        // $key = array_search($used, $function['template_files']);
+        // $function['template_files'][$key] = theme('placeholder', $function['template_files'][$key]);
+        $rows[] = array($function['function'], implode(', ', $function['template_files']));
+        // unset($function['template_files']);
+      }
+      return theme('table', $header, $rows);
+    }
+  }
+}
+
+// would be nice if theme() broke this into separate function so we don't copy logic here. this one is better - has cache
+function devel_get_theme_extension() {
+  global $theme_engine;
+  static $extension = NULL;
+  
+  if (!$extension) {
+    $extension_function = $theme_engine .'_extension';
+    if (function_exists($extension_function)) {
+      $extension = $extension_function();
+    }
+    else {
+      $extension = '.tpl.php';
+    }
+  }
+  return $extension;
+}
+
+/**
+ * During theme registry building, Drupal notices this function and adds it as a preprocessor
+ * for all template calls. Core seems not to allow logging of theme *functions*, just templates. Help!
+ *
+ * If you use an engine other than phptemplate, just define ENGINE_preprocess() function using same code as this function.
+*/
+function phptemplate_preprocess($vars, $function) {
+  $GLOBALS['devel_theme_functions'][] = array(
+    'function' => $function, 
+    'template_files' => $vars['template_files']
+  );
+}
+  
+
+// menu callback
+function devel_theme_registry() {
+  init_theme();
+  $hooks = theme_get_registry(); 
+  return dprint_r($hooks, TRUE);
+}
+
+/**
  * Menu callback; display all variables.
  */
-function devel_variable_page() {
+function  devel_variable_page() {
   // we print our own page so as to avoid blocks
-  $output = drupal_get_form('devel_variable');
+  $output = drupal_get_form('devel_variable_form');
   print theme('page', $output, FALSE);
 }
 
-function devel_variable() {
+function devel_variable_form() {
   $header = array(
     array(''),
     array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),
@@ -786,7 +933,9 @@ function devel_variable() {
   return $form;
 }
 
-function theme_devel_variable($form) {
+function theme_devel_variable_form($form) {
+  // TODO: this is not being called for some reason
+  // die(form);
   $children = element_children($form['name']);
   foreach ($children as $key) {      
     $rows[] = array(
@@ -810,10 +959,10 @@ function theme_devel_variable($form) {
   return $output;
 }
 
-function devel_variable_submit($form_id, $form_values) {
+function devel_variable_form_submit($form, &$form_state, &$form_values) {
   $deletes = array_filter($form_values['variables']);
   array_walk($deletes, 'variable_del');
-  drupal_set_message(format_plural(count($deletes), 'one variable deleted', '@count variables deleted'));
+  drupal_set_message(format_plural(count($deletes), 'One variable deleted.', '@count variables deleted.'));
 }
 
 function devel_variable_edit($name) {
@@ -839,20 +988,21 @@ function devel_variable_edit($name) {
     );
   }
   else {
+    $api = variable_get('devel_api_url', 'api.drupal.org');
     $form['new'] = array(
       '#type' => 'item', 
       '#title' => t('New value'),
-      '#value' => t('Sorry, complex variable types may not be edited yet. Use the <em>Execute PHP</em> block and the <a href="@variable-set-doc">variable_set()</a> function.', array('@variable-set-doc' => 'http://api.drupal.org/api/HEAD/function/variable_set'))
+      '#value' => t('Sorry, complex variable types may not be edited yet. Use the <em>Execute PHP</em> block and the <a href="@variable-set-doc">variable_set()</a> function.', array('@variable-set-doc' => "http://$api/api/HEAD/function/variable_set"))
     );
   }
   drupal_set_title($name);
   return $form;
 }
 
-function devel_variable_edit_submit($form_id, $form_values) {
+function devel_variable_edit_submit($form, &$form_state, &$form_values) {
   variable_set($form_values['name'], $form_values['new']);
-  drupal_set_message(t('Saved new value for %name', array('%name' => $form_values['name'])));
-  return 'devel/variable';
+  drupal_set_message(t('Saved new value for %name.', array('%name' => $form_values['name'])));
+   'devel/variable';
 }
 
 /**
@@ -939,8 +1089,10 @@ function devel_print_object($object) {
  * generate the page.
  */
 function devel_query_table($queries, $counts) {
+  $version = drupal_major_version_map(VERSION);
   $header = array ('ms', '#', 'where', 'query');
   $i = 0;
+  $api = variable_get('devel_api_url', 'api.drupal.org');
   foreach ($queries as $query) {
     // dprint_r($query);
     $ar = explode("\n", $query[0]);
@@ -961,7 +1113,7 @@ function devel_query_table($queries, $counts) {
     else {
       $cell[$i][] = $count;
     }
-    $cell[$i][] = l($function, "http://api.drupal.org/api/HEAD/function/$function");
+    $cell[$i][] = l($function, "http://$api/api/$version/function/$function");
     $cell[$i][] = check_plain($query[0]);
     $i++;
     unset($diff, $count);
