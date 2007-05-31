@@ -473,9 +473,9 @@ function devel_shutdown() {
   global $queries, $memory_init;
   $output = '';
 
-  // use $GLOBALS['devel_shutdown'] = FALSE in order to supress the devel footer for a page. not necessary if your page
+  // set $GLOBALS['devel_shutdown'] = FALSE in order to supress the devel footer for a page. not necessary if your page
   // outputs a text/javascript or text/xml Content-type http header. Thats advised where applicable.
-  if ($GLOBALS['devel_shutdown'] !== FALSE) {
+  if (!isset($GLOBALS['devel_shutdown'])) {
     // Try not to break non html pages.
     if (function_exists('drupal_get_headers')) {
       $headers = drupal_get_headers();
