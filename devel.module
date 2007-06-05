@@ -167,8 +167,11 @@ function devel_menu() {
  * Implementation of hook_theme()
  */
 function devel_theme() { // &$cache, $type, $theme, $path
-  $functions['devel_variable_form'] = array('arguments' => array('form' => NULL));
-  return $functions;
+  return array(
+    'devel_variable_form' => array(
+        'arguments' => array('form' => NULL)
+    ),
+  );
 }
 
 /**
@@ -498,7 +501,9 @@ function devel_shutdown() {
       if (variable_get('devel_query_display', FALSE)) {
         $output .= '<div class="dev-query">';
         $output .= $query_summary;
-        if (function_exists('theme_table')) {
+        // calling theme() during shutdown is very bad if registry gets rebuilt like when making a change on  admin/build/modules
+        // so we check for presence of theme registry before calling theme('table'  )
+        if (theme_get_registry() && function_exists('theme_table')) {
           $txt = t_safe(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
           if (variable_get('dev_timer', 0)) {
             $txt .= devel_timer();
@@ -574,8 +579,9 @@ function devel_query_summary() {
 }
 
 function t_safe($string, $args) {
-  $t = get_t();
-  return $t($string, $args);
+  // get_t caused problems here with theme registry after changing on admin/build/modules. the theme_get_registry call is needed.
+  return function_exists('t') && theme_get_registry()? t($string, $args) : strtr($string, $args);
+  // return strtr($string, $args);
 }
 
 /**
@@ -841,7 +847,7 @@ function devel_template_log() {
     if (isset($GLOBALS['devel_theme_functions'])) {
       foreach ($GLOBALS['devel_theme_functions'] as $function) {
         // TODO: path_to_theme() is not right in hook_footer()
-        // TODO: drupal_discover_template() needs leading './' so as to avoid lookup in whole include path
+        // TODO: drupal_discover_template() needs leading './' so as to avoid lookup in whole include pat
         // $used = drupal_discover_template($function['template_files'], $extension);
         // array_push($function['template_files'], $function['function']);
         // $key = array_search($used, $function['template_files']);
@@ -1137,7 +1143,7 @@ function _devel_table_sort($a, $b) {
  */
 function devel_timer() {
   $time = timer_read('page');
-  return t(' Page execution time was %time ms.', array('%time' => $time));
+  return t_safe(' Page execution time was %time ms.', array('%time' => $time));
 }
 
 /**
