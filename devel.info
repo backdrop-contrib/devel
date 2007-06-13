@@ -2,5 +2,4 @@
 name = Devel
 description = Various blocks, pages, and functions for developers.
 package = Development
-version = "$Name$"
 core = 6.x
