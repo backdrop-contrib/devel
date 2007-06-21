@@ -759,7 +759,7 @@ function devel_execute_form() {
 /**
  * Process PHP execute form submissions.
  */
-function devel_execute_form_submit($form, &$form_state, &$form_values = NULL) {
+function devel_execute_form_submit($form, &$form_state) {
   ob_start();
   print eval($form_state['values']['code']);
   dsm(ob_get_clean());
