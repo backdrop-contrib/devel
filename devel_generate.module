@@ -63,9 +63,9 @@ function devel_generate_users_form() {
   return $form;
 }
 
-function devel_generate_users_form_submit($form_id, $form_values) {
+function devel_generate_users_form_submit($form_id, &$form_state) {
   require_once('devel_generate.inc');
-  devel_create_users($form_values['num'], $form_values['kill_users']);
+  devel_create_users($form_state['values']['num'], $form_state['values']['kill_users']);
 }
 
 function devel_generate_word($length){
@@ -77,7 +77,8 @@ function devel_generate_word($length){
    
   $num_vowels = count($vowels); 
   $num_cons = count($cons); 
-
+  $word = '';
+  
   while(strlen($word) < $length){ 
     $word .= $cons[rand(0, $num_cons - 1)] . $vowels[rand(0, $num_vowels - 1)]; 
   } 
@@ -116,24 +117,24 @@ function devel_generate_content_form() {
   return $form;
 }
 
-function devel_generate_content_form_submit($form_id, $form_values) {
+function devel_generate_content_form_submit($form_id, &$form_state) {
   $path = drupal_get_path('module', 'devel');
   require_once('devel_generate.inc');
-  if ($form_values['kill_content']) {
+  if ($form_state['values']['kill_content']) {
     db_query("DELETE FROM {comments}");
     db_query("DELETE FROM {node}");
     db_query("DELETE FROM {node_revisions}");
     db_query("DELETE FROM {node_comment_statistics}");
-    if (db_table_exists(forum)) { db_query("DELETE FROM {forum}"); }
+    db_query("DELETE FROM {term_node}");
+    if (db_table_exists('forum')) { db_query("DELETE FROM {forum}"); }
     db_query("DELETE FROM {url_alias}");
-    db_query("UPDATE {sequences} SET id = '0' WHERE name = 'node_nid'");
-    db_query("UPDATE {sequences} SET id = '0' WHERE name = 'comments_cid'");
     db_query("ALTER TABLE {node} AUTO_INCREMENT = 1");
     db_query("ALTER TABLE {comments} AUTO_INCREMENT = 1");
     drupal_set_message(t('Content deleted.'));
+    $next_nid = 0;
   }
   else {
-    $next_nid = db_result(db_query("SELECT id FROM {sequences} WHERE name = '{node}_nid'"))+1;
+    $next_nid = db_result(db_query("SELECT MAX(nid) FROM {node}"))+1;
   }
 
   // get user id
@@ -142,8 +143,8 @@ function devel_generate_content_form_submit($form_id, $form_values) {
   $terms = devel_get_terms();
 
   // create 100 pseudo-random nodes:
-  devel_create_nodes($form_values['num_nodes'], $users, $form_values['title_length']);
-  drupal_set_message(t('%num nodes created.', array('%num' => $form_values['num_nodes'])));
+  devel_create_nodes($form_state['values']['num_nodes'], $users, $form_state['values']['title_length']);
+  drupal_set_message(t('%num nodes created.', array('%num' => $form_state['values']['num_nodes'])));
 
   $nodes = devel_get_nodes($next_nid);
 
@@ -151,13 +152,13 @@ function devel_generate_content_form_submit($form_id, $form_values) {
 
   $comments = devel_get_comments();
 
-  devel_create_comments($form_values['num_comments'], $users, $nodes, $comments);
-  drupal_set_message(t('%num comments created.', array('%num' => $form_values['num_comments'])));
+  devel_create_comments($form_state['values']['num_comments'], $users, $nodes, $comments);
+  drupal_set_message(t('%num comments created.', array('%num' => $form_state['values']['num_comments'])));
 }
 
 function devel_generate_vocabs($records, $maxlength = 12) {
   $types = array("story", "blog", "forum", "page");
-
+  $output = NULL;
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
     $voc = array();
@@ -174,7 +175,7 @@ function devel_generate_vocabs($records, $maxlength = 12) {
     $voc['weight'] = rand(0,10);    
 
     taxonomy_save_vocabulary($voc);
-    $output .= "created vocabulary ". $voc['name'];
+    $output .= "created vocabulary ". $voc['name']. "<br />";
   }
 
   return $output;
@@ -202,7 +203,8 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
     $term['weight'] = rand(0,10);
 
     $status = taxonomy_save_term($term);
-
+    $output = NULL;
+    
     if ($status) {
       $output .= t("Created term @term", array('@term' => $term['name'])). "<br />";
     }
@@ -254,14 +256,14 @@ function devel_generate_taxonomy_form() {
   return $form;
 }
 
-function devel_generate_taxonomy_form_submit($form_id, $form_values) {
+function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
   $vocs = array();
   $result = db_query("SELECT vid FROM {vocabulary}");
   while($voc = db_fetch_object($result)){
     $vocs[] = $voc->vid;
   }
 
-  if ($form_values['kill_taxonomy']) {
+  if ($form_state['values']['kill_taxonomy']) {
     db_query("DELETE FROM {term_data}");
     db_query("DELETE FROM {term_node}");
     db_query("DELETE FROM {term_hierarchy}");
@@ -269,12 +271,10 @@ function devel_generate_taxonomy_form_submit($form_id, $form_values) {
     db_query("DELETE FROM {term_synonym}");
     db_query("DELETE FROM {vocabulary}");
     db_query("DELETE FROM {vocabulary_node_types}");
-    db_query("UPDATE {sequences} SET id = '0' WHERE name = '{vocabulary_vid}'");
-    db_query("UPDATE {sequences} SET id = '0' WHERE name = '{term_data_tid}'");
   }
 
-  $output = devel_generate_vocabs($form_values['num_vocab'], $form_values['title_length']);
+  $output = devel_generate_vocabs($form_state['values']['num_vocab'], $form_state['values']['title_length']);
   $vocs = devel_generate_get_vocabs();
-  $output .= devel_generate_terms($form_values['num_terms'], $vocs, $form_values['title_length']);
+  $output .= devel_generate_terms($form_state['values']['num_terms'], $vocs, $form_state['values']['title_length']);
   drupal_set_message($output);
 }

@@ -20,13 +20,12 @@ function devel_create_users($num, $kill) {
     drupal_set_message(t('Users deleted.'));
   }
   for ($i = 0; $i < $num; $i++) {
-    $uid = db_next_id('{users}_uid');
-    $length = rand(4, 12);
+    $length = rand(6, 12);
     $name = devel_generate_word($length);
     $pass = md5(user_password());
     $mail = $name .'@'. $url['host'];
     $now = time();
-    db_query("INSERT INTO {users} (uid, name, pass, mail, status, created, access) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $uid, $name, $pass, $mail, 1, $now, $now);
+    db_query("INSERT INTO {users} (name, pass, mail, status, created, access) VALUES ('%s', '%s', '%s', %d, %d, %d)", $name, $pass, $mail, 1, $now, $now);
   }
   drupal_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
 }
@@ -50,7 +49,7 @@ function devel_create_nodes($records, $users, $title_length = 8) {
       $node->uid = $users[array_rand($users)];
       $node->type = $types[array_rand($types)];
       // get the next nid without incrementing it
-      $next_nid = db_result(db_query("SELECT id FROM {sequences} WHERE name = '{node}_nid'"))+1;
+      $next_nid = db_result(db_query("SELECT MAX(nid) FROM {node} "))+1;
       
       $title = devel_create_greeking(rand(1, $title_length), TRUE);
       /*
@@ -64,6 +63,10 @@ function devel_create_nodes($records, $users, $title_length = 8) {
       $node->body = "node #$next_nid ($node->type) - ". devel_create_content();
       $node->teaser = node_teaser($node->body);
       $node->filter = variable_get('filter_default_format', 1);
+      $node->language = '';
+      $node->log = '';
+      $node->sticky = '';
+      $node->format = '';
       $node->status = 1;
       $node->revision = rand(0,1);
       $node->promote = rand(0, 1);
@@ -85,7 +88,6 @@ function devel_create_comments($records, $users, $nodes, $comments) {
   $users = array_merge($users, array('0'));
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
-    $comment->cid = db_next_id("{comments}_cid");
     $comment->nid = array_rand($nodes);
 
     switch ($i % 3) {
@@ -99,11 +101,11 @@ function devel_create_comments($records, $users, $nodes, $comments) {
         $comment->pid = 0;
     }
 
-    $comment->subject = "comment #". $comment->cid;
-    $comment->comment = "body of comment #". $comment->cid;
+    $comment->subject = "comment #". $i;
+    $comment->comment = "body of comment #". $i;
     $comment->uid = $users[array_rand($users)];
 
-    db_query("INSERT INTO {comments} (cid, nid, pid, uid, subject, comment, status, thread, timestamp) VALUES (%d, %d, %d, %d, '%s', '%s', %d, %d, %d)", $comment->cid, $comment->nid, $comment->pid, $comment->uid, $comment->subject, $comment->comment, 0, 0, time());
+    db_query("INSERT INTO {comments} (nid, pid, uid, subject, comment, status, thread, timestamp) VALUES (%d, %d, %d, '%s', '%s', %d, %d, %d)", $comment->nid, $comment->pid, $comment->uid, $comment->subject, $comment->comment, 0, 0, time());
   }
 }
 
@@ -260,7 +262,7 @@ function devel_get_comments() {
   while($comment = db_fetch_object($result)){
     $comments[$comment->nid][] = $comment->cid ;
   }
-  return comments;
+  return $comments;
 }
 
 function devel_get_terms() {

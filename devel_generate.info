@@ -2,3 +2,4 @@
 name = Devel Generate
 description = Generate dummy users, nodes, and taxonomy terms.
 package = Development
+core = 6.x
