@@ -494,6 +494,11 @@ function devel_shutdown() {
         return;
       }
     }
+    
+    // don't append gunk to CLI scripts
+    if (empty($_SERVER['REQUEST_METHOD'])) {
+      return;
+    }
 
     if (user_access('access devel information')) {
       $output = devel_template_log();
