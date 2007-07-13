@@ -177,13 +177,13 @@ function devel_theme() { // &$cache, $type, $theme, $path
 /**
  * Implementation of hook_init().
  */
-function devel_init() {    
+function devel_init() {
   if (!devel_silent()) {
-    if (user_access('access devel information')) { 
+    if (user_access('access devel information')) {
       devel_start();
       drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
       devel_set_handler(variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD));
-    } 
+    }
   }
 }
 
@@ -265,8 +265,8 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
     }
 
     watchdog(array(
-      'php', 
-      '%message in %file on line %line.', 
+      'php',
+      '%message in %file on line %line.',
       array('%error' => $types[$errno], '%message' => $message, '%file' => $filename, '%line' => $line),
       WATCHDOG_ERROR,
     ));
@@ -287,7 +287,7 @@ function devel_block($op = 'list', $delta = 0) {
   if ($op == 'list') {
     $blocks[0]['info'] = t('Switch user');
     $blocks[1]['info'] = t('Devel');
-    $blocks[2]['info'] = t('Execute PHP');    
+    $blocks[2]['info'] = t('Execute PHP');
     return $blocks;
   }
   else if ($op == 'view') {
@@ -328,7 +328,7 @@ function devel_block_devel() {
     // True only if devel_node_access enabled.
     $links[] = l(t('Node access summary'), 'devel/node_access/summary');
   }
-  
+
   if ($links) {
     $block['content'] = theme('item_list', $links). drupal_get_form('devel_doc_function_form');
     return $block;
@@ -387,11 +387,11 @@ function devel_switch_user_form() {
     '#maxlength' => 255,
   );
   $form['submit'] = array(
-    '#type' => 'submit', 
+    '#type' => 'submit',
     '#value' => t('Switch'),
   );
   return $form;
-  
+
 }
 
 function devel_doc_function_form() {
@@ -404,27 +404,27 @@ function devel_doc_function_form() {
   );
   $form['version'] = array('#type' => 'value', '#value' => $version);
   $form['submit_button'] = array(
-    '#type' => 'submit', 
+    '#type' => 'submit',
     '#value' => t('Submit'),
   );
   return $form;
 }
 
-function devel_doc_function_form_submit($form, &$form_state, &$form_values) {
-  $version = $form_values['version'];
-  $function = $form_values['function'];
+function devel_doc_function_form_submit($form, &$form_state) {
+  $version = $form_state['values']['version'];
+  $function = $form_state['values']['function'];
   $api = variable_get('devel_api_url', 'api.drupal.org');
   $form_state['redirect'] =   "http://$api/api/$version/function/$function";
 }
 
-function devel_switch_user_form_validate($form, &$form_state, &$form_values) {
-  if (!$account = user_load(array('name' => $form_values['username']))) {
+function devel_switch_user_form_validate($form, &$form_state) {
+  if (!$account = user_load(array('name' => $form_state['values']['username']))) {
     form_set_error('username', t('Username not found'));
-  } 
+  }
 }
 
-function devel_switch_user_form_submit($form, &$form_state, &$form_values) {
-  $form_state['redirect'] = 'devel/switch/'. $form_values['username'];
+function devel_switch_user_form_submit($form, &$form_state) {
+  $form_state['redirect'] = 'devel/switch/'. $form_state['values']['username'];
 }
 
 
@@ -494,7 +494,7 @@ function devel_shutdown() {
         return;
       }
     }
-    
+
     // don't append gunk to CLI scripts
     if (empty($_SERVER['REQUEST_METHOD'])) {
       return;
@@ -502,7 +502,7 @@ function devel_shutdown() {
 
     if (user_access('access devel information')) {
       $output = devel_template_log();
-      
+
       list($counts, $query_summary) = devel_query_summary();
       // Query log off, timer on.
       if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
@@ -539,12 +539,12 @@ function devel_shutdown() {
         // theme() may not be available. not t() either.
         $output .= t_safe($msg, $args);
       }
-      // TODO: gzip this text if we are sending a gzip page. see drupal_page_header(). 
+      // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
 
       if ($output) {
         print $output;
       }
-    }               
+    }
   }
   devel_store_queries();
 }
@@ -598,7 +598,7 @@ function t_safe($string, $args) {
 }
 
 /**
- * Returns a list of all currently defined user functions in the current 
+ * Returns a list of all currently defined user functions in the current
  * request lifecycle, with links their documentation.
  */
 function devel_function_reference() {
@@ -623,7 +623,7 @@ function drupal_major_version_map($version = NULL) {
   );
   return $version ? $map[$version] : $map;
 }
- 
+
 function devel_db_query($query) {
   global $active_db;
   $args = func_get_args();
@@ -660,19 +660,19 @@ function devel_admin_settings() {
     '#maxlength' => 4,
     '#description' => t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibly inefficient query, or a candidate for caching.'),
   );
-  $form['queries']['devel_store_queries'] = array('#type' => 'checkbox', 
-    '#title' => t('Store executed queries'), 
-    '#default_value' => variable_get('devel_store_queries', 0), 
+  $form['queries']['devel_store_queries'] = array('#type' => 'checkbox',
+    '#title' => t('Store executed queries'),
+    '#default_value' => variable_get('devel_store_queries', 0),
     '#description' => t('Store statistics about executed queries. See the devel_x tables. This feature is currently only available for the MySQL database backend.'));
-  $form['queries']['devel_store_random'] = array('#type' => 'textfield', 
-    '#title' => t('Sampling interval'), 
-    '#default_value' => variable_get('devel_store_random', 1), 
-    '#size' => 4, 
+  $form['queries']['devel_store_random'] = array('#type' => 'textfield',
+    '#title' => t('Sampling interval'),
+    '#default_value' => variable_get('devel_store_random', 1),
+    '#size' => 4,
     '#description' => t('If storing query statistics, only store every nth page view. 1 means every page view, 2 every second, and so on.'));
-  
-  $form['devel_api_url'] = array('#type' => 'textfield', 
-    '#title' => t('API Site'), 
-    '#default_value' => variable_get('devel_api_url', 'api.drupal.org'),  
+
+  $form['devel_api_url'] = array('#type' => 'textfield',
+    '#title' => t('API Site'),
+    '#default_value' => variable_get('devel_api_url', 'api.drupal.org'),
     '#description' => t('The base URL for your developer documentation links. You might change this if you run <a href="!url">api.module</a> locally.', array('!url' => url('http://drupal.org/project/api'))));
   $form['dev_timer'] = array('#type' => 'checkbox',
     '#title' => t('Display page timer'),
@@ -774,10 +774,10 @@ function devel_execute_form_submit($form, &$form_state) {
  * Menu callback; clear the database, resetting the menu to factory defaults.
  */
 function devel_menu_reset_form() {
-  return confirm_form(array(), 
-    t('Are you sure you want to reset all menu items to their default settings?'), 
-    'admin/build/menu', 
-    t('Any custom additions or changes to the menu will be lost.'), 
+  return confirm_form(array(),
+    t('Are you sure you want to reset all menu items to their default settings?'),
+    'admin/build/menu',
+    t('Any custom additions or changes to the menu will be lost.'),
     t('Reset all'),
     t('Cancel')
   );
@@ -786,7 +786,7 @@ function devel_menu_reset_form() {
 /**
  * Process menu reset form submission.
  */
-function devel_menu_reset_form_submit($form, &$form_state, &$form_values) {
+function devel_menu_reset_form_submit($form, &$form_state) {
   // db_query('DELETE FROM {menu}');
   //   $mid = module_invoke('menu', 'edit_item_save', array('title' => t('Primary links'), 'pid' => 0, 'type' => MENU_CUSTOM_MENU));
   //   variable_set('menu_primary_menu', $mid);
@@ -840,9 +840,9 @@ function devel_reinstall() {
 /**
  * Process reinstall menu form submissions.
  */
-function devel_reinstall_submit($form, &$form_state, &$form_values) {
+function devel_reinstall_submit($form, &$form_state) {
   include_once './includes/install.inc';
-  $module = str_replace('devel_reinstall_', '', $form_values['form_id']);
+  $module = str_replace('devel_reinstall_', '', $form_state['values']['form_id']);
   $versions = drupal_get_schema_versions($module);
   drupal_set_installed_schema_version($module, $versions ? max($versions) : SCHEMA_INSTALLED);
   module_invoke($module, 'install');
@@ -877,7 +877,7 @@ function devel_template_log() {
 function devel_get_theme_extension() {
   global $theme_engine;
   static $extension = NULL;
-  
+
   if (!$extension) {
     $extension_function = $theme_engine .'_extension';
     if (function_exists($extension_function)) {
@@ -898,16 +898,16 @@ function devel_get_theme_extension() {
 */
 function phptemplate_preprocess($vars, $function) {
   $GLOBALS['devel_theme_functions'][] = array(
-    'function' => $function, 
+    'function' => $function,
     'template_files' => $vars['template_files']
   );
 }
-  
+
 
 // menu callback
 function devel_theme_registry() {
   init_theme();
-  $hooks = theme_get_registry(); 
+  $hooks = theme_get_registry();
   return dprint_r($hooks, TRUE);
 }
 
@@ -946,7 +946,7 @@ function devel_variable_form() {
   }
   $form['variables'] = array('#type' => 'checkboxes', '#options' => $variables);
   $form['submit'] = array(
-    '#type' => 'submit', 
+    '#type' => 'submit',
     '#value' => t('Delete'),
   );
   return $form;
@@ -956,7 +956,7 @@ function theme_devel_variable_form($form) {
   // TODO: this is not being called for some reason
   // die(form);
   $children = element_children($form['name']);
-  foreach ($children as $key) {      
+  foreach ($children as $key) {
     $rows[] = array(
       drupal_render($form['variables'][$key]),
       drupal_render($form['name'][$key]),
@@ -978,8 +978,8 @@ function theme_devel_variable_form($form) {
   return $output;
 }
 
-function devel_variable_form_submit($form, &$form_state, &$form_values) {
-  $deletes = array_filter($form_values['variables']);
+function devel_variable_form_submit($form, &$form_state) {
+  $deletes = array_filter($form_state['values']['variables']);
   array_walk($deletes, 'variable_del');
   drupal_set_message(format_plural(count($deletes), 'One variable deleted.', '@count variables deleted.'));
 }
@@ -987,7 +987,7 @@ function devel_variable_form_submit($form, &$form_state, &$form_values) {
 function devel_variable_edit($name) {
   $value = variable_get($name, 'not found');
   $form['name'] = array(
-    '#type' => 'value', 
+    '#type' => 'value',
     '#value' => $name
   );
   $form['value'] = array(
@@ -997,19 +997,19 @@ function devel_variable_edit($name) {
   );
   if (is_string($value)) {
     $form['new'] = array(
-      '#type' => 'textarea', 
+      '#type' => 'textarea',
       '#title' => t('New value'),
       '#default_value' => $value
     );
     $form['submit'] = array(
-      '#type' => 'submit', 
+      '#type' => 'submit',
       '#value' => t('Submit'),
     );
   }
   else {
     $api = variable_get('devel_api_url', 'api.drupal.org');
     $form['new'] = array(
-      '#type' => 'item', 
+      '#type' => 'item',
       '#title' => t('New value'),
       '#value' => t('Sorry, complex variable types may not be edited yet. Use the <em>Execute PHP</em> block and the <a href="@variable-set-doc">variable_set()</a> function.', array('@variable-set-doc' => "http://$api/api/HEAD/function/variable_set"))
     );
@@ -1018,9 +1018,9 @@ function devel_variable_edit($name) {
   return $form;
 }
 
-function devel_variable_edit_submit($form, &$form_state, &$form_values) {
-  variable_set($form_values['name'], $form_values['new']);
-  drupal_set_message(t('Saved new value for %name.', array('%name' => $form_values['name'])));
+function devel_variable_edit_submit($form, &$form_state) {
+  variable_set($form_state['values']['name'], $form_state['values']['new']);
+  drupal_set_message(t('Saved new value for %name.', array('%name' => $form_state['values']['name'])));
    'devel/variable';
 }
 
@@ -1144,11 +1144,11 @@ function devel_query_table($queries, $counts) {
 }
 
 function _devel_table_sort($a, $b) {
-	$a = is_array($a[0]) ? $a[0]['data'] : $a[0];
-	$b = is_array($b[0]) ? $b[0]['data'] : $b[0];
-	if ($a < $b) { return 1; }
-	if ($a > $b) { return -1; }
-	return 0;	
+  $a = is_array($a[0]) ? $a[0]['data'] : $a[0];
+  $b = is_array($b[0]) ? $b[0]['data'] : $b[0];
+  if ($a < $b) { return 1; }
+  if ($a > $b) { return -1; }
+  return 0;
 }
 
 /**
@@ -1169,7 +1169,7 @@ function dargs($always = TRUE) {
     dsm($bt[1]['args']);
     $printed = TRUE;
   }
-} 
+}
 
 /**
  * Print a variable to the 'message' area of the page. Uses drupal_set_message()
@@ -1217,22 +1217,22 @@ function dvr($input, $return = FALSE, $name = NULL) {
  */
 function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') {
   if (user_access('access devel information')) {
-  	if ($name) {
-  	  $name .= ' => ';
-  	}
-  	ob_start();
-  	$function($input);
-  	$output = check_plain(ob_get_clean());
+    if ($name) {
+      $name .= ' => ';
+    }
+    ob_start();
+    $function($input);
+    $output = check_plain(ob_get_clean());
     if (count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
       // don't use fapi here because sometimes fapi will not be loaded
       $printed_value = "<textarea rows=30 style=\"width: 100%;\">\n". $name . $output . '</textarea>';
     }
-  	else {
-    	$printed_value = '<pre>' . $name . $output . '</pre>';
-  	}
+    else {
+      $printed_value = '<pre>' . $name . $output . '</pre>';
+    }
     if ($return) {
       return $printed_value;
-    } 
+    }
     else {
       print $printed_value;
     }
@@ -1283,7 +1283,7 @@ if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) 
       $mimeheaders[] = check_plain($name .': '. mime_header_encode($value));
     }
     watchdog(
-      'devel', 
+      'devel',
       'Mail sent:<br />Key: %mailkey<br />To: %to<br />From: %from<br />Subject: %subject<br />Body: %body<br /><br />Additional headers: !header',
        array(
          '%mailkey' => $mailkey,
