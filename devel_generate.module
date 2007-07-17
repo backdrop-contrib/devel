@@ -99,16 +99,16 @@ function devel_generate_content_form() {
     '#default_value' => 500,
     '#size' => 10,
   );
-  $form['kill_content'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Delete existing content before generating new content.'),
-    '#default_value' => FALSE,  
-  );
   $form['title_length'] = array(
     '#type' => 'textfield',
     '#title' => t('Max word length of titles'),
     '#default_value' => 8,
     '#size' => 10,
+  );
+  $form['kill_content'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete existing content before generating new content.'),
+    '#default_value' => FALSE,
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -118,42 +118,8 @@ function devel_generate_content_form() {
 }
 
 function devel_generate_content_form_submit($form_id, &$form_state) {
-  $path = drupal_get_path('module', 'devel');
   require_once('devel_generate.inc');
-  if ($form_state['values']['kill_content']) {
-    db_query("DELETE FROM {comments}");
-    db_query("DELETE FROM {node}");
-    db_query("DELETE FROM {node_revisions}");
-    db_query("DELETE FROM {node_comment_statistics}");
-    db_query("DELETE FROM {term_node}");
-    if (db_table_exists('forum')) { db_query("DELETE FROM {forum}"); }
-    db_query("DELETE FROM {url_alias}");
-    db_query("ALTER TABLE {node} AUTO_INCREMENT = 1");
-    db_query("ALTER TABLE {comments} AUTO_INCREMENT = 1");
-    drupal_set_message(t('Content deleted.'));
-    $next_nid = 0;
-  }
-  else {
-    $next_nid = db_result(db_query("SELECT MAX(nid) FROM {node}"))+1;
-  }
-
-  // get user id
-  $users = devel_get_users();
-
-  $terms = devel_get_terms();
-
-  // create 100 pseudo-random nodes:
-  devel_create_nodes($form_state['values']['num_nodes'], $users, $form_state['values']['title_length']);
-  drupal_set_message(t('%num nodes created.', array('%num' => $form_state['values']['num_nodes'])));
-
-  $nodes = devel_get_nodes($next_nid);
-
-  devel_add_terms($nodes, $terms);
-
-  $comments = devel_get_comments();
-
-  devel_create_comments($form_state['values']['num_comments'], $users, $nodes, $comments);
-  drupal_set_message(t('%num comments created.', array('%num' => $form_state['values']['num_comments'])));
+  devel_generate_content($form_state['values']['num_nodes'], $form_state['values']['num_comments'], $form_state['values']['title_length'], $form_state['values']['kill_content']);
 }
 
 function devel_generate_vocabs($records, $maxlength = 12) {

@@ -30,6 +30,55 @@ function devel_create_users($num, $kill) {
   drupal_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
 }
 
+function devel_generate_content($num_nodes, $num_comments, $title_length, $kill) {
+  if ($kill) {
+    db_query("DELETE FROM {comments}");
+    db_query("DELETE FROM {node}");
+    db_query("DELETE FROM {node_revisions}");
+    db_query("DELETE FROM {node_comment_statistics}");
+    if (db_table_exists('term_node')) {
+      db_query("DELETE FROM {term_node}");
+    }
+    if (db_table_exists('forum')) {
+      db_query("DELETE FROM {forum}");
+    }
+    db_query("DELETE FROM {url_alias}");
+    switch ($GLOBALS['db_type']) {
+      case 'mysql':
+      case 'mysqli':
+        db_query("ALTER TABLE {node} AUTO_INCREMENT = 1");
+        db_query("ALTER TABLE {comments} AUTO_INCREMENT = 1");
+        break;
+      case 'pgsql':
+        db_query("SELECT setval('{node}_nid_seq', 1, false)");
+        db_query("SELECT setval('{comments}_cid_seq', 1, false)");
+        break;
+    }
+    drupal_set_message(t('Content deleted.'));
+  }
+
+  // Get user id.
+  $users = devel_get_users();
+
+  $terms = devel_get_terms();
+
+  // Create $num_nodes pseudo-random nodes.
+  $nids = devel_create_nodes($num_nodes, $users, $title_length);
+  if (!empty($nids)) {
+    drupal_set_message(t('%num nodes created.', array('%num' => count($nids))));
+
+    $nodes = devel_get_nodes($nids[0]);
+
+    devel_add_terms($nodes, $terms);
+
+    $comments = devel_get_comments();
+
+    $cids = devel_create_comments($num_comments, $users, $nodes, $comments);
+    if (!empty($cids)) {
+      drupal_set_message(t('%num comments created.', array('%num' => $num_comments)));
+    }
+  }
+}
 
 function devel_create_nodes($records, $users, $title_length = 8) {
 
@@ -42,14 +91,13 @@ function devel_create_nodes($records, $users, $title_length = 8) {
     }
   }
   $users = array_merge($users, array('0'));
+  $nids = array();
 
   if (is_array($types)) {
     // Insert new data:
     for ($i = 1; $i <= $records; $i++) {
       $node->uid = $users[array_rand($users)];
       $node->type = $types[array_rand($types)];
-      // get the next nid without incrementing it
-      $next_nid = db_result(db_query("SELECT MAX(nid) FROM {node} "))+1;
       
       $title = devel_create_greeking(rand(1, $title_length), TRUE);
       /*
@@ -60,7 +108,7 @@ function devel_create_nodes($records, $users, $title_length = 8) {
       }
       */
       $node->title = $title;
-      $node->body = "node #$next_nid ($node->type) - ". devel_create_content();
+      $node->body = "node ($node->type) - ". devel_create_content();
       $node->teaser = node_teaser($node->body);
       $node->filter = variable_get('filter_default_format', 1);
       $node->language = '';
@@ -77,15 +125,22 @@ function devel_create_nodes($records, $users, $title_length = 8) {
       // Save the node:
       node_save($node);
 
+      // Store the nid.
+      $nids[] = $node->nid;
+
       // Setup a path:
       db_query("INSERT INTO {url_alias} (src, dst) VALUES ('%s', '%s')", "node/$node->nid", "node-$node->nid-$node->type");
       unset($node);
     }
   }
+
+  return $nids;
 }
 
 function devel_create_comments($records, $users, $nodes, $comments) {
   $users = array_merge($users, array('0'));
+  $cids = array();
+
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
     $comment->nid = array_rand($nodes);
@@ -106,7 +161,11 @@ function devel_create_comments($records, $users, $nodes, $comments) {
     $comment->uid = $users[array_rand($users)];
 
     db_query("INSERT INTO {comments} (nid, pid, uid, subject, comment, status, thread, timestamp) VALUES (%d, %d, %d, '%s', '%s', %d, %d, %d)", $comment->nid, $comment->pid, $comment->uid, $comment->subject, $comment->comment, 0, 0, time());
+
+    $cids[] = db_last_insert_id('comments', 'cid');
   }
+
+  return $cids;
 }
 
 function devel_create_content() {
