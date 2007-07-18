@@ -146,8 +146,8 @@ function devel_menu() {
   );
   $items['node/%node/render'] = array(
     'title' => t('Dev render'),
-    'page callback' => 'devel_render_node',
-    'page arguments' => array(1),
+    'page callback' => 'devel_render_object',
+    'page arguments' => array('node', 1),
     'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
@@ -156,6 +156,14 @@ function devel_menu() {
     'title' => t('Devel load'),
     'page callback' => 'devel_load_object',
     'page arguments' => array(1),
+    'access callback' => 'user_access',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['user/%user/render'] = array(
+    'title' => t('Dev render'),
+    'page callback' => 'devel_render_object',
+    'page arguments' => array('user', 1),
     'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
@@ -1072,13 +1080,15 @@ function devel_load_object($object) {
 }
 
 /**
- * Menu callback; prints the render structure of the current node.
+ * Menu callback; prints the render structure of the current object (currently node or user).
  */
-function devel_render_node($node) {
+function devel_render_object($type, $object) {
   $output = '';
-  $title = $node->title ? $node->title : $node->name;
+  $title = isset($object->title) ? $object->title : $object->name;
+  // not sure why menu system doesn't give us a reasonable title here.
   drupal_set_title(check_plain($title));
-  $content = node_build_content($node, FALSE, FALSE);
+  $function = $type. '_build_content';
+  $content = $function($object, FALSE, FALSE);
   return devel_print_object($content);
 }
 
