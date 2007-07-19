@@ -54,7 +54,7 @@ function devel_generate_users_form() {
   $form['kill_users'] = array(
     '#type' => 'checkbox',
     '#title' => t('Delete all users but user 1 before generating new users.'),
-    '#default_value' => FALSE,  
+    '#default_value' => FALSE,
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -66,24 +66,6 @@ function devel_generate_users_form() {
 function devel_generate_users_form_submit($form_id, &$form_state) {
   require_once('devel_generate.inc');
   devel_create_users($form_state['values']['num'], $form_state['values']['kill_users']);
-}
-
-function devel_generate_word($length){
-  srand((double)microtime()*1000000); 
-  
-  $vowels = array("a", "e", "i", "o", "u"); 
-  $cons = array("b", "c", "d", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "u", "v", "w", "tr", 
-  "cr", "br", "fr", "th", "dr", "ch", "ph", "wr", "st", "sp", "sw", "pr", "sl", "cl", "sh"); 
-   
-  $num_vowels = count($vowels); 
-  $num_cons = count($cons); 
-  $word = '';
-  
-  while(strlen($word) < $length){ 
-    $word .= $cons[rand(0, $num_cons - 1)] . $vowels[rand(0, $num_vowels - 1)]; 
-  } 
-
-  return substr($word, 0, $length);
 }
 
 function devel_generate_content_form() {
@@ -122,75 +104,6 @@ function devel_generate_content_form_submit($form_id, &$form_state) {
   devel_generate_content($form_state['values']['num_nodes'], $form_state['values']['num_comments'], $form_state['values']['title_length'], $form_state['values']['kill_content']);
 }
 
-function devel_generate_vocabs($records, $maxlength = 12) {
-  $types = array("story", "blog", "forum", "page");
-  $output = NULL;
-  // Insert new data:
-  for ($i = 1; $i <= $records; $i++) {
-    $voc = array();
-    $voc['name'] = devel_generate_word(rand(2, $maxlength));
-    $voc['description'] = "description of ". $voc['name'];
-    $voc['nodes'] = array_flip(array($types[array_rand($types)]));
-    foreach ($voc['nodes'] as $key => $value) {
-      $voc['nodes'][$key] = $key;
-    }
-    $voc['multiple'] = 1;
-    $voc['required'] = 0;
-    $voc['relations'] = 1;
-    $voc['hierarchy'] = 1;
-    $voc['weight'] = rand(0,10);    
-
-    taxonomy_save_vocabulary($voc);
-    $output .= "created vocabulary ". $voc['name']. "<br />";
-  }
-
-  return $output;
-}
-
-function devel_generate_terms($records, $vocs, $maxlength = 12) {
-  // Insert new data:
-  for ($i = 1; $i <= $records; $i++) {
-    switch ($i % 2) {
-      case 1:
-        $term['vid'] = $vocs[array_rand($vocs)];
-        // dont set a parent. handled by taxonomy_save_term()
-        // $term->parent = 0;
-        break;
-      case 2:
-      default:
-        $parent = db_fetch_object(db_query_range("SELECT t.tid, v.vid FROM {term_data} t INNER JOIN {vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1));
-        $term['parent'] = array($parent->tid);
-        $term['vid'] = $parent->vid;
-        break;
-    }
-
-    $term['name'] = devel_generate_word(rand(2, $maxlength));
-    $term['description'] = "description of ". $term['name'];
-    $term['weight'] = rand(0,10);
-
-    $status = taxonomy_save_term($term);
-    $output = NULL;
-    
-    if ($status) {
-      $output .= t("Created term @term", array('@term' => $term['name'])). "<br />";
-    }
-    else {
-      $output .= t("There was an error creating term @term", array('@term' => $term['name'])). "<br />";
-    }
-    unset($term);
-  }
-  return $output;
-}
-
-function devel_generate_get_vocabs() {
-  $vocs = array();
-  $result = db_query("SELECT vid FROM {vocabulary}");
-  while($voc = db_fetch_object($result)){
-    $vocs[] = $voc->vid;
-  }
-  return $vocs;
-}
-
 function devel_generate_taxonomy_form() {
   $form['num_vocab'] = array(
     '#type' => 'textfield',
@@ -204,16 +117,16 @@ function devel_generate_taxonomy_form() {
     '#default_value' => 50,
     '#size' => 10,
   );
-  $form['kill_taxonomy'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Delete existing terms and vocabularies before generating new content.'),
-    '#default_value' => FALSE,  
-  );
   $form['title_length'] = array(
     '#type' => 'textfield',
     '#title' => t('Max word length of term/vocab names'),
     '#default_value' => 12,
     '#size' => 10,
+  );
+  $form['kill_taxonomy'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete existing terms and vocabularies before generating new content.'),
+    '#default_value' => FALSE,
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -223,24 +136,6 @@ function devel_generate_taxonomy_form() {
 }
 
 function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
-  $vocs = array();
-  $result = db_query("SELECT vid FROM {vocabulary}");
-  while($voc = db_fetch_object($result)){
-    $vocs[] = $voc->vid;
-  }
-
-  if ($form_state['values']['kill_taxonomy']) {
-    db_query("DELETE FROM {term_data}");
-    db_query("DELETE FROM {term_node}");
-    db_query("DELETE FROM {term_hierarchy}");
-    db_query("DELETE FROM {term_relation}");
-    db_query("DELETE FROM {term_synonym}");
-    db_query("DELETE FROM {vocabulary}");
-    db_query("DELETE FROM {vocabulary_node_types}");
-  }
-
-  $output = devel_generate_vocabs($form_state['values']['num_vocab'], $form_state['values']['title_length']);
-  $vocs = devel_generate_get_vocabs();
-  $output .= devel_generate_terms($form_state['values']['num_terms'], $vocs, $form_state['values']['title_length']);
-  drupal_set_message($output);
+  require_once('devel_generate.inc');
+  devel_generate_taxonomy_data($form_state['values']['num_vocab'], $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
 }

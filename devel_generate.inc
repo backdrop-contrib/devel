@@ -98,7 +98,7 @@ function devel_create_nodes($records, $users, $title_length = 8) {
     for ($i = 1; $i <= $records; $i++) {
       $node->uid = $users[array_rand($users)];
       $node->type = $types[array_rand($types)];
-      
+
       $title = devel_create_greeking(rand(1, $title_length), TRUE);
       /*
       $title_words = rand(1, 8);
@@ -166,6 +166,127 @@ function devel_create_comments($records, $users, $nodes, $comments) {
   }
 
   return $cids;
+}
+
+function devel_generate_vocabs($records, $maxlength = 12, $types = array('story', 'blog', 'forum', 'page')) {
+  $vocs = array();
+
+  // Insert new data:
+  for ($i = 1; $i <= $records; $i++) {
+    $voc = array();
+    $voc['name'] = devel_generate_word(rand(2, $maxlength));
+    $voc['description'] = "description of ". $voc['name'];
+    $voc['nodes'] = array_flip(array($types[array_rand($types)]));
+    foreach ($voc['nodes'] as $key => $value) {
+      $voc['nodes'][$key] = $key;
+    }
+    $voc['multiple'] = 1;
+    $voc['required'] = 0;
+    $voc['relations'] = 1;
+    $voc['hierarchy'] = 1;
+    $voc['weight'] = rand(0,10);
+
+    taxonomy_save_vocabulary($voc);
+    $vocs[] = $voc['name'];
+  }
+  return $vocs;
+}
+
+function devel_generate_terms($records, $vocs, $maxlength = 12) {
+  $terms = array();
+
+  // Insert new data:
+  for ($i = 1; $i <= $records; $i++) {
+    switch ($i % 2) {
+      case 1:
+        $term['vid'] = $vocs[array_rand($vocs)];
+        // dont set a parent. handled by taxonomy_save_term()
+        // $term->parent = 0;
+        break;
+      case 2:
+      default:
+        $parent = db_fetch_object(db_query_range("SELECT t.tid, v.vid FROM {term_data} t INNER JOIN {vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1));
+        $term['parent'] = array($parent->tid);
+        $term['vid'] = $parent->vid;
+        break;
+    }
+
+    $term['name'] = devel_generate_word(rand(2, $maxlength));
+    $term['description'] = "description of ". $term['name'];
+    $term['weight'] = rand(0,10);
+
+    $status = taxonomy_save_term($term);
+    $output = NULL;
+
+    if ($status) {
+      $terms[] = $term['name'];
+    }
+
+    unset($term);
+  }
+  return $terms;
+}
+
+function devel_generate_get_vocabs() {
+  $vocs = array();
+  $result = db_query("SELECT vid FROM {vocabulary}");
+  while($voc = db_fetch_object($result)){
+    $vocs[] = $voc->vid;
+  }
+  return $vocs;
+}
+
+function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $kill) {
+
+  if ($kill) {
+    db_query("DELETE FROM {term_data}");
+    db_query("DELETE FROM {term_node}");
+    db_query("DELETE FROM {term_hierarchy}");
+    db_query("DELETE FROM {term_relation}");
+    db_query("DELETE FROM {term_synonym}");
+    db_query("DELETE FROM {vocabulary}");
+    db_query("DELETE FROM {vocabulary_node_types}");
+    switch ($GLOBALS['db_type']) {
+      case 'mysql':
+      case 'mysqli':
+        db_query("ALTER TABLE {vocabulary} AUTO_INCREMENT = 1");
+        db_query("ALTER TABLE {term_data} AUTO_INCREMENT = 1");
+        break;
+      case 'pgsql':
+        db_query("SELECT setval('{vocabulary}_vid_seq', 1, false)");
+        db_query("SELECT setval('{term_data}_tid_seq', 1, false)");
+        break;
+    }
+    drupal_set_message(t('Deleted taxonomy.'));
+  }
+
+  $new_vocs = devel_generate_vocabs($num_vocab, $title_length);
+  if (!empty($new_vocs)) {
+    drupal_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => theme('item_list', $new_vocs))));
+  }
+  $vocs = devel_generate_get_vocabs();
+  $new_terms = devel_generate_terms($num_terms, $vocs, $title_length);
+  if (!empty($new_terms)) {
+    drupal_set_message(t('Created the following new terms: !terms', array('!terms' => theme('item_list', $new_terms))));
+  }
+}
+
+function devel_generate_word($length){
+  srand((double)microtime()*1000000);
+
+  $vowels = array("a", "e", "i", "o", "u");
+  $cons = array("b", "c", "d", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "u", "v", "w", "tr",
+  "cr", "br", "fr", "th", "dr", "ch", "ph", "wr", "st", "sp", "sw", "pr", "sl", "cl", "sh");
+
+  $num_vowels = count($vowels);
+  $num_cons = count($cons);
+  $word = '';
+
+  while(strlen($word) < $length){
+    $word .= $cons[rand(0, $num_cons - 1)] . $vowels[rand(0, $num_vowels - 1)];
+  }
+
+  return substr($word, 0, $length);
 }
 
 function devel_create_content() {
@@ -253,12 +374,12 @@ function devel_create_greeking($words, $title = FALSE) {
   if (!$title) {
 	  while ($words > 0) {
 	    $sentence_length = rand(3,10);
-	
+
 	    $greeking .= ucfirst($dictionary[array_rand($dictionary)]);
 	    for ($i = 1; $i < $sentence_length; $i++) {
 	      $greeking .= " " . $dictionary[array_rand($dictionary)];
 	    }
-	
+
 	    $greeking .= ". ";
 	    $words -= $sentence_length;
 	  }
