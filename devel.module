@@ -50,6 +50,12 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
+  $items['devel/rebuild_node_comment_statistics'] = array(
+    'title' => t('Rebuild node_comment_statistics table'),
+    'page callback' => 'devel_rebuild_node_comment_statistics_page',
+    'access' => array('access devel information'),
+    'type' => MENU_CALLBACK,
+  );
   if (variable_get('devel_store_queries', 0)) {
     $items['devel/queries'] = array(
       'title' => t('Database queries'),
@@ -331,6 +337,7 @@ function devel_block_devel() {
     $links[] = l(t('Reset menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Resets all menu items to their default settings.'))));
     $links[] = l(t('Variable editor'), 'devel/variable', array('attributes' => array('title' => t('Edit and delete site variables.'))));
     $links[] = l(t('Session viewer'), 'devel/session', array('attributes' => array('title' => t('List the contents of $_SESSION.'))));
+    $links[] = l('Rebuild NCS table', 'devel/rebuild_node_comment_statistics', array('title' => t('Rebuild node_comment_statistics table')), drupal_get_destination());
   }
   if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
     // True only if devel_node_access enabled.
@@ -1346,3 +1353,72 @@ function devel_queries_empty() {
   drupal_goto('devel/queries');
 }
 
+/*
+ * migration related functions
+ */
+ 
+/**
+ * Menu callback. Rebuild node _comment_stats table.
+ * 
+ * @return void
+ **/
+function devel_rebuild_node_comment_statistics_page() {
+  devel_rebuild_node_comment_statistics();
+  drupal_set_message('node_comment_statistics table has been rebuilt.');
+  drupal_goto('admin');
+}
+
+/**
+ * Empty node_comment_statistics table and rebuild. Is fast.
+ * TODO: if 2 comments have exact same timestamp, the function can get wrong uid and name fields.
+ * Handles when comment timestamps have been manually set in admin
+ * 
+ * @return void
+ **/ 
+function devel_rebuild_node_comment_statistics() {
+  $sql = "DELETE FROM {node_comment_statistics}";
+  db_query($sql);
+  $sql = "INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (select nid, c.timestamp, name, uid, comment_count FROM {comments} c INNER JOIN (SELECT MAX(timestamp) AS timestamp, COUNT(*) AS comment_count FROM {comments} WHERE status=%d GROUP BY nid) as c2 ON c.timestamp=c2.timestamp)";
+  db_query($sql, COMMENT_PUBLISHED);
+}
+
+/**
+ * Set sequences table to a sane state. Useful after a bulk import.
+ * 
+ * @return void
+ **/
+function sequence_reset($table, $column) {
+  $max = db_result(db_query("SELECT MAX($column) FROM {$table}"));
+  $max = ($max ? $max+1 : 2);
+  db_query("UPDATE {sequences} SET id = $max WHERE name='${table}_$column'");
+}
+
+/**
+ * Enable or disable indexes for a given table. Useful during a bulk import.
+ * 
+ * @return void
+ **/
+function devel_table_keys($tables, $verb = 'ENABLE') {
+  foreach ($tables as $table) {
+    db_query("ALTER TABLE $table $verb KEYS");
+  }
+}
+
+/**
+ * Save contents of an url to filesystem. Works for images.
+ * 
+ * @return void
+ **/
+function wget($url, $file) {
+  if (file_exists($file)) {
+    return;
+  }
+  print "get: $url\n";
+  $ch = curl_init($url);
+  $fp = fopen($file, "w");
+  curl_setopt($ch, CURLOPT_FILE, $fp);
+  curl_setopt($ch, CURLOPT_HEADER, 0);
+  curl_exec($ch);
+  curl_close($ch);
+  fclose($fp);
+}
