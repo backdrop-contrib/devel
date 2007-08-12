@@ -471,10 +471,11 @@ function devel_form_alter(&$form, $form_id, $key_in = NULL) {
 }
 
 function devel_exit($destination = NULL) {
+  global $user;
   if (isset($destination)) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
-    if (user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
+    if (isset($user) && user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
       $output = t('<p>The user is being redirected to <a href="@destination">@destination</a>.</p>', array('@destination' => $destination));
       print theme('page', $output);
 
@@ -493,7 +494,7 @@ function devel_exit($destination = NULL) {
  * See devel_start() which registers this function as a shutdown function. Displays developer information in the footer.
  */
 function devel_shutdown() {
-  global $queries, $memory_init;
+  global $queries, $memory_init, $user;
   $output = '';
 
   // set $GLOBALS['devel_shutdown'] = FALSE in order to supress the devel footer for a page. not necessary if your page
@@ -512,7 +513,7 @@ function devel_shutdown() {
       return;
     }
 
-    if (user_access('access devel information')) {
+    if (isset($user) && user_access('access devel information')) {
       $output = devel_template_log();
 
       list($counts, $query_summary) = devel_query_summary();
