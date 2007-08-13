@@ -82,7 +82,7 @@ function devel_menu() {
   $items['devel/menu/reset'] = array(
     'title' => t('Reset menus'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('devel_menu_reset_form'),
+    'page arguments' => array('devel_menu_reset'),
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
@@ -102,6 +102,12 @@ function devel_menu() {
   $items['devel/theme/registry'] = array(
     'title' => t('Theme registry'),
     'page callback' => 'devel_theme_registry',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['devel/elements'] = array(
+    'title' => t('hook_elements()'),
+    'page callback' => 'devel_elements_page',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
@@ -330,8 +336,10 @@ function devel_block_devel() {
     $links[] = l(t('PHPinfo()'), 'devel/phpinfo', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
     $links[] = l(t('Function reference'), 'devel/reference', array('attributes' => array('title' => t('View a list of currently defined user functions with documentation links.'))));
     $links[] = l(t('Theme registry'), 'devel/theme/registry', array('attributes' => array('title' => t('View a list of available theme functions acros the whole site.'))));
+    // seems of limited utility.
+    // $links[] = l(t('hook_elements()'), 'devel/elements', array('attributes' => array('title' => t('View the active form/render elements for this site.'))));
     $links[] = l(t('Reinstall modules'), 'devel/reinstall', array('attributes' => array('title' => t('Re-run hook_install() for a given module.')), 'query' => drupal_get_destination()));
-    $links[] = l(t('Reset menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Resets all menu items to their default settings.')), 'query' => drupal_get_destination()));
+    $links[] = l(t('Rebuild menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Rebuild menu based on hook_menu() and any custom changes all menu items to their default settings.')), 'query' => drupal_get_destination()));
     $links[] = l(t('Variable editor'), 'devel/variable', array('attributes' => array('title' => t('Edit and delete site variables.'))));
     $links[] = l(t('Session viewer'), 'devel/session', array('attributes' => array('title' => t('List the contents of $_SESSION.'))));
     $links[] = l('Rebuild NCS table', 'devel/rebuild_node_comment_statistics', array('title' => t('Rebuild node_comment_statistics table'), 'query' => drupal_get_destination()));
@@ -786,22 +794,10 @@ function devel_execute_form_submit($form, &$form_state) {
 /**
  * Menu callback; clear the database, resetting the menu to factory defaults.
  */
-function devel_menu_reset_form() {
-  return confirm_form(array(),
-    t('Are you sure you want to reset all menu items to their default settings?'),
-    'admin',
-    t('Any custom additions or changes to the menu will be lost.'),
-    t('Reset all'),
-    t('Cancel')
-  );
-}
-
-/**
- * Process menu reset form submission.
- */
-function devel_menu_reset_form_submit($form, &$form_state) {
+function devel_menu_reset() {
   menu_rebuild();
   drupal_set_message(t('The menu items have been reset to their default settings.'));
+  drupal_goto();
 }
 
 /**
@@ -1091,6 +1087,10 @@ function devel_render_object($type, $object) {
   $function = $type. '_build_content';
   $content = $function($object, FALSE, FALSE);
   return devel_print_object($content);
+}
+
+function devel_elements_page() {
+  return devel_print_object(module_invoke_all('elements'));
 }
 
 function devel_print_object($object) {
