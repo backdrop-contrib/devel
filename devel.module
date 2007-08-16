@@ -898,15 +898,15 @@ function devel_template_log() {
     $extension = devel_get_theme_extension();
     $header = array('Template name', "Template files ($extension)");
     if (isset($GLOBALS['devel_theme_functions'])) {
-      foreach ($GLOBALS['devel_theme_functions'] as $function) {
+      foreach ($GLOBALS['devel_theme_functions'] as $counter => $function) {
         // TODO: path_to_theme() is not right in hook_footer()
         // TODO: drupal_discover_template() needs leading './' so as to avoid lookup in whole include pat
         // $used = drupal_discover_template($function['template_files'], $extension);
         // array_push($function['template_files'], $function['function']);
         // $key = array_search($used, $function['template_files']);
         // $function['template_files'][$key] = theme('placeholder', $function['template_files'][$key]);
-        $id = "devel_template_log_". $function['counter'];
-        $marker = "<div id=\"$id\" class=\"devel_template_log_marker\"></div>\n";
+        $id = "devel_template_log_link_$counter";
+        $marker = "<div id=\"$id\" class=\"devel_template_log_link\"></div>\n";
         $rows[] = array($marker. $function['function'], implode(', ', $function['template_files']));
         // unset($function['template_files']);
       }
@@ -936,10 +936,10 @@ function devel_get_theme_extension() {
  * This function gets injected into the registry in devel_exit(). It logs theme template calls.
 */
 function devel_preprocess($vars, $function) {
-  $GLOBALS['devel_theme_functions'][] = array(
+  $counter = devel_counter();
+  $GLOBALS['devel_theme_functions'][$counter] = array(
     'function' => $function,
     'template_files' => $vars['template_files'],
-    'counter' => devel_counter(),
   );
 }
 
@@ -969,13 +969,18 @@ function devel_catch_theme_function() {
   }
   
   // log the call
-  $GLOBALS['devel_theme_functions'][] = array(
+  $counter = devel_counter();
+  $GLOBALS['devel_theme_functions'][$counter] = array(
     'function' => $hook_registry_data['function'],
     'template_files' => array(),
-    'counter' => devel_counter(),
   );
 
-  return "<div id=\"devel_template_log_$i\">". call_user_func_array($hook_registry_data['function'], $args). "</div>\n";
+  return devel_template_marker($counter). call_user_func_array($hook_registry_data['function'], $args);
+}
+
+function devel_template_marker($counter) {
+  $id = "devel_template_log_call_". $counter;
+  return "<div id=\"$id\" class=\"devel_template_log_call\"></div>\n";  
 }
 
 // just hand out next counter
