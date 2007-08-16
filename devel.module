@@ -184,6 +184,7 @@ function devel_menu() {
  * Implementation of hook_theme()
  */
 function devel_theme() { // &$cache, $type, $theme, $path
+  $GLOBALS['devel_theme_registry_needs_inject'] = TRUE;
   return array(
     'devel_variable_form' => array(
         'arguments' => array('form' => NULL)
@@ -480,6 +481,12 @@ function devel_form_alter(&$form, $form_id, $key_in = NULL) {
 
 function devel_exit($destination = NULL) {
   global $user;
+  
+  // inject our functions into theme registry if it was rebuilt
+  if (variable_get('dev_template_log', 0) && isset($GLOBALS['devel_theme_registry_needs_inject'])) {
+    devel_theme_registry_inject();
+  }
+  
   if (isset($destination)) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
@@ -758,7 +765,7 @@ function devel_cache_clear() {
   foreach ($alltables as $table) {
     cache_clear_all('*', $table, TRUE);
   }
-
+  
   drupal_clear_css_cache();
   menu_rebuild();
 
@@ -855,6 +862,34 @@ function devel_reinstall_submit($form, &$form_state) {
 }
 
 /**
+ * Iterate over theme registry, injecting our preprocessor or catch function into every entry.
+ * 
+ * @return void
+ **/
+function devel_theme_registry_inject() {
+  $theme_registry = theme_get_registry();
+  foreach ($theme_registry as $hook => $data) {
+    // Add in devel_preprocess so it's used as the last variable preprocessor.
+    // This way, it can gather *all* template suggestions, not just the ones set by modules.
+    if (!isset($data['function']) && !in_array('devel_preprocess', $data['preprocess functions'])) {
+      $theme_registry[$hook]['preprocess functions'][] = 'devel_preprocess';
+    }
+    elseif (isset($data['function'])) {
+      // For intercepting theme functions not connected to template files.
+      // Copy over original registry of the hook so it can be caught later.
+      $theme_registry[$hook]['devel'] = $theme_registry[$hook];
+      // Replace the defaults to be intercepted.
+      $theme_registry[$hook]['function'] = 'devel_catch_theme_function';
+      $theme_registry[$hook]['type'] = 'module';
+      $theme_registry[$hook]['theme path'] = drupal_get_path('module', 'devel');
+    }
+  }
+  // TODO: generic
+  //_theme_save_registry('garland', $theme_registry); // Can't get this to work due to init_theme().
+  cache_set("theme_registry:garland", $theme_registry); // Hard coded just to test.
+}
+
+/**
  * Show all theme templates that could have been used on this page.
  * TODO: highlight the one that was actually used
  **/
@@ -870,7 +905,9 @@ function devel_template_log() {
         // array_push($function['template_files'], $function['function']);
         // $key = array_search($used, $function['template_files']);
         // $function['template_files'][$key] = theme('placeholder', $function['template_files'][$key]);
-        $rows[] = array($function['function'], implode(', ', $function['template_files']));
+        $id = "devel_template_log_". $function['counter'];
+        $marker = "<div id=\"$id\" class=\"devel_template_log_marker\"></div>\n";
+        $rows[] = array($marker. $function['function'], implode(', ', $function['template_files']));
         // unset($function['template_files']);
       }
       return theme('table', $header, $rows);
@@ -896,20 +933,59 @@ function devel_get_theme_extension() {
 }
 
 /**
- * During theme registry building, Drupal notices this function and adds it as a preprocessor
- * for all template calls. Core seems not to allow logging of theme *functions*, just templates. Help!
- *
- * If you use an engine other than phptemplate, just define ENGINE_preprocess() function using same code as this function.
+ * This function gets injected into the registry in devel_exit(). It logs theme template calls.
 */
-function phptemplate_preprocess($vars, $function) {
+function devel_preprocess($vars, $function) {
   $GLOBALS['devel_theme_functions'][] = array(
     'function' => $function,
-    'template_files' => $vars['template_files']
+    'template_files' => $vars['template_files'],
+    'counter' => devel_counter(),
   );
 }
 
+/**
+ * Intercepts theme *functions*, adds to template log, and dispatches to original theme function.
+ * This function gets injected into theme registry in devel_exit(). 
+ */
+function devel_catch_theme_function() {
+  static $i=0;
+  $args = func_get_args();
 
-// menu callback
+  // Get the function that is normally called.
+  $trace = debug_backtrace();
+  $call_theme_func = $trace[2]['args'][0];
+
+  // Get registry for the original function data.
+  $theme_registry = theme_get_registry();
+  $hook_registry_data = $theme_registry[$call_theme_func]['devel'];
+
+  // Include a file if this theme function is held elsewhere. Partial copy of theme().
+  if (!empty($hook_registry_data['file'])) {
+    $function_file = $hook_registry_data['file'];
+    if (isset($hook_registry_data['path'])) {
+      $function_file = $hook_registry_data['path'] .'/'. $function_file;
+    }
+    include_once($function_file);
+  }
+  
+  // log the call
+  $GLOBALS['devel_theme_functions'][] = array(
+    'function' => $hook_registry_data['function'],
+    'template_files' => array(),
+    'counter' => devel_counter(),
+  );
+
+  return "<div id=\"devel_template_log_$i\">". call_user_func_array($hook_registry_data['function'], $args). "</div>\n";
+}
+
+// just hand out next counter
+function devel_counter() {
+  static $counter = 0;
+  $counter++;
+  return $counter;
+}
+
+// Menu callback. I would love prettier hierarchy browser for this.
 function devel_theme_registry() {
   init_theme();
   $hooks = theme_get_registry();
