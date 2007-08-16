@@ -884,9 +884,7 @@ function devel_theme_registry_inject() {
       $theme_registry[$hook]['theme path'] = drupal_get_path('module', 'devel');
     }
   }
-  // TODO: generic
-  //_theme_save_registry('garland', $theme_registry); // Can't get this to work due to init_theme().
-  cache_set("theme_registry:garland", $theme_registry); // Hard coded just to test.
+  _theme_save_registry($GLOBALS['theme_info'], $theme_registry);
 }
 
 /**
