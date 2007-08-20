@@ -4,9 +4,8 @@ README.txt
 A module containing helper functions for Drupal developers and
 inquisitive admins. This module can print a log of
 all database queries for each page request at the bottom of each page. The
-summary includes how many times each query was executed on a page
-(shouldn't run same query multiple times), and how long each query
- took (short is good - use cache for complex queries).
+summary includes how many times each query was executed on a page, and how long each query
+ took.
  
  It also
  - writes a log of template files which may be used on current page
@@ -14,6 +13,7 @@ summary includes how many times each query was executed on a page
  - a block for quickly accessing devel pages
  - a block for masquerading as other users (useful for testing)
  - reports memory usage at bottom of page
+ - more
  
  This module is safe to use on a production site. Just be sure to only grant
  'access development information' permission to developers.
