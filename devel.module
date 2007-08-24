@@ -803,7 +803,7 @@ function devel_execute_form_submit($form, &$form_state) {
  */
 function devel_menu_reset() {
   menu_rebuild();
-  drupal_set_message(t('The menu items have been reset to their default settings.'));
+  drupal_set_message(t('The menu router has been built.'));
   drupal_goto();
 }
 
