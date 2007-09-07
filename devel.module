@@ -763,7 +763,7 @@ function devel_cache_clear() {
   $core = array('cache', 'cache_filter', 'cache_form', 'cache_page');
   $alltables = array_merge($core, module_invoke_all('devel_caches'));
   foreach ($alltables as $table) {
-    cache_clear_all(NULL, $table);
+    cache_clear_all('*', $table, TRUE);
   }
   
   drupal_clear_css_cache();
