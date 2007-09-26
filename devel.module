@@ -4,13 +4,7 @@
 // This module holds functions useful for Drupal development.
 // Please contribute!
 
-// suggested profiling and stacktrace library from http://www.xdebug.org/index.php
-// if you activate this extension, this module will use it.
-// you probably want these php.ini or .htaccess directives:
-// xdebug.auto_profile=1
-// xdebug.auto_profile_mode=3
-// xdebug.output_dir='/php'
-// xdebug.default_enable
+// Suggested profiling and stacktrace library from http://www.xdebug.org/index.php
 
 define('DEVEL_QUERY_SORT_BY_SOURCE', 0);
 define('DEVEL_QUERY_SORT_BY_DURATION', 1);
@@ -198,7 +192,6 @@ function devel_theme() { // &$cache, $type, $theme, $path
 function devel_init() {
   if (!devel_silent()) {
     if (user_access('access devel information')) {
-      devel_start();
       drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
       devel_set_handler(variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD));
     }
@@ -221,7 +214,7 @@ function devel_set_handler($handler) {
 
 
 function devel_silent() {
-  return isset($GLOBALS['devel_shutdown']) || strstr($_SERVER['PHP_SELF'], 'update.php') || $_GET['q'] == 'upload/js';
+  return isset($GLOBALS['devel_shutdown']) || strstr($_SERVER['PHP_SELF'], 'update.php') || in_array($_GET['q'], array('upload/js'));
 }
 
 /**
@@ -510,7 +503,7 @@ function devel_exit($destination = NULL) {
  */
 function devel_shutdown() {
   global $queries, $memory_init, $user;
-  $output = '';
+  $output = $txt = '';
 
   // set $GLOBALS['devel_shutdown'] = FALSE in order to supress the devel footer for a page. not necessary if your page
   // outputs a text/javascript or text/xml Content-type http header. Thats advised where applicable.
@@ -621,8 +614,13 @@ function devel_query_summary() {
 
 function t_safe($string, $args) {
   // get_t caused problems here with theme registry after changing on admin/build/modules. the theme_get_registry call is needed.
-  return function_exists('t') && theme_get_registry()? t($string, $args) : strtr($string, $args);
-  // return strtr($string, $args);
+  if (function_exists('t') && function_exists('theme_get_registry')) {
+    theme_get_registry();
+    return t($string, $args);
+  }
+  else {
+    strtr($string, $args);
+  }
 }
 
 /**
@@ -1330,7 +1328,7 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') 
 }
 
 /**
- * Print the function call stack. This works even without xdebug installed.
+ * Print the function call stack.
  */
 function ddebug_backtrace() {
   if (user_access('access devel information')) {
