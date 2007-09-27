@@ -53,7 +53,7 @@ function devel_generate_users_form() {
   );
   $form['kill_users'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Delete all users but user 1 before generating new users.'),
+    '#title' => t('Delete all users (except user id 1) before generating new users.'),
     '#default_value' => FALSE,
   );
   $form['submit'] = array(
