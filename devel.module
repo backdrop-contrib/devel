@@ -39,108 +39,101 @@ function devel_menu() {
   $items = array();
 
   $items['devel/cache/clear'] = array(
-    'title' => t('Empty cache'),
+    'title' => 'Empty cache',
     'page callback' => 'devel_cache_clear',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   $items['devel/rebuild_node_comment_statistics'] = array(
-    'title' => t('Rebuild node_comment_statistics table'),
+    'title' => 'Rebuild node_comment_statistics table',
     'page callback' => 'devel_rebuild_node_comment_statistics_page',
     'access' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   if (variable_get('devel_store_queries', 0)) {
     $items['devel/queries'] = array(
-      'title' => t('Database queries'),
+      'title' => 'Database queries',
       'page callback' => 'devel_queries',
       'access arguments' => array('access devel information'));
     $items['devel/queries/empty'] = array(
-      'title' => t('Empty database queries'),
+      'title' => 'Empty database queries',
       'page callback' => 'devel_queries_empty',
       'access arguments' => array('access devel information'),
       'type' => MENU_CALLBACK);
   }
   $items['devel/reference'] = array(
-    'title' => t('function reference'),
+    'title' => 'function reference',
     'page callback' => 'devel_function_reference',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   $items['devel/reinstall'] = array(
-    'title' => t('Reinstall modules'),
+    'title' => 'Reinstall modules',
     'page callback' => 'devel_reinstall',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   $items['devel/menu/reset'] = array(
-    'title' => t('Reset menus'),
+    'title' => 'Reset menus',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_menu_reset'),
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   $items['devel/variable'] = array(
-    'title' => t('Variable editor'),
+    'title' => 'Variable editor',
     'page callback' => 'devel_variable_page',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   // we don't want the abbreviated version provided by status report
   $items['devel/phpinfo'] = array(
-    'title' => t('PHPinfo()'),
+    'title' => 'PHPinfo()',
     'page callback' => 'devel_phpinfo',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   $items['devel/theme/registry'] = array(
-    'title' => t('Theme registry'),
+    'title' => 'Theme registry',
     'page callback' => 'devel_theme_registry',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   $items['devel/elements'] = array(
-    'title' => t('hook_elements()'),
+    'title' => 'hook_elements()',
     'page callback' => 'devel_elements_page',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
-  $items['devel/variable/edit'] = array(
-    'title' => t('Variable editor'),
+  $items['devel/variable/edit/%'] = array(
+    'title' => 'Variable editor',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('devel_variable_edit'),
-    'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
-  );
-  $items['devel/variable/delete'] = array(
-    'title' => t('Variable editor'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('devel_variable_delete'),
+    'page arguments' => array('devel_variable_edit', 3),
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   $items['devel/session'] = array(
-    'title' => t('Session viewer'),
+    'title' => 'Session viewer',
     'page callback' => 'devel_session',
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   $items['devel/switch'] = array(
-    'title' => t('Switch user'),
+    'title' => 'Switch user',
     'page callback' => 'devel_switch_user',
     'access arguments' => array('switch users'),
     'type' => MENU_CALLBACK,
   );
   $items['admin/settings/devel'] = array(
-    'title' => t('Devel'),
-    'description' =>  t('Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the !block page.', array('!block' => l(t('block administration'), 'admin/build/block'))),
+    'title' => 'Devel',
+    'description' =>  'Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the !block page.', array('!block' => l(t('block administration'), 'admin/build/block')),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_admin_settings'),
     'access arguments' => array('administer site configuration'),
     'type' => MENU_NORMAL_ITEM
   );
   $items['node/%node/load'] = array(
-    'title' => t('Dev load'),
+    'title' => 'Dev load',
     'page callback' => 'devel_load_object',
     'page arguments' => array(1),
     'access callback' => 'user_access',
@@ -148,7 +141,7 @@ function devel_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['node/%node/render'] = array(
-    'title' => t('Dev render'),
+    'title' => 'Dev render',
     'page callback' => 'devel_render_object',
     'page arguments' => array('node', 1),
     'access callback' => 'user_access',
@@ -156,7 +149,7 @@ function devel_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['user/%user/load'] = array(
-    'title' => t('Devel load'),
+    'title' => 'Devel load',
     'page callback' => 'devel_load_object',
     'page arguments' => array(1),
     'access callback' => 'user_access',
@@ -164,7 +157,7 @@ function devel_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['user/%user/render'] = array(
-    'title' => t('Dev render'),
+    'title' => 'Dev render',
     'page callback' => 'devel_render_object',
     'page arguments' => array('user', 1),
     'access callback' => 'user_access',
@@ -446,7 +439,7 @@ function devel_switch_user_form_submit($form, &$form_state) {
  * TODO: i switched params as per http://drupal.org/node/144132#form-alter but needs work still
  * Implementation of hook_form_alter().
  */
-function devel_form_alter(&$form, $form_id, $key_in = NULL) {
+function devel_form_alter(&$form, $form_state, $form_id, $key_in = NULL) {
   if (user_access('access devel information') && variable_get('devel_form_weights', 0)) {
     $children = element_children($form);
     if (empty($children)) {
@@ -466,7 +459,7 @@ function devel_form_alter(&$form, $form_id, $key_in = NULL) {
           }
           $form[$key]['#title'] .= " (key=$key, weight=". (isset($form[$key]['#weight']) ? $form[$key]['#weight'] : 0) .')';
         }
-        devel_form_alter($form_id, $form[$key], $key);
+        devel_form_alter($form[$key], $form_state, $form_id, $key);
       }
     }
   }
@@ -474,12 +467,12 @@ function devel_form_alter(&$form, $form_id, $key_in = NULL) {
 
 function devel_exit($destination = NULL) {
   global $user;
-  
+
   // inject our functions into theme registry if it was rebuilt
   if (variable_get('dev_template_log', 0) && isset($GLOBALS['devel_theme_registry_needs_inject'])) {
     devel_theme_registry_inject();
   }
-  
+
   if (isset($destination)) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
@@ -763,7 +756,7 @@ function devel_cache_clear() {
   foreach ($alltables as $table) {
     cache_clear_all('*', $table, TRUE);
   }
-  
+
   drupal_clear_css_cache();
   menu_rebuild();
 
@@ -861,7 +854,7 @@ function devel_reinstall_submit($form, &$form_state) {
 
 /**
  * Iterate over theme registry, injecting our preprocessor or catch function into every entry.
- * 
+ *
  * @return void
  **/
 function devel_theme_registry_inject() {
@@ -941,7 +934,7 @@ function devel_preprocess($vars, $function) {
 
 /**
  * Intercepts theme *functions*, adds to template log, and dispatches to original theme function.
- * This function gets injected into theme registry in devel_exit(). 
+ * This function gets injected into theme registry in devel_exit().
  */
 function devel_catch_theme_function() {
   static $i=0;
@@ -963,7 +956,7 @@ function devel_catch_theme_function() {
     }
     include_once($function_file);
   }
-  
+
   // log the call
   $counter = devel_counter();
   $GLOBALS['devel_theme_functions'][$counter] = array(
@@ -976,7 +969,7 @@ function devel_catch_theme_function() {
 
 function devel_template_marker($counter) {
   $id = "devel_template_log_call_". $counter;
-  return "<div id=\"$id\" class=\"devel_template_log_call\"></div>\n";  
+  return "<div id=\"$id\" class=\"devel_template_log_call\"></div>\n";
 }
 
 // just hand out next counter
@@ -1066,7 +1059,7 @@ function devel_variable_form_submit($form, &$form_state) {
   drupal_set_message(format_plural(count($deletes), 'One variable deleted.', '@count variables deleted.'));
 }
 
-function devel_variable_edit($name) {
+function devel_variable_edit($form_state, $name) {
   $value = variable_get($name, 'not found');
   $form['name'] = array(
     '#type' => 'value',
@@ -1427,10 +1420,10 @@ function devel_queries_empty() {
 /*
  * migration related functions
  */
- 
+
 /**
  * Menu callback. Rebuild node _comment_stats table.
- * 
+ *
  * @return void
  **/
 function devel_rebuild_node_comment_statistics_page() {
@@ -1443,9 +1436,9 @@ function devel_rebuild_node_comment_statistics_page() {
  * Empty node_comment_statistics table and rebuild. Is fast.
  * TODO: if 2 comments have exact same timestamp, the function can get wrong uid and name fields.
  * Handles when comment timestamps have been manually set in admin
- * 
+ *
  * @return void
- **/ 
+ **/
 function devel_rebuild_node_comment_statistics() {
   $sql = "DELETE FROM {node_comment_statistics}";
   db_query($sql);
@@ -1455,7 +1448,7 @@ function devel_rebuild_node_comment_statistics() {
 
 /**
  * Set sequences table to a sane state. Useful after a bulk import.
- * 
+ *
  * @return void
  **/
 function sequence_reset($table, $column) {
@@ -1466,7 +1459,7 @@ function sequence_reset($table, $column) {
 
 /**
  * Enable or disable indexes for a given table. Useful during a bulk import.
- * 
+ *
  * @return void
  **/
 function devel_table_keys($tables, $verb = 'ENABLE') {
@@ -1477,7 +1470,7 @@ function devel_table_keys($tables, $verb = 'ENABLE') {
 
 /**
  * Save contents of an url to filesystem. Works for images.
- * 
+ *
  * @return void
  **/
 function wget($url, $file) {
