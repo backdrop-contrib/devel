@@ -269,12 +269,7 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
       }
     }
 
-    watchdog(array(
-      'php',
-      '%message in %file on line %line.',
-      array('%error' => $types[$errno], '%message' => $message, '%file' => $filename, '%line' => $line),
-      WATCHDOG_ERROR,
-    ));
+    watchdog('php', '%message in %file on line %line.', array('%error' => $types[$errno], '%message' => $message, '%file' => $filename, '%line' => $line), WATCHDOG_ERROR);
   }
 }
 
