@@ -379,7 +379,8 @@ function devel_block_switch_user() {
 }
 
 function devel_phpinfo() {
-  return phpinfo();
+  print phpinfo();
+  exit;
 }
 
 function devel_switch_user_form() {
