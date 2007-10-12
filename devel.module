@@ -211,7 +211,9 @@ function devel_set_handler($handler) {
       // do nothing
       break;
     case DEVEL_ERROR_HANDLER_BACKTRACE:
-      set_error_handler('backtrace_error_handler');
+      if(has_krumo()) {
+        set_error_handler('backtrace_error_handler');
+      }
       break;
     case DEVEL_ERROR_HANDLER_NONE:
       restore_error_handler();
@@ -253,34 +255,10 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
 
     if (variable_get('error_level', 1) == 1) {
       $backtrace = debug_backtrace();
-      array_shift($backtrace);
-      $rows[0][] = array('data' => '<strong>'. $entry. '</strong>', 'colspan' => 3);
-      $i=1;
-      $api = variable_get('devel_api_url', 'api.drupal.org');
-      foreach ($backtrace as $trace) {
-        $rows[$i][] = $trace['class']. $trace['type']. l($trace['function'], "http://$api/api/HEAD/function/". $trace['function']);
-        $rows[$i][] = $trace['file'] ? $trace['file']. ': '. $trace['line'] : '';
-        if (!empty($trace['args'])) {
-          foreach ($trace['args'] as $arg) {
-            if (is_array($arg) || is_object($arg)) {
-              $args[] = dpr($arg, TRUE);
-            }
-            else {
-              $args[] = check_plain($arg);
-            }
-          }
-          $rows[$i][] = implode(', ', $args);
-          $i++;
-          unset($args);
-        }
+      foreach ($backtrace as $call) {
+        $nicetrace[$call['function']] = $call;
       }
-      if (function_exists('theme_table')) {
-        $header = array('function', 'file: line', 'arguments');
-        print theme('table', $header, $rows);
-      }
-      else {
-        print_r($rows);
-      }
+      krumo($nicetrace);
     }
 
     watchdog('php', '%message in %file on line %line.', array('%error' => $types[$errno], '%message' => $message, '%file' => $filename, '%line' => $line), WATCHDOG_ERROR);
@@ -735,7 +713,7 @@ function devel_admin_settings() {
     '#title' => t('Error handler'),
     '#default_value' => variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD),
     '#options' => array(DEVEL_ERROR_HANDLER_NONE => t('None'), DEVEL_ERROR_HANDLER_STANDARD => t('Standard drupal'), DEVEL_ERROR_HANDLER_BACKTRACE => t('Backtrace')),
-    '#description' => t('Choose an error handler for your site. <em>Backtrace</em> prints nice debug information when an error is noticed, and you !choose. <em>None</em> is a good option when stepping through the site in your debugger.', array('!choose' => l(t('to show errors on screen'), 'admin/settings/error-reporting'))),
+    '#description' => t('Choose an error handler for your site. <em>Backtrace</em> prints nice debug information when an error is noticed, and you !choose. <strong>Backtrace requires the <a href="!krumo">krumo library</a></strong>. <em>None</em> is a good option when stepping through the site in your debugger.', array('!krumo' => url("http://krumo.sourceforge.net"), '!choose' => l(t('choose to show errors on screen'), 'admin/settings/error-reporting'))),
   );
 
   // Save any old SMTP library
