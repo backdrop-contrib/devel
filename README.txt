@@ -19,7 +19,11 @@ summary includes how many times each query was executed on a page, and how long 
  'access development information' permission to developers.
 
 Also a dpr() function is provided, which pretty prints arrays and strings. Useful during
-development. Many other nice functions like dsm(), dvm(), ...
+development. Many other nice functions like dsm(), dvm().
+
+You might also download Krumo from http://krumo.sourceforge.net/. Unpack it into a subdirectory 
+called krumo. Devel will automatically start using it. You may also call krumo($variable) to get 
+a pretty print of any variable. krumo::backtrace() can be useful too.
 
 Included in this package is also: 
 - devel_node_access module which prints out the node_access records for a given node._

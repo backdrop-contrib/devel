@@ -187,7 +187,21 @@ function devel_init() {
     if (user_access('access devel information')) {
       drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
       devel_set_handler(variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD));
+      // we want to include the class early so that anyone may call krumo() as needed.
+      has_krumo();
     }
+  }
+}
+
+// return boolean. no need for cache here.
+function has_krumo() {
+  // see README.txt or just download from http://krumo.sourceforge.net/
+  @include_once './'. drupal_get_path('module', 'devel'). '/krumo/class.krumo.php';
+  if (function_exists('krumo')) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
   }
 }
 
@@ -317,15 +331,18 @@ function devel_block_devel() {
     $links[] = l(t('Devel settings'), 'admin/settings/devel', array('attributes' => array('title' => t('Adjust module settings for devel module.'))));
     $links[] = l(t('Empty cache'), 'devel/cache/clear', array('attributes' => array('title' => t('Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.')), 'query' => drupal_get_destination()));
     $links[] = l(t('PHPinfo()'), 'devel/phpinfo', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
-    $links[] = l(t('Function reference'), 'devel/reference', array('attributes' => array('title' => t('View a list of currently defined user functions with documentation links.'))));
-    $links[] = l(t('Theme registry'), 'devel/theme/registry', array('attributes' => array('title' => t('View a list of available theme functions acros the whole site.'))));
-    // seems of limited utility.
-    // $links[] = l(t('hook_elements()'), 'devel/elements', array('attributes' => array('title' => t('View the active form/render elements for this site.'))));
+    
+    $mini[] = l(t('func'), 'devel/reference', array('attributes' => array('title' => t('View a list of currently defined user functions with documentation links.'))));
+    $mini[] = l(t('theme'), 'devel/theme/registry', array('attributes' => array('title' => t('View a list of available theme functions acros the whole site.'))));
+    $mini[] = l(t('elements'), 'devel/elements', array('attributes' => array('title' => t('View the active form/render elements for this site.'))));
+    $mini[] = l(t('sess'), 'devel/session', array('attributes' => array('title' => t('List the contents of $_SESSION.'))));
+    $links[] = implode('&nbsp;&nbsp;', $mini);
+    
     $links[] = l(t('Reinstall modules'), 'devel/reinstall', array('attributes' => array('title' => t('Re-run hook_install() for a given module.')), 'query' => drupal_get_destination()));
     $links[] = l(t('Rebuild menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Rebuild menu based on hook_menu() and any custom changes all menu items to their default settings.')), 'query' => drupal_get_destination()));
     $links[] = l(t('Variable editor'), 'devel/variable', array('attributes' => array('title' => t('Edit and delete site variables.'))));
-    $links[] = l(t('Session viewer'), 'devel/session', array('attributes' => array('title' => t('List the contents of $_SESSION.'))));
-    $links[] = l('Rebuild NCS table', 'devel/rebuild_node_comment_statistics', array('title' => t('Rebuild node_comment_statistics table'), 'query' => drupal_get_destination()));
+    // of limited usefulness
+    // $links[] = l('Rebuild NCS table', 'devel/rebuild_node_comment_statistics', array('title' => t('Rebuild node_comment_statistics table'), 'query' => drupal_get_destination()));
   }
   if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
     // True only if devel_node_access enabled.
@@ -979,7 +996,7 @@ function devel_counter() {
 function devel_theme_registry() {
   init_theme();
   $hooks = theme_get_registry();
-  return dprint_r($hooks, TRUE);
+  return kprint_r($hooks, TRUE);
 }
 
 /**
@@ -1005,11 +1022,16 @@ function devel_variable_form() {
   while ($row = db_fetch_object($result)) {
     $variables[$row->name] = '';
     $form['name'][$row->name] = array('#value' => $row->name);
-    if (drupal_strlen($row->value) > 70) {
-      $value = drupal_substr($row->value, 0, 65) .'...';
+    if (has_krumo()) {
+      $value = krumo_ob(variable_get($row->name, NULL));
     }
     else {
-      $value = $row->value;
+      if (drupal_strlen($row->value) > 70) {
+        $value = drupal_substr($row->value, 0, 65) .'...';
+      }
+      else {
+        $value = $row->value;
+      }
     }
     $form[$row->name]['value'] = array('#value' => $value);
     $form[$row->name]['length'] = array('#value' => $row->length);
@@ -1139,7 +1161,7 @@ function devel_switch_user($name = NULL) {
 function devel_load_object($object) {
   $title = isset($object->title) ? $object->title : $object->name;
   drupal_set_title(check_plain($title));
-  return devel_print_object($object);
+  return kdevel_print_object($object);
 }
 
 /**
@@ -1152,11 +1174,24 @@ function devel_render_object($type, $object) {
   drupal_set_title(check_plain($title));
   $function = $type. '_build_content';
   $content = $function($object, FALSE, FALSE);
-  return devel_print_object($content);
+  return kdevel_print_object($content);
 }
 
 function devel_elements_page() {
-  return devel_print_object(module_invoke_all('elements'));
+  return kdevel_print_object(module_invoke_all('elements'));
+}
+
+function kdevel_print_object($object) {
+  return has_krumo() ? krumo_ob($object) : devel_print_object($object);
+}
+
+// Save krumo htlm using output buffering.
+function krumo_ob($object) {
+  ob_start();
+  krumo($object);
+  $output = ob_get_contents();
+  ob_end_clean();
+  return $output;
 }
 
 function devel_print_object($object) {
@@ -1210,7 +1245,8 @@ function devel_query_table($queries, $counts) {
       $cell[$i][] = $count;
     }
     $cell[$i][] = l($function, "http://$api/api/$version/function/$function");
-    $cell[$i][] = check_plain($query[0]);
+    $pos = strpos($query[0], '*/') + 3;
+    $cell[$i][] = check_plain(substr($query[0], $pos));
     $i++;
     unset($diff, $count);
   }
@@ -1287,6 +1323,18 @@ function dvr($input, $return = FALSE, $name = NULL) {
   return dprint_r($input, $return, $name, 'var_dump');
 }
 
+function kprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') {
+  if (has_krumo()) {
+    if (user_access('access devel information')) {
+      return $return ? krumo_ob($input) : krumo($input);
+    }
+  }
+  else {
+    return dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r');
+  }
+}
+
+
 /**
  * Pretty-print a variable to the browser.
  * Displays only for users with proper permissions. If
@@ -1301,8 +1349,13 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') 
     $function($input);
     $output = check_plain(ob_get_clean());
     if (count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
-      // don't use fapi here because sometimes fapi will not be loaded
-      $printed_value = "<textarea rows=30 style=\"width: 100%;\">\n". $name . $output . '</textarea>';
+      if (has_krumo()) {
+        krumo($output);
+      }
+      else {
+        // don't use fapi here because sometimes fapi will not be loaded
+        $printed_value = "<textarea rows=30 style=\"width: 100%;\">\n". $name . $output . '</textarea>';
+      }
     }
     else {
       $printed_value = '<pre>' . $name . $output . '</pre>';
@@ -1314,6 +1367,19 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') 
       print $printed_value;
     }
   }
+}
+
+/**
+ * 
+ */
+function dkr($input, $return = FALSE, $name = NULL) {
+  require_once './'. drupal_get_path('module', 'devel'). '/krumo/class.krumo.php';
+  if ($return) {
+    ob_start();
+    krumo($input);
+    $output = check_plain(ob_get_clean());
+  }
+  dprint_r($input, $return, $name, 'krumo', TRUE);
 }
 
 /**
