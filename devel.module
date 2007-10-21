@@ -1066,7 +1066,7 @@ function devel_variable_edit($form_state, $name) {
     '#title' => t('Old value'), // maybe check_plain() done by fapi
     '#value' => dpr($value, TRUE),
   );
-  if (is_string($value)) {
+  if (is_string($value) || is_numeric($value)) {
     $form['new'] = array(
       '#type' => 'textarea',
       '#title' => t('New value'),
