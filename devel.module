@@ -461,7 +461,8 @@ function devel_form_alter(&$form, $form_state, $form_id, $key_in = NULL) {
 function devel_exit($destination = NULL) {
   global $user;
 
-  // inject our functions into theme registry if it was rebuilt
+  // Inject our functions into theme registry if it was rebuilt.
+  // TODO: use hook_theme_registry_alter() instead of this madness in hook_exit()
   if (variable_get('dev_template_log', 0) && isset($GLOBALS['devel_theme_registry_needs_inject'])) {
     devel_theme_registry_inject();
   }
