@@ -934,6 +934,15 @@ function devel_catch_theme_function() {
   // Get the function that is normally called.
   $trace = debug_backtrace();
   $call_theme_func = $trace[2]['args'][0];
+  // The node form has an array of theme functions.
+  if (is_array($call_theme_func)) {
+    foreach ($call_theme_func as $func) {
+      if (function_exists($func)) {
+        $call_theme_func = $func;
+        break;
+      }
+    }
+  }
 
   // Get registry for the original function data.
   $theme_registry = theme_get_registry();
