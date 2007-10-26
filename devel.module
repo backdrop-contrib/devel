@@ -853,12 +853,14 @@ function devel_reinstall_submit($form, &$form_state) {
 function devel_theme_registry_inject() {
   $theme_registry = theme_get_registry();
   foreach ($theme_registry as $hook => $data) {
-    // Add in devel_preprocess so it's used as the last variable preprocessor.
-    // This way, it can gather *all* template suggestions, not just the ones set by modules.
+    // Templates do different interception that functions.
     if (!isset($data['function']) && !in_array('devel_preprocess', $data['preprocess functions'])) {
+      // Add in devel_preprocess so it's used as the last variable preprocessor.
+      // This way, it can gather *all* template suggestions, not just the ones set by modules.
       $theme_registry[$hook]['preprocess functions'][] = 'devel_preprocess';
     }
     elseif (isset($data['function'])) {
+      // dpr($data['function']);
       // For intercepting theme functions not connected to template files.
       // Copy over original registry of the hook so it can be caught later.
       $theme_registry[$hook]['devel'] = $theme_registry[$hook];
@@ -872,24 +874,31 @@ function devel_theme_registry_inject() {
 }
 
 /**
- * Show all theme templates that could have been used on this page.
- * TODO: highlight the one that was actually used
+ * Show all theme templates and functions that could have been used on this page.
  **/
 function devel_template_log() {
   if (variable_get('dev_template_log', 0)) {
     $extension = devel_get_theme_extension();
-    $header = array('Template name', "Template files ($extension)");
+    $header = array('Template/Function', "Candidate template files or function names");
     if (isset($GLOBALS['devel_theme_functions'])) {
       foreach ($GLOBALS['devel_theme_functions'] as $counter => $function) {
-        // TODO: path_to_theme() is not right in hook_footer()
-        // TODO: drupal_discover_template() needs leading './' so as to avoid lookup in whole include pat
-        // $used = drupal_discover_template($function['template_files'], $extension);
-        // array_push($function['template_files'], $function['function']);
-        // $key = array_search($used, $function['template_files']);
-        // $function['template_files'][$key] = theme('placeholder', $function['template_files'][$key]);
         $id = "devel_template_log_link_$counter";
         $marker = "<div id=\"$id\" class=\"devel_template_log_link\"></div>\n";
-        $rows[] = array($marker. $function['function'], implode(', ', $function['template_files']));
+        
+        if (count($function['template_files']) > 1) {
+          foreach ($function['template_files'] as $key => $value) {
+            $used = $function['used'];
+            if ($function['type'] == 'template') {
+              $test = $value. $extension == basename($used);
+            }
+            else {
+              $test = $value == $used;
+            }
+            $function['template_files'][$key] = $test ? "<strong>$used</strong>" : $value;
+          }
+        }
+        $function_name = $function['type'] == 'function' ? $function['function']. '()' : $function['function']. $extension;
+        $rows[] = array($marker. $function_name, implode(', ', $function['template_files']));
         // unset($function['template_files']);
       }
       return theme('table', $header, $rows);
@@ -897,7 +906,7 @@ function devel_template_log() {
   }
 }
 
-// would be nice if theme() broke this into separate function so we don't copy logic here. this one is better - has cache
+// Would be nice if theme() broke this into separate function so we don't copy logic here. this one is better - has cache
 function devel_get_theme_extension() {
   global $theme_engine;
   static $extension = NULL;
@@ -915,14 +924,27 @@ function devel_get_theme_extension() {
 }
 
 /**
- * This function gets injected into the registry in devel_exit(). It logs theme template calls.
+ * This function gets injected into the registry in devel_exit(). It logs template file suggestions.
 */
 function devel_preprocess($vars, $function) {
   $counter = devel_counter();
   $GLOBALS['devel_theme_functions'][$counter] = array(
     'function' => $function,
+    'type' => 'template',
     'template_files' => $vars['template_files'],
   );
+  if (isset($vars['template_file'])) {
+    array_unshift($GLOBALS['devel_theme_functions'][$counter]['template_files'] = $vars['template_file']);
+  }
+  $GLOBALS['devel_theme_functions'][$counter]['template_files'][] = $function;
+}
+
+// A wrapper function so we can know what template actually got called. Log that info in the GLOBAL for later display.
+// I found no other easy way to determine this. Patches welcome.
+function phptemplate_render_template($file, $variables) {
+  $counter = devel_counter(FALSE);
+  $GLOBALS['devel_theme_functions'][$counter]['used'] = $file;
+  return theme_render_template($file, $variables);
 }
 
 /**
@@ -963,7 +985,9 @@ function devel_catch_theme_function() {
   $counter = devel_counter();
   $GLOBALS['devel_theme_functions'][$counter] = array(
     'function' => $hook_registry_data['function'],
-    'template_files' => array(),
+    'type' => 'function',
+    'used' => $call_theme_func,
+    'template_files' => is_array($trace[2]['args'][0]) ? $trace[2]['args'][0] : array($call_theme_func),
   );
 
   return devel_template_marker($counter). call_user_func_array($hook_registry_data['function'], $args);
@@ -974,10 +998,12 @@ function devel_template_marker($counter) {
   return "<div id=\"$id\" class=\"devel_template_log_call\"></div>\n";
 }
 
-// just hand out next counter
-function devel_counter() {
+// just hand out next counter, or return current value
+function devel_counter($increment = TRUE) {
   static $counter = 0;
-  $counter++;
+  if ($increment) {
+    $counter++;
+  }
   return $counter;
 }
 
