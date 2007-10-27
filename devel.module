@@ -502,13 +502,14 @@ function devel_shutdown() {
     }
 
     if (isset($user) && user_access('access devel information')) {
-      $output = devel_theme_log();
       list($counts, $query_summary) = devel_query_summary();
       // Query log off, timer on.
       if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
-        $output = '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
+        $output .= '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
       }
 
+      $output .= devel_theme_log();
+            
       // Query log on.
       $sum = 0;
       if (variable_get('devel_query_display', FALSE)) {
@@ -540,10 +541,10 @@ function devel_shutdown() {
         $output .= t_safe($msg, $args);
       }
       // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
-
-      if ($output) {
-        print $output;
-      }
+    }
+    
+    if ($output) {
+      print $output;
     }
   }
   devel_store_queries();
@@ -865,8 +866,6 @@ function devel_theme_registry_alter($theme_registry) {
 function devel_theme_log() {
   if (variable_get('dev_theme_log', FALSE)) {
     $extension = devel_get_theme_extension();
-    $header = array('Template/Function', "Candidate template files or function names");
-    // krumo($GLOBALS['devel_theme_calls']);
     if (isset($GLOBALS['devel_theme_calls'])) {
       foreach ($GLOBALS['devel_theme_calls'] as $counter => $call) {
         $id = "devel_theme_log_link_$counter";
@@ -887,7 +886,9 @@ function devel_theme_log() {
         $name = $call['type'] == 'function' ? $call['name']. '()' : $call['name']. $extension;
         $rows[] = array($marker. $name, implode(', ', $call['candidates']));
       }
-      return theme('table', $header, $rows);
+      $header = array('Template/Function', "Candidate template files or function names");
+      $output = theme('table', $header, $rows);
+      return $output;
     }
   }
 }
