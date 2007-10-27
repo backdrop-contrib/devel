@@ -985,24 +985,21 @@ function devel_catch_theme_function() {
   $empty = TRUE;
   $output = NULL;
   $name = $hook_registry_data['function'];
-  // Pass the call to the original function
-  
   $skip = array('theme_hidden');
-  if (!in_array($name, $skip)) {
-    if ($return = call_user_func_array($name, $args)) {
-      $empty = FALSE;
-      list($prefix, $suffix) = devel_theme_call_marker($name, $counter);
-      $start_return = substr($return, 0, 31);
-      $start_prefix = substr($prefix, 0, 31);
+  
+  if ($return = call_user_func_array($name, $args)) {
+    $empty = FALSE;
+    list($prefix, $suffix) = devel_theme_call_marker($name, $counter);
+    $start_return = substr($return, 0, 31);
+    $start_prefix = substr($prefix, 0, 31);
 
-      if ($start_return != $start_prefix) {
-        $output = $prefix. "\n  ". $return. $suffix. "\n";
-        drupal_add_js(array("devel_theme_log_call_$counter" => $args), 'setting', 'header', FALSE, FALSE, FALSE);
-      }
-      else {
-        $output = $return;
-      }
-      
+    // Pass the call to the original function. Wrap as needed.
+    if ($start_return != $start_prefix && !in_array($name, $skip)) {
+      $output = $prefix. "\n  ". $return. $suffix. "\n";
+      drupal_add_js(array("devel_theme_log_call_$counter" => $args), 'setting', 'header', FALSE, FALSE, FALSE);
+    }
+    else {
+      $output = $return;
     }
   }
 
