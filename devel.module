@@ -171,7 +171,6 @@ function devel_menu() {
  * Implementation of hook_theme()
  */
 function devel_theme() { // &$cache, $type, $theme, $path
-  $GLOBALS['devel_theme_registry_needs_inject'] = TRUE;
   return array(
     'devel_variable_form' => array(
         'arguments' => array('form' => NULL)
@@ -461,12 +460,6 @@ function devel_form_alter(&$form, $form_state, $form_id, $key_in = NULL) {
 
 function devel_exit($destination = NULL) {
   global $user;
-
-  // Inject our functions into theme registry if it was rebuilt.
-  // TODO: use hook_theme_registry_alter() instead of this madness in hook_exit()
-  if (variable_get('dev_template_log', 0) && isset($GLOBALS['devel_theme_registry_needs_inject'])) {
-    devel_theme_registry_inject();
-  }
 
   if (isset($destination)) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
@@ -850,27 +843,20 @@ function devel_reinstall_submit($form, &$form_state) {
  *
  * @return void
  **/
-function devel_theme_registry_inject() {
-  $theme_registry = theme_get_registry();
-  foreach ($theme_registry as $hook => $data) {
-    // Templates do different interception that functions.
-    if (!isset($data['function']) && !in_array('devel_preprocess', $data['preprocess functions'])) {
-      // Add in devel_preprocess so it's used as the last variable preprocessor.
-      // This way, it can gather *all* template suggestions, not just the ones set by modules.
-      $theme_registry[$hook]['preprocess functions'][] = 'devel_preprocess';
-    }
-    elseif (isset($data['function'])) {
-      // dpr($data['function']);
-      // For intercepting theme functions not connected to template files.
-      // Copy over original registry of the hook so it can be caught later.
-      $theme_registry[$hook]['devel'] = $theme_registry[$hook];
-      // Replace the defaults to be intercepted.
-      $theme_registry[$hook]['function'] = 'devel_catch_theme_function';
-      $theme_registry[$hook]['type'] = 'module';
-      $theme_registry[$hook]['theme path'] = drupal_get_path('module', 'devel');
+function devel_theme_registry_alter($theme_registry) {
+  if (variable_get('dev_template_log', 0)) {
+    foreach ($theme_registry as $hook => $data) {
+      if (isset($data['function'])) {
+        // For intercepting theme functions not connected to template files.
+        // Copy over original registry of the hook so it can be caught later.
+        $theme_registry[$hook]['devel'] = $theme_registry[$hook];
+        // Replace the defaults to be intercepted.
+        $theme_registry[$hook]['function'] = 'devel_catch_theme_function';
+        $theme_registry[$hook]['type'] = 'module';
+        $theme_registry[$hook]['theme path'] = drupal_get_path('module', 'devel');
+      }
     }
   }
-  _theme_save_registry($GLOBALS['theme_info'], $theme_registry);
 }
 
 /**
