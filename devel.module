@@ -924,7 +924,7 @@ function devel_preprocess($vars, $hook) {
     array_unshift($GLOBALS['devel_theme_calls'][$counter]['candidates'] = $vars['template_file']);
   }
   // add the plain template name
-  $GLOBALS['devel_theme_calls'][$counter]['candidates'][] = $hook;
+  array_unshift($GLOBALS['devel_theme_calls'][$counter]['candidates'], $hook);
 }
 
 // A wrapper function so we can know what template actually got called. Log that info in the GLOBAL for later display.
@@ -932,7 +932,18 @@ function devel_preprocess($vars, $hook) {
 function phptemplate_render_template($file, $variables) {
   $counter = devel_counter(FALSE);
   $GLOBALS['devel_theme_calls'][$counter]['used'] = $file;
-  return theme_render_template($file, $variables);
+  
+  $output = theme_render_template($file, $variables);
+  // awful attempt to get position #2 in the assoc array $variables
+  $i=0;
+  foreach ($variables as $key => $var) {
+    if ($i == 1) {
+      $name = $key;
+    }
+    $i++;
+  }
+  list($prefix, $suffix) = devel_theme_call_marker($name, $counter);
+  return $prefix. "\n  ". $output. "\n". $suffix. "\n";
 }
 
 /**
@@ -968,23 +979,46 @@ function devel_catch_theme_function() {
     }
     include_once($function_file);
   }
-
-  // log the call
+  
   $counter = devel_counter();
+  $empty = TRUE;
+  $output = NULL;
+  $name = $hook_registry_data['function'];
+  // Pass the call to the original function
+  
+  $skip = array('theme_hidden');
+  if (!in_array($name, $skip)) {
+    if ($return = call_user_func_array($name, $args)) {
+      $empty = FALSE;
+      list($prefix, $suffix) = devel_theme_call_marker($name, $counter);
+      $start_return = substr($return, 0, 31);
+      $start_prefix = substr($prefix, 0, 31);
+
+      if ($start_return != $start_prefix) {
+        $output = $prefix. "\n  ". $return. $suffix. "\n";
+      }
+      else {
+        $output = $return;
+      }
+      
+    }
+  }
+
+  // Log the call
   $GLOBALS['devel_theme_calls'][$counter] = array(
-    'name' => $hook_registry_data['function'],
+    'name' => $name,
     'type' => 'function',
+    'empty' => $empty,
     'used' => $call_theme_func,
     'candidates' => is_array($trace[2]['args'][0]) ? $trace[2]['args'][0] : array($call_theme_func),
   );
-
-  // pass the call to the original function
-  return devel_theme_call_marker($counter). call_user_func_array($hook_registry_data['function'], $args);
+  
+  return $output;
 }
 
-function devel_theme_call_marker($counter) {
+function devel_theme_call_marker($name, $counter) {
   $id = "devel_theme_log_call_". $counter;
-  return "<div id=\"$id\" class=\"devel_theme_log_call\"></div>\n";
+  return array("<span id=\"$id\" theme_call_key=\"$name\" class=\"devel_theme_log_call\">", "</span>\n");
 }
 
 // just hand out next counter, or return current value
