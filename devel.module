@@ -943,6 +943,7 @@ function phptemplate_render_template($file, $variables) {
     $i++;
   }
   list($prefix, $suffix) = devel_theme_call_marker($name, $counter);
+  drupal_add_js(array("devel_theme_log_call_$counter" => $variables), 'setting', 'header', FALSE, FALSE, FALSE);
   return $prefix. "\n  ". $output. "\n". $suffix. "\n";
 }
 
@@ -996,6 +997,7 @@ function devel_catch_theme_function() {
 
       if ($start_return != $start_prefix) {
         $output = $prefix. "\n  ". $return. $suffix. "\n";
+        drupal_add_js(array("devel_theme_log_call_$counter" => $args), 'setting', 'header', FALSE, FALSE, FALSE);
       }
       else {
         $output = $return;
