@@ -5,3 +5,13 @@
 .devel_theme_log_call, .devel_theme_log_link {
 /*  display: none;*/
 }
+
+.field-tip {
+  position: absolute;
+  padding: 3px 5px;
+}
+.field-label {
+  background: #000;
+  z-index: 10001;
+  color: #fff;
+}
