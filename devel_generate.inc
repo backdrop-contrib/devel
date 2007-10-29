@@ -45,6 +45,10 @@ function devel_generate_content($num_nodes, $num_comments, $title_length, $kill,
     if (db_table_exists('upload')) {
       db_query("DELETE FROM {upload}");
     }
+    if (db_table_exists('relatedlinks')) {
+      db_query("DELETE FROM {relatedlinks}");
+      db_query("DELETE FROM {relatedlinks_tracker}");
+    }
     db_query("DELETE FROM {url_alias}");
     // TODO: use schema API here?
     switch ($GLOBALS['db_type']) {
@@ -71,10 +75,23 @@ function devel_generate_content($num_nodes, $num_comments, $title_length, $kill,
 
 function devel_create_nodes($records, $users, $title_length = 8, $add_upload = FALSE, $add_terms = FALSE, $num_comments = 0, $add_alias = FALSE) {
 
-  $possible_types = array("story", "blog", "forum", "page");
+  $sql = "SELECT type FROM node_type WHERE module IN ('node', 'forum')";
+  $result = db_query($sql);
+  while ($row = db_fetch_object($result)) {
+    $possible_types[] = $row->type;
+  }
+  
+  // For now, eliminate types which have any CCK fields. Help wanted.
+  $fields = content_fields();
+  foreach ($fields as $field) {
+    $ineligible[] = $field['type_name'];
+  }
+  $possible_types = array_diff($possible_types, $ineligible);
+  
   // Only use types that exist.
   $installed_types = array_keys(node_get_types('types'));
   $types = array_intersect($possible_types, $installed_types);
+  
   $users = array_merge($users, array('0'));
   // $nids = array();
 
@@ -97,7 +114,7 @@ function devel_create_nodes($records, $users, $title_length = 8, $add_upload = F
       $node->created = time();
       
       // Add an url alias
-      // TODO: the nid is not known yet. move back tpo post creation.
+      // TODO: the nid is not known yet. move back to post creation.
       // if ($add_alias) {
       //   $node->path = "node-$node->nid-$node->type";
       // }
