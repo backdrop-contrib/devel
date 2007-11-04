@@ -1344,7 +1344,7 @@ function dvm($input, $name = NULL) {
 
 // legacy function that was poorly named. use dpm() instead, since the 'p' maps to 'print_r'
 function dsm($input, $name = NULL) {
-  dpm($input, $name = NULL);
+  dpm($input, $name);
 }
 
 /**
