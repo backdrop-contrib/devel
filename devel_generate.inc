@@ -49,6 +49,9 @@ function devel_generate_content($num_nodes, $num_comments, $title_length, $kill,
       db_query("DELETE FROM {relatedlinks}");
       db_query("DELETE FROM {relatedlinks_tracker}");
     }
+    if (db_table_exists('nodequeue_nodes')) {
+      db_query("DELETE FROM {nodequeue_nodes}");
+    }
     db_query("DELETE FROM {url_alias}");
     // TODO: use schema API here?
     switch ($GLOBALS['db_type']) {
@@ -399,16 +402,21 @@ function devel_create_greeking($words, $title = FALSE) {
   return $greeking;
 }
 
-// TODO: respect multiple and required properties of vocab
 function devel_generate_add_terms(&$node) {
-  $sql = "SELECT DISTINCT(tid) as tid, v.tags FROM {term_data} td INNER JOIN {vocabulary} v ON td.vid=v.vid INNER JOIN {vocabulary_node_types} vnt ON v.vid=vnt.vid WHERE vnt.type = '%s' ORDER BY RAND()";
-  $result = db_query_range($sql, $node->type, 0, 5);
-  while ($row = db_fetch_object($result)) {
-    if ($row->tags) {
-      $node->taxonomy['tags'][] = $row->tid;
-    }
-    else {
-      $node->taxonomy[$row->tid] = $row->tid;
+  $vocabs = taxonomy_get_vocabularies($node->type);
+  foreach ($vocabs as $vocab) {
+    $sql = "SELECT tid FROM term_data WHERE vid = %d ORDER BY RAND()";
+    $result = db_query_range($sql, $vocab->vid, 0, 5);
+    while ($row = db_fetch_object($result)) {
+      if ($vocab->tags) {
+        $node->taxonomy['tags'][] = $row->tid;
+      }
+      else {
+        $node->taxonomy[$row->tid] = $row->tid;
+      }
+      if (!$vocab->multiple) {
+        break;
+      }
     }
   }
 }
