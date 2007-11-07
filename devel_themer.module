@@ -59,7 +59,7 @@ function devel_theme_log() {
       if (count($call['candidates']) > 1) {
         $used = $call['used'];
         foreach ($call['candidates'] as $key => $value) {
-          if ($call['type'] == 'template') {
+          if ($call['type'] == 'tpl') {
             $test = $value. $extension == basename($used);
           }
           else {
@@ -68,10 +68,10 @@ function devel_theme_log() {
           $call['candidates'][$key] = $test ? "<strong>$used</strong>" : $value;
         }
       }
-      $name = $call['type'] == 'function' ? $call['name']. '()' : $call['name']. $extension;
-      $rows[] = array($marker. $name, implode(', ', $call['candidates']));
+      $name = $call['type'] == 'func' ? $call['name']. '()' : $call['name']. $extension;
+      $rows[] = array($call['time'], $marker. $name, implode(', ', $call['candidates']));
     }
-    $header = array('Template/Function', "Candidate template files or function names");
+    $header = array('Time (ms)', 'Template/Function', "Candidate template files or function names");
     $output = theme('table', $header, $rows);
     return $output;
   }
@@ -101,7 +101,7 @@ function devel_themer_preprocess($vars, $hook) {
   $counter = devel_counter();
   $GLOBALS['devel_theme_calls'][$counter] = array(
     'name' => $hook,
-    'type' => 'template',
+    'type' => 'tpl',
     'candidates' => $vars['template_files'],
   );
   // add in a 'template' file if it was declared
@@ -116,9 +116,16 @@ function devel_themer_preprocess($vars, $hook) {
 // I found no other easy way to determine this. Patches welcome.
 function phptemplate_render_template($file, $variables) {
   $counter = devel_counter(FALSE);
-  $GLOBALS['devel_theme_calls'][$counter]['used'] = $file;
   
+  $timer_name = "thmr_$counter";
+  timer_start($timer_name);
   $output = theme_render_template($file, $variables);
+  $time = timer_stop($timer_name);
+  $GLOBALS['devel_theme_calls'][$counter]['time'] = $time['time'];
+  
+  $GLOBALS['devel_theme_calls'][$counter]['used'] = $file;
+  $GLOBALS['devel_theme_calls'][$counter]['args'] = $variables;
+  
   // awful attempt to get position #2 in the assoc array $variables
   $i=0;
   foreach ($variables as $key => $var) {
@@ -170,13 +177,16 @@ function devel_catch_theme_function() {
   }
   
   $counter = devel_counter();
-  $empty = TRUE;
   $output = NULL;
   $name = $hook_registry_data['function'];
   $skip = array('theme_hidden');
   
-  if ($return = call_user_func_array($name, $args)) {
-    $empty = FALSE;
+  $timer_name = "thmr_$counter";
+  timer_start($timer_name);
+  $return = call_user_func_array($name, $args);
+  $time = timer_stop($timer_name);
+  
+  if (!empty($return)) {
     list($prefix, $suffix) = devel_theme_call_marker($name, $counter, 'func');
     $start_return = substr($return, 0, 31);
     $start_prefix = substr($prefix, 0, 31);
@@ -192,10 +202,12 @@ function devel_catch_theme_function() {
   }
 
   // Log the call
-  $GLOBALS['devel_theme_calls'][$counter] = array(
+  $GLOBALS['devel_theme_calls']["thmr_$counter"] = array(
     'name' => $name,
-    'type' => 'function',
-    'empty' => $empty,
+    'type' => 'func',
+    'args' => $args,
+    'empty' => empty($return),
+    'time' => $time['time'],
     'used' => $call_theme_func,
     'candidates' => is_array($trace[2]['args'][0]) ? $trace[2]['args'][0] : array($call_theme_func),
   );
