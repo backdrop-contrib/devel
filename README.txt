@@ -8,7 +8,6 @@ summary includes how many times each query was executed on a page, and how long 
  took.
  
  It also
- - writes a log of template files which may be used on current page
  - a block for running custom PHP on a pge
  - a block for quickly accessing devel pages
  - a block for masquerading as other users (useful for testing)
@@ -19,13 +18,14 @@ summary includes how many times each query was executed on a page, and how long 
  'access development information' permission to developers.
 
 Also a dpr() function is provided, which pretty prints arrays and strings. Useful during
-development. Many other nice functions like dsm(), dvm().
+development. Many other nice functions like dpm(), dvm().
 
 You might also download Krumo from http://krumo.sourceforge.net/. Unpack it into a subdirectory 
 called krumo. Devel will automatically start using it. You may also call krumo($variable) to get 
 a pretty print of any variable. krumo::backtrace() can be useful too.
 
 Included in this package is also: 
+- devel_themer.module which outputs deep information related to all theme calls on a page.
 - devel_node_access module which prints out the node_access records for a given node._
 - devel_generate.module which bulk creates nodes, users, comment, terms for development
 - macro.module which records form submissions and can pay them back later or on another site. More
