@@ -8,6 +8,14 @@
 
 // devel_template_log()
 
+function devel_themer_init() {
+  if (user_access('access devel information')) {
+    $path = drupal_get_path('module', 'devel_themer');
+    drupal_add_css($path .'/devel_themer.css');
+    drupal_add_js($path .'/devel_themer.js');
+  }
+}
+
 /**
  * An implementation of hook_theme_registry_alter()
  * Iterate over theme registry, injecting our catch function into every theme function.

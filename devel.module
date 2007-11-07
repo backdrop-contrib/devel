@@ -184,8 +184,6 @@ function devel_theme() { // &$cache, $type, $theme, $path
 function devel_init() {
   if (!devel_silent()) {
     if (user_access('access devel information')) {
-      drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
-      drupal_add_js(drupal_get_path('module', 'devel') .'/devel.js');
       devel_set_handler(variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD));
       // we want to include the class early so that anyone may call krumo() as needed.
       has_krumo();
