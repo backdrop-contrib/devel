@@ -13,7 +13,15 @@ function devel_themer_init() {
     $path = drupal_get_path('module', 'devel_themer');
     drupal_add_css($path .'/devel_themer.css');
     drupal_add_js($path .'/devel_themer.js');
+    
+    if (!devel_silent()) {
+      register_shutdown_function('devel_themer_shutdown');
+    }
   }
+}
+
+function devel_themer_shutdown() {
+  print devel_theme_log();
 }
 
 /**
@@ -119,8 +127,8 @@ function phptemplate_render_template($file, $variables) {
     }
     $i++;
   }
-  list($prefix, $suffix) = devel_theme_call_marker($name, $counter);
-  drupal_add_js(array("devel_theme_log_call_$counter" => $variables), 'setting', 'header', FALSE, FALSE, FALSE);
+  list($prefix, $suffix) = devel_theme_call_marker($name, $counter, 'tpl');
+  // drupal_add_js(array("thmr_$counter" => array('arguments' => $variables, 'candidates' => $GLOBALS['devel_theme_calls'][$counter]['candidates'], 'used' => $GLOBALS['devel_theme_calls'][$counter]['used'])), 'setting', 'header', FALSE, FALSE, FALSE);
   return $prefix. "\n  ". $output. "\n". $suffix. "\n";
 }
 
@@ -134,15 +142,18 @@ function devel_catch_theme_function() {
 
   // Get the function that is normally called.
   $trace = debug_backtrace();
-  $call_theme_func = $trace[2]['args'][0];
+  $candidates = $trace[2]['args'][0];
   // The node form has an array of theme functions.
-  if (is_array($call_theme_func)) {
-    foreach ($call_theme_func as $func) {
+  if (is_array($candidates)) {
+    foreach ($candidates as $func) {
       if (function_exists($func)) {
         $call_theme_func = $func;
         break;
       }
     }
+  }
+  else {
+    $call_theme_func = $candidates;
   }
 
   // Get registry for the original function data.
@@ -166,14 +177,14 @@ function devel_catch_theme_function() {
   
   if ($return = call_user_func_array($name, $args)) {
     $empty = FALSE;
-    list($prefix, $suffix) = devel_theme_call_marker($name, $counter);
+    list($prefix, $suffix) = devel_theme_call_marker($name, $counter, 'func');
     $start_return = substr($return, 0, 31);
     $start_prefix = substr($prefix, 0, 31);
 
     // Pass the call to the original function. Wrap as needed.
     if ($start_return != $start_prefix && !in_array($name, $skip)) {
       $output = $prefix. "\n  ". $return. $suffix. "\n";
-      drupal_add_js(array("devel_theme_log_call_$counter" => $args), 'setting', 'header', FALSE, FALSE, FALSE);
+      // drupal_add_js(array("thmr_$counter" => array('args' => $args, 'candidates' => $candidates)), 'setting', 'header', FALSE, FALSE, FALSE);
     }
     else {
       $output = $return;
@@ -192,9 +203,18 @@ function devel_catch_theme_function() {
   return $output;
 }
 
-function devel_theme_call_marker($name, $counter) {
-  $id = "devel_theme_log_call_". $counter;
-  return array("<span id=\"$id\" theme_call_key=\"$name\" class=\"devel_theme_log_call\">", "</span>\n");
+/**
+ * An implementation of hook_footer(). Emit huge js array for the benefit of the popup.
+ * 
+ * @return void
+ **/
+function devel_themer_footer() {
+  drupal_add_js(array("devel_themer" => $GLOBALS['devel_theme_calls']), 'setting', 'footer', FALSE, FALSE, FALSE);
+}
+
+function devel_theme_call_marker($name, $counter, $type) {
+  $id = "thmr_". $counter;
+  return array("<span id=\"$id\" thmr_key=\"$name\" thmr_type=\"$type\" class=\"thmr_call\">", "</span>\n");
 }
 
 // just hand out next counter, or return current value
