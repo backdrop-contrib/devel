@@ -736,6 +736,7 @@ function devel_cache_clear() {
   }
 
   drupal_clear_css_cache();
+  drupal_rebuild_theme_registry();
   menu_rebuild();
 
   drupal_set_message('Cache cleared.');
