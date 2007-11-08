@@ -69,18 +69,46 @@ function devel_generate_users_form_submit($form_id, &$form_state) {
 }
 
 function devel_generate_content_form() {
+  if (module_exists('content')) {
+    $types = content_types();
+    $warn = '';
+    foreach ($types as $type) {
+      if (count($type['fields'])) {
+        $warn = t('. <strong>Warning</strong>. This type contains CCK fields which won\'t be populated. See !url', array('!url' => l(t('this CCK issue.'), 'http://drupal.org/node/187599')));
+      }
+      $options[$type['type']] = t($type['name']). $warn;
+      unset($warn);
+    }
+  }
+  else {
+    $types = node_get_types();
+    foreach ($types as $type) {
+      $options[$type->type] = t($type->name);
+    }
+  }
+  $form['node_types'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Which node types do you want to create?'),
+    '#options' => $options,
+    '#default_value' => array_keys($options),
+  );
+  $form['kill_content'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('<strong>Delete all content</strong> in these node types before generating new content.'),
+    '#default_value' => FALSE,
+  );
   $form['num_nodes'] = array(
     '#type' => 'textfield',
     '#title' => t('How many nodes would you like to generate?'),
-    '#default_value' => 100,
+    '#default_value' => 50,
     '#size' => 10,
   );
   $form['num_comments'] = array(
     '#type' => module_exists('comment') ? 'textfield' : 'value',
     '#title' => t('How many comments per node would you like to generate?'),
     '#description' => t('You must also enable comments for the node types you are generating.'),
-    '#default_value' => 5,
-    '#size' => 5,
+    '#default_value' => 0,
+    '#size' => 3,
     '#access' => module_exists('comment'),
   );
   $form['title_length'] = array(
@@ -106,11 +134,6 @@ function devel_generate_content_form() {
     '#title' => t('Add an url alias for each node.'),
     '#default_value' => FALSE,
   );
-  $form['kill_content'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Delete existing content before generating new content.'),
-    '#default_value' => FALSE,
-  );
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Do it!'),
@@ -121,7 +144,7 @@ function devel_generate_content_form() {
 
 function devel_generate_content_form_submit($form_id, &$form_state) {
   require_once('devel_generate.inc');
-  devel_generate_content($form_state['values']['num_nodes'], $form_state['values']['num_comments'], $form_state['values']['title_length'], $form_state['values']['kill_content'], $form_state['values']['add_upload'], $form_state['values']['add_terms'], $form_state['values']['add_alias']);
+  devel_generate_content($form_state['values']['num_nodes'], $form_state['values']['num_comments'], $form_state['values']['title_length'], $form_state['values']['kill_content'], $form_state['values']['add_upload'], $form_state['values']['add_terms'], $form_state['values']['add_alias'], array_filter($form_state['values']['node_types']));
 }
 
 function devel_generate_taxonomy_form() {

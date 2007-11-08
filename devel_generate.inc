@@ -30,80 +30,32 @@ function devel_create_users($num, $kill) {
   drupal_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
 }
 
-function devel_generate_content($num_nodes, $num_comments, $title_length, $kill, $add_upload = FALSE, $add_terms = FALSE, $add_alias = FALSE) {
+function devel_generate_content($num_nodes, $num_comments, $title_length, $kill, $add_upload = FALSE, $add_terms = FALSE, $add_alias = FALSE, $node_types) {
   if ($kill) {
-    db_query("DELETE FROM {comments}");
-    db_query("DELETE FROM {node}");
-    db_query("DELETE FROM {node_revisions}");
-    db_query("DELETE FROM {node_comment_statistics}");
-    if (db_table_exists('term_node')) {
-      db_query("DELETE FROM {term_node}");
+    $sql = 'SELECT nid FROM {node} WHERE type IN ('. db_placeholders($node_types, 'text'). ')';
+    $result = db_query($sql, $node_types);
+    while ($row = db_fetch_object($result)) {
+      node_delete($row->nid);
     }
-    if (db_table_exists('forum')) {
-      db_query("DELETE FROM {forum}");
-    }
-    if (db_table_exists('upload')) {
-      db_query("DELETE FROM {upload}");
-    }
-    if (db_table_exists('relatedlinks')) {
-      db_query("DELETE FROM {relatedlinks}");
-      db_query("DELETE FROM {relatedlinks_tracker}");
-    }
-    if (db_table_exists('nodequeue_nodes')) {
-      db_query("DELETE FROM {nodequeue_nodes}");
-    }
-    db_query("DELETE FROM {url_alias}");
-    // TODO: use schema API here?
-    switch ($GLOBALS['db_type']) {
-      case 'mysql':
-      case 'mysqli':
-        db_query("ALTER TABLE {node} AUTO_INCREMENT = 1");
-        db_query("ALTER TABLE {comments} AUTO_INCREMENT = 1");
-        break;
-      case 'pgsql':
-        db_query("SELECT setval('{node}_nid_seq', 1, false)");
-        db_query("SELECT setval('{comments}_cid_seq', 1, false)");
-        break;
-    }
-    drupal_set_message(t('Content deleted.'));
   }
 
   // Get user id.
   $users = devel_get_users();
 
   // Create $num_nodes pseudo-random nodes and comments (if specified)
-  devel_create_nodes($num_nodes, $users, $title_length, $add_upload, $add_terms, $num_comments, $add_alias);
+  devel_create_nodes($num_nodes, $users, $title_length, $add_upload, $add_terms, $num_comments, $add_alias, $node_types);
   drupal_set_message(format_plural($num_nodes, '1 node created.', '@count nodes created'));
 }
 
-function devel_create_nodes($records, $users, $title_length = 8, $add_upload = FALSE, $add_terms = FALSE, $num_comments = 0, $add_alias = FALSE) {
-
-  $sql = "SELECT type FROM node_type WHERE module IN ('node', 'forum')";
-  $result = db_query($sql);
-  while ($row = db_fetch_object($result)) {
-    $possible_types[] = $row->type;
-  }
-  
-  // For now, eliminate types which have any CCK fields. Help wanted.
-  if (module_exists('content')) {
-    $fields = content_fields();
-    foreach ($fields as $field) {
-      $ineligible[] = $field['type_name'];
-    }
-    $possible_types = array_diff($possible_types, $ineligible);
-  }
-  
-  // Only use types that exist.
-  $installed_types = array_keys(node_get_types('types'));
-  $types = array_intersect($possible_types, $installed_types);
+function devel_create_nodes($records, $users, $title_length = 8, $add_upload = FALSE, $add_terms = FALSE, $num_comments = 0, $add_alias = FALSE, $node_types = array()) {
   
   $users = array_merge($users, array('0'));
   // $nids = array();
 
-  if (count($types)) {
+  if (count($node_types)) {
     // Insert new data:
     for ($i = 1; $i <= $records; $i++) {
-      $node->type = $types[array_rand($types)];
+      $node->type = $node_types[array_rand($node_types)];
       require_once './modules/node/node.pages.inc';
       node_object_prepare($node);
       $node->uid = $users[array_rand($users)];
