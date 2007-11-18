@@ -1112,13 +1112,13 @@ function devel_timer() {
 }
 
 /**
- * Prints the arguments for passed into the current function
+ * Prints the arguments passed into the current function
  */
 function dargs($always = TRUE) {
   static $printed;
   if ($always || !$printed) {
     $bt = debug_backtrace();
-    dsm($bt[1]['args']);
+    print kdevel_print_object($bt[1]['args']);
     $printed = TRUE;
   }
 }
