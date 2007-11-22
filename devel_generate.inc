@@ -84,6 +84,11 @@ function devel_create_nodes($records, $users, $title_length = 8, $add_upload = F
         devel_generate_add_terms($node);
       }
       
+      // Populate any CCK fields in the content type
+      if (module_exists("content")) {
+        devel_generate_fields($node);
+      }
+      
       // Save the node:
       node_save($node);
       
@@ -402,4 +407,12 @@ function devel_generate_add_upload(&$node) {
   
   $_SESSION['upload_files'][$file->fid] = $file;
   $node->files[$file->fid] = $file;
+}
+
+// Enrich the $node that is about to be saved with arbitrary information in each of its CCK fields.
+// Not yet implemented by CCK fields. See http://drupal.org/node/187599 for status.
+function devel_generate_fields(&$node) {
+ $return = _content_field_invoke('generate', $node);
+ $array_node = array_merge((array)$node, $return);
+ $node = (object)$array_node;
 }
