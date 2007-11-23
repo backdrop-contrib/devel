@@ -7,3 +7,103 @@
   z-index: 10001;
   color: #fff;
 }
+
+#themer-popup {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-family: "Lucida Grande", Helvetica, Arial, sans-serif;
+  color: #FFFFFF;
+  background-color: #333;
+  width: 400px;
+  font-size: x-small;
+  opacity:.9;
+  filter: alpha(opacity=90);
+  border: 1px solid #000;
+  display: none;
+  z-index: 10001;
+}
+
+#themer-popup a, #themer-popup a:visited, #themer-popup span.parent {
+  color: #FFF;
+  text-decoration: none;
+  font-weight: normal;
+  margin-bottom: -4px;
+  border-bottom:1px dotted #666666;
+  cursor: pointer;
+}
+
+#themer-popup .topper {
+  text-align: center;
+  padding: 2px 5px;
+  background-color:#666;
+  cursor: move;
+}
+#themer-popup .close {
+  float: right;
+  cursor: pointer;
+}
+#themer-popup .starter {
+  font-size:2em;
+}
+
+#themer-popup #parents {
+  padding-top: 5px;
+  background-color: #222;
+  color: #999;
+  font-weight: bold;
+}
+#themer-popup .row {
+  padding: 0 5px 5px;
+  border-top: 1px solid #777;
+}
+#themer-popup dl {
+  margin: 0;
+}
+#themer-popup dt {
+  font-weight: bold;
+}
+#themer-popup dd {
+  margin: 0 0 0 15px;
+  display:block;
+}
+#themer-popup .devel-obj-output dt {
+  cursor: pointer;
+}
+
+#themer-popup .devel-obj-output .field {
+  color: #CCC;
+}
+
+#themer-popup .info .key {
+  font-size: 18px;
+  font-weight: bold;
+}
+#themer-popup .info dt {
+  color: #999;
+}
+
+#themer-popup h4 {
+  margin: 0;
+  font-size:x-small;
+  text-align: center;
+  font-weight:normal;
+  color: #999;
+}
+
+#themer-toggle {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  padding: 3px 5px;
+  background: #fff;
+  color: #008;
+  cursor: pointer;
+  z-index: 10002;
+  font-size: small;
+  background-color: #333;
+  opacity: .8;
+  color: #FFF;
+  border-top: 1px solid #000;
+  border-right: 1px solid #000;
+}

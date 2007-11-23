@@ -13,7 +13,9 @@ function devel_themer_init() {
     $path = drupal_get_path('module', 'devel_themer');
     drupal_add_css($path .'/devel_themer.css');
     drupal_add_js($path .'/devel_themer.js');
-    
+    drupal_add_js($path .'/jquery-ui-drag.min.js');
+    devel_themer_popup();
+
     if (!devel_silent()) {
       register_shutdown_function('devel_themer_shutdown');
     }
@@ -55,7 +57,7 @@ function devel_theme_log() {
     foreach ($GLOBALS['devel_theme_calls'] as $counter => $call) {
       $id = "devel_theme_log_link_$counter";
       $marker = "<div id=\"$id\" class=\"devel_theme_log_link\"></div>\n";
-      
+
       if (count($call['candidates']) > 1) {
         $used = $call['used'];
         foreach ($call['candidates'] as $key => $value) {
@@ -116,16 +118,16 @@ function devel_themer_preprocess($vars, $hook) {
 // I found no other easy way to determine this. Patches welcome.
 function phptemplate_render_template($file, $variables) {
   $counter = devel_counter(FALSE);
-  
+
   $timer_name = "thmr_$counter";
   timer_start($timer_name);
   $output = theme_render_template($file, $variables);
   $time = timer_stop($timer_name);
   $GLOBALS['devel_theme_calls'][$counter]['time'] = $time['time'];
-  
+
   $GLOBALS['devel_theme_calls'][$counter]['used'] = $file;
   $GLOBALS['devel_theme_calls'][$counter]['args'] = $variables;
-  
+
   // awful attempt to get position #2 in the assoc array $variables
   $i=0;
   foreach ($variables as $key => $var) {
@@ -135,7 +137,7 @@ function phptemplate_render_template($file, $variables) {
     $i++;
   }
   list($prefix, $suffix) = devel_theme_call_marker($name, $counter, 'tpl');
-  // drupal_add_js(array("thmr_$counter" => array('arguments' => $variables, 'candidates' => $GLOBALS['devel_theme_calls'][$counter]['candidates'], 'used' => $GLOBALS['devel_theme_calls'][$counter]['used'])), 'setting', 'header', FALSE, FALSE, FALSE);
+  drupal_add_js(array("thmr_$counter" => array('arguments' => devel_print_object($variables, '$', FALSE), 'candidates' => array_reverse($GLOBALS['devel_theme_calls'][$counter]['candidates']), 'used' => $GLOBALS['devel_theme_calls'][$counter]['used'])), 'setting', 'header', FALSE, FALSE, FALSE);
   return $prefix. "\n  ". $output. "\n". $suffix. "\n";
 }
 
@@ -175,17 +177,17 @@ function devel_catch_theme_function() {
     }
     include_once($function_file);
   }
-  
+
   $counter = devel_counter();
   $output = NULL;
   $name = $hook_registry_data['function'];
   $skip = array('theme_hidden');
-  
+
   $timer_name = "thmr_$counter";
   timer_start($timer_name);
   $return = call_user_func_array($name, $args);
   $time = timer_stop($timer_name);
-  
+
   if (!empty($return)) {
     list($prefix, $suffix) = devel_theme_call_marker($name, $counter, 'func');
     $start_return = substr($return, 0, 31);
@@ -194,7 +196,7 @@ function devel_catch_theme_function() {
     // Pass the call to the original function. Wrap as needed.
     if ($start_return != $start_prefix && !in_array($name, $skip)) {
       $output = $prefix. "\n  ". $return. $suffix. "\n";
-      // drupal_add_js(array("thmr_$counter" => array('args' => $args, 'candidates' => $candidates)), 'setting', 'header', FALSE, FALSE, FALSE);
+      drupal_add_js(array("thmr_$counter" => array('args' => devel_print_object($args, NULL, FALSE), 'candidates' => $candidates)), 'setting', 'header', FALSE, FALSE, FALSE);
     }
     else {
       $output = $return;
@@ -211,13 +213,13 @@ function devel_catch_theme_function() {
     'used' => $call_theme_func,
     'candidates' => is_array($trace[2]['args'][0]) ? $trace[2]['args'][0] : array($call_theme_func),
   );
-  
+
   return $output;
 }
 
 /**
  * An implementation of hook_footer(). Emit huge js array for the benefit of the popup.
- * 
+ *
  * @return void
  **/
 function devel_themer_footer() {
@@ -236,4 +238,68 @@ function devel_counter($increment = TRUE) {
     $counter++;
   }
   return $counter;
+}
+
+/**
+ * Return the popup template
+ * placed here for easy editing
+ */
+function devel_themer_popup() {
+  $majorver = substr(VERSION, 0, strpos(VERSION, '.'));
+
+  // add translatable strings
+  drupal_add_js(array('thmrStrings' =>
+    array(
+      'parents' => t('Parents: '),
+      'function_called' => t('Function called: '),
+      'template_called' => t('Template called: '),
+      'candidate_files' => t('Candidate template files: '),
+      'candidate_functions' => t('Candidate function names: '),
+      'drupal_api_docs' => t('link to Drupal API documentation'),
+      'function_arguments' => t('Function Arguments'),
+      'template_variables' => t('Template Variables'),
+      'file_used' => t('File used: '),
+      'api_site' => variable_get('devel_api_site', 'http://api.drupal.org/'),
+      'drupal_version' => $majorver,
+    ))
+    , 'setting');
+
+  $title = t('Drupal Themer Information');
+  $intro = t('Click on any element on the page to see the Drupal theme function or template that created it.');
+
+  $popup = <<<EOT
+  <div id="themer-popup">
+      <div class="topper">
+        <span class="close">X</span> $title
+      </div>
+      <div id="parents" class="row">
+
+      </div>
+      <div class="info row">
+        <div class="starter">$intro</div>
+        <dl>
+          <dt class="key-type">
+
+          </dt>
+          <dd class="key">
+
+          </dd>
+          <dt class="candidates-type">
+
+          </dt>
+          <dd class="candidates">
+
+          </dd>
+          <div class="used">
+          </div>
+        </dl>
+      </div><!-- /info -->
+      <div class="attributes row">
+
+      </div><!-- /attributes -->
+    </div><!-- /themer-popup -->
+EOT;
+
+  drupal_add_js(array('thmr_popup' => $popup), 'setting');
+
 }

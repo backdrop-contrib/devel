@@ -135,7 +135,7 @@ function devel_menu() {
   $items['node/%node/load'] = array(
     'title' => 'Dev load',
     'page callback' => 'devel_load_object',
-    'page arguments' => array(1),
+    'page arguments' => array(1, 'node'),
     'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
@@ -151,7 +151,7 @@ function devel_menu() {
   $items['user/%user/load'] = array(
     'title' => 'Devel load',
     'page callback' => 'devel_load_object',
-    'page arguments' => array(1),
+    'page arguments' => array(1, 'user'),
     'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
@@ -308,13 +308,13 @@ function devel_block_devel() {
     $links[] = l(t('Devel settings'), 'admin/settings/devel', array('attributes' => array('title' => t('Adjust module settings for devel module.'))));
     $links[] = l(t('Empty cache'), 'devel/cache/clear', array('attributes' => array('title' => t('Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.')), 'query' => drupal_get_destination()));
     $links[] = l(t('PHPinfo()'), 'devel/phpinfo', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
-    
+
     $mini[] = l(t('func'), 'devel/reference', array('attributes' => array('title' => t('View a list of currently defined user functions with documentation links.'))));
     $mini[] = l(t('theme'), 'devel/theme/registry', array('attributes' => array('title' => t('View a list of available theme functions acros the whole site.'))));
     $mini[] = l(t('elements'), 'devel/elements', array('attributes' => array('title' => t('View the active form/render elements for this site.'))));
     $mini[] = l(t('sess'), 'devel/session', array('attributes' => array('title' => t('List the contents of $_SESSION.'))));
     $links[] = implode('&nbsp;&nbsp;', $mini);
-    
+
     $links[] = l(t('Reinstall modules'), 'devel/reinstall', array('attributes' => array('title' => t('Re-run hook_install() for a given module.')), 'query' => drupal_get_destination()));
     $links[] = l(t('Rebuild menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Rebuild menu based on hook_menu() and any custom changes all menu items to their default settings.')), 'query' => drupal_get_destination()));
     $links[] = l(t('Variable editor'), 'devel/variable', array('attributes' => array('title' => t('Edit and delete site variables.'))));
@@ -505,7 +505,7 @@ function devel_shutdown() {
       if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
         $output .= '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
       }
-            
+
       // Query log on.
       $sum = 0;
       if (variable_get('devel_query_display', FALSE)) {
@@ -538,7 +538,7 @@ function devel_shutdown() {
       }
       // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
     }
-    
+
     if ($output) {
       print $output;
     }
@@ -997,10 +997,10 @@ function devel_switch_user($name = NULL) {
 /**
  * Menu callback; prints the loaded structure of the current node/user.
  */
-function devel_load_object($object) {
+function devel_load_object($object, $name = NULL) {
   $title = isset($object->title) ? $object->title : $object->name;
   drupal_set_title(check_plain($title));
-  return kdevel_print_object($object);
+  return kdevel_print_object($object, '$'. $name .'->');
 }
 
 /**
@@ -1013,15 +1013,23 @@ function devel_render_object($type, $object) {
   drupal_set_title(check_plain($title));
   $function = $type. '_build_content';
   $content = $function($object, FALSE, FALSE);
-  return kdevel_print_object($content);
+  return kdevel_print_object($content, '$'. $type .'->');
 }
 
 function devel_elements_page() {
   return kdevel_print_object(module_invoke_all('elements'));
 }
 
-function kdevel_print_object($object) {
-  return has_krumo() ? krumo_ob($object) : devel_print_object($object);
+/**
+ * Print an object or array using either Krumo (if installed) or devel_print_object()
+ *
+ * @param $object
+ *   array or object to print
+ * @param $prefix
+ *   prefixing for output items
+ */
+function kdevel_print_object($object, $prefix = NULL) {
+  return has_krumo() ? krumo_ob($object) : devel_print_object($object, $prefix);
 }
 
 // Save krumo htlm using output buffering.
@@ -1033,23 +1041,93 @@ function krumo_ob($object) {
   return $output;
 }
 
-function devel_print_object($object) {
-  $output = '';
-  foreach ($object as $field => $value) {
-    if (is_null($value)) {
-      $printed_value = 'NULL';
-    }
-    else if (is_array($value) || is_object($value)) {
-      ob_start();
-      print_r($value);
-      $printed_value = ob_get_clean();
-      $printed_value = '<pre>'. check_plain($printed_value) .'</pre>';
-    }
-    else {
-      $printed_value = check_plain($value);
-    }
+/**
+ * Display an object or array
+ *
+ * @param $object
+ *   the object or array
+ * @param $prefix
+ *   prefix for the output items (example "$node->", "$user->", "$")
+ * @param $header
+ *   set to FALSE to suppress the output of the h3
+ */
+function devel_print_object($object, $prefix = NULL, $header = TRUE) {
+  drupal_add_css(drupal_get_path('module', 'devel'). '/devel.css');
+  $output = '<div class="devel-obj-output">';
+  if ($header) {
+    $output .= '<h3>'. t('Display of !type !obj', array('!type' => str_replace(array('$', '->'), '', $prefix), '!obj' => gettype($object))). '</h3>';
+  }
+  $output .= _devel_print_object($object, $prefix);
+  $output .= '</div>';
+  return $output;
+}
 
-    $output .= theme('box', $field, $printed_value);
+/**
+ * Recursive (and therefore magical) function goes through an array or object and
+ * returns a nicely formatted listing of its contents.
+ *
+ * @param $obj
+ *   array or object to recurse through
+ * @param $prefix
+ *   prefix for the output items (example "$node->", "$user->", "$")
+ * @param $parents
+ *   used by recursion
+ * @param $object
+ *   used by recursion
+ * @return
+ *   fomatted html
+ *
+ * @todo
+ *   currently there are problems sending an array with a varname
+ */
+function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = FALSE) {
+
+  static $root_type, $out_format;
+  if (!isset($root_type)) {
+    $root_type = gettype($obj);
+  }
+
+  if (is_object($obj)) {
+    $obj = (array)$obj;
+  }
+  if (is_array($obj)) {
+    $output .= "<dl>\n";
+    foreach($obj as $field => $value) {
+      if ($parents) {
+        if ($object) {
+          $field = $parents .'->'. $field;
+        }
+        else {
+          if (is_int($field)) {
+            $field = $parents .'['. $field .']';
+          }
+          else {
+            $field = $parents .'[\''. $field .'\']';
+          }
+        }
+      }
+
+      $type = "";
+      if (!is_string($value)) {
+        $type = " (". gettype($value) .")";
+      }
+
+      $output .= '<span class="devel-attr">';
+      $output .= "<dt><span class=\"field\">{$prefix}{$field}</span>$type</dt>\n";
+      $output .= "<dd>\n";
+      if (is_array($value)) {
+        $output .= _devel_print_object($value, $prefix, $field);
+      }
+      elseif (is_object($value)) {
+        $output .= _devel_print_object((array)$value, $prefix, $field, TRUE);
+      }
+      else {
+        $value = is_bool($value) ? ($value ? 'TRUE' : 'FALSE') : $value;
+        $output .= htmlspecialchars(print_r($value, TRUE)) ."\n";
+      }
+      $output .= "</dd></span>\n";
+    }
+    $output .= "</dl>\n";
   }
   return $output;
 }
@@ -1209,7 +1287,7 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') 
 }
 
 /**
- * 
+ *
  */
 function dkr($input, $return = FALSE, $name = NULL) {
   require_once './'. drupal_get_path('module', 'devel'). '/krumo/class.krumo.php';
