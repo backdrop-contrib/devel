@@ -163,8 +163,13 @@ function thmrRebuildPopup(objs) {
 
   $('#themer-popup #parents').empty().prepend(parents);
   $('#themer-popup span.parent').click(function() {
-    var obj = $('#'+ $(this).attr('trig')).get(0).firstChild;
-    themerDoIt(obj);
+    $('#'+ $(this).attr('trig')).each(function() { themerDoIt(this) });
+  })
+  .hover(function() {
+    $('#'+ $(this).attr('trig')).trigger('mouseover');
+  },
+  function() {
+    $('#'+ $(this).attr('trig')).trigger('mouseout');
   });
 
   if (vars == undefined) {
