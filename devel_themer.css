@@ -8,10 +8,21 @@
   color: #fff;
 }
 
-#themer-popup {
-  position: absolute;
+#themer-fixeder {
+  position:fixed;
   top: 10px;
   right: 10px;
+}
+
+#themer-relativer {
+  position: relative;
+}
+
+#themer-popup {
+  position: absolute;
+  right: 0;
+  /*top: 10px;
+  right: 10px;*/
   font-family: "Lucida Grande", Helvetica, Arial, sans-serif;
   color: #FFFFFF;
   background-color: #333;
@@ -67,10 +78,14 @@
   margin: 0 0 0 15px;
   display:block;
 }
+
+#themer-popup .devel-obj-output {
+  max-height: 250px;
+  overflow: auto;
+}
 #themer-popup .devel-obj-output dt {
   cursor: pointer;
 }
-
 #themer-popup .devel-obj-output .field {
   color: #CCC;
 }

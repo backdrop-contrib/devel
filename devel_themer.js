@@ -7,6 +7,7 @@ if (Drupal.jsEnabled) {
       // make spans around block elements into block elements themselves
       var kids = $(this).children();
       for(i=0;i<kids.length;i++) {
+        //console.log(kids[i].style.display);
         if (kids[i].clientHeight) {
           $(this).css('display', 'block');
           break;

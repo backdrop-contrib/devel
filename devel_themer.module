@@ -291,6 +291,8 @@ function devel_themer_popup() {
   $intro = t('Click on any element on the page to see the Drupal theme function or template that created it.');
 
   $popup = <<<EOT
+  <div id="themer-fixeder">
+  <div id="themer-relativer">
   <div id="themer-popup">
       <div class="topper">
         <span class="close">X</span> $title
@@ -321,6 +323,8 @@ function devel_themer_popup() {
 
       </div><!-- /attributes -->
     </div><!-- /themer-popup -->
+    </div>
+    </div>
 EOT;
 
   drupal_add_js(array('thmr_popup' => $popup), 'setting');
