@@ -1311,11 +1311,13 @@ function dkr($input, $return = FALSE, $name = NULL) {
  */
 function ddebug_backtrace() {
   if (user_access('access devel information')) {
-    if (function_exists('debug_print_backtrace')) {
-      debug_print_backtrace();
+    $trace = debug_backtrace();
+    array_shift($trace);
+    if (has_krumo()) {
+      print krumo($trace);
     }
     else {
-      dprint_r(debug_backtrace());
+      dprint_r($trace);
     }
   }
 }
