@@ -477,9 +477,17 @@ function devel_exit($destination = NULL) {
 }
 
 /**
- * See devel_start() which registers this function as a shutdown function. Displays developer information in the footer.
+ * See devel_start() which registers this function as a shutdown function. 
  */
 function devel_shutdown() {
+  // Register the real shutdown function so it runs later than other shutdown functions.
+  register_shutdown_function('devel_shutdown_real');
+}
+
+/**
+ * See devel_shutdown() which registers this function as a shutdown function. Displays developer information in the footer.
+ */
+function devel_shutdown_real() {
   global $queries, $memory_init, $user;
   $output = $txt = '';
 
@@ -1081,7 +1089,6 @@ function devel_print_object($object, $prefix = NULL, $header = TRUE) {
  *   currently there are problems sending an array with a varname
  */
 function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = FALSE) {
-
   static $root_type, $out_format;
   if (!isset($root_type)) {
     $root_type = gettype($obj);
@@ -1091,7 +1098,7 @@ function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = F
     $obj = (array)$obj;
   }
   if (is_array($obj)) {
-    $output .= "<dl>\n";
+    $output = "<dl>\n";
     foreach($obj as $field => $value) {
       if ($parents) {
         if ($object) {
