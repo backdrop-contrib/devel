@@ -1,17 +1,28 @@
 if (Drupal.jsEnabled) {
   $(document).ready(function () {
-
-    //theme log
-    /*
-    $('span.thmr_call').each(function () {
-      this.onclick = function () {
-          if (themerEnabled) {
-            id = $(this).attr('id');
-            console.log(id);
-          }
-        };
+    lastObj = false;
+    origBg = null;
+    $('span.thmr_call')
+    .each(function () {
+      // make spans around block elements into block elements themselves
+      var kids = $(this).children();
+      for(i=0;i<kids.length;i++) {
+        if (kids[i].clientHeight) {
+          $(this).css('display', 'block');
+          break;
+        }
+      }
+    })
+    .hover(function () {
+      if (themerEnabled && this.parentNode.nodeName != 'BODY' && $(this).attr('thmr_curr') != 1) {
+        $(this).css('outline', 'red solid 1px');
+      }
+    },
+    function () {
+      if (themerEnabled && $(this).attr('thmr_curr') != 1) {
+        $(this).css('outline', 'none');
+      }
     });
-    */
 
     var themerEnabled = 0;
     var themerToggle = function () {
@@ -20,9 +31,15 @@ if (Drupal.jsEnabled) {
       $('#themer-popup').css('display', themerEnabled ? 'block' : 'none');
       if (themerEnabled) {
         document.onclick = themerEvent;
+        if (lastObj != false) {
+          $(lastObj).css('outline', '3px solid #999');
+        }
       }
       else {
         document.onclick = null;
+        if (lastObj != false) {
+          $(lastObj).css('outline', 'none');
+        }
       }
     };
     $(Drupal.settings.thmr_popup)
@@ -43,6 +60,15 @@ if (Drupal.jsEnabled) {
   });
 }
 
+function themerHilight(obj) {
+  // hilight the current object (and un-highlight the last)
+  if (lastObj != false) {
+    $(lastObj).css('outline', 'none').attr('thmr_curr', 0);
+  }
+  $(obj).css('outline', '#999 solid 3px').attr('thmr_curr', 1);
+  lastObj = obj;
+}
+
 function themerDoIt(obj) {
   //console.log(obj);
   if (thmrInPop(obj)) {
@@ -50,6 +76,7 @@ function themerDoIt(obj) {
   }
   var objs = thmrFindParents(obj);
   if (objs.length) {
+    themerHilight(objs[0]);
     thmrRebuildPopup(objs);
   }
   return false;
@@ -80,6 +107,9 @@ function themerEvent(e) {
  */
 function thmrFindParents(obj) {
   var parents = new Array();
+  if (obj.className == 'thmr_call') {
+    parents[parents.length] = obj;
+  }
   if (obj && obj.parentNode) {
     while (obj = obj.parentNode) {
       if (obj.className == 'thmr_call') {
@@ -132,7 +162,7 @@ function thmrRebuildPopup(objs) {
 
   $('#themer-popup #parents').empty().prepend(parents);
   $('#themer-popup span.parent').click(function() {
-    obj = $('#'+ $(this).attr('trig')).get(0).firstChild;
+    var obj = $('#'+ $(this).attr('trig')).get(0).firstChild;
     themerDoIt(obj);
   });
 
