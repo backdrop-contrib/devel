@@ -1,12 +1,35 @@
 <?php
 
-// $form['dev_theme_log'] = array('#type' => 'checkbox',
-//   '#title' => t('Display theme log'),
-//   '#default_value' => variable_get('dev_theme_log', FALSE),
-//   '#description' => t('Display the list of theme templates and theme functions which could have been be used for a given page. The one that was actually used is bolded.'),
-// );
+
 
 // devel_template_log()
+
+/**
+ * Implementation of hook_menu().
+ */
+function devel_themer_menu() {
+  $items = array();
+  
+  $items['admin/settings/devel_themer'] = array(
+    'title' => 'Devel Themer',
+    'description' =>  t('Display or hide the textual template log'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('devel_themer_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM
+  );
+  return $items;
+}
+
+function devel_themer_admin_settings() {
+  $form['devel_themer_log'] = array('#type' => 'checkbox',
+    '#title' => t('Display theme log'),
+    '#default_value' => variable_get('devel_themer_log', FALSE),
+    '#description' => t('Display the list of theme templates and theme functions which could have been be used for a given page. The one that was actually used is bolded. This is the same data as the represented in the popup, but all calls are listed in chronological order and can alternately be sorted by time.'),
+  );
+  return system_settings_form($form);
+}
+
 
 function devel_themer_init() {
   if (user_access('access devel information')) {
@@ -16,14 +39,14 @@ function devel_themer_init() {
     drupal_add_js($path .'/jquery-ui-drag.min.js');
     devel_themer_popup();
 
-    if (!devel_silent()) {
+    if (!devel_silent() && variable_get('devel_themer_log', FALSE)) {
       register_shutdown_function('devel_themer_shutdown');
     }
   }
 }
 
 function devel_themer_shutdown() {
-  print devel_theme_log();
+  print devel_themer_log();
 }
 
 /**
@@ -51,7 +74,7 @@ function devel_themer_theme_registry_alter($theme_registry) {
  *
  * Not currently used.
  **/
-function devel_theme_log() {
+function devel_themer_log() {
   $extension = devel_get_theme_extension();
   if (isset($GLOBALS['devel_theme_calls'])) {
     foreach ($GLOBALS['devel_theme_calls'] as $counter => $call) {
