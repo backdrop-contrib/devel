@@ -1,19 +1,9 @@
 if (Drupal.jsEnabled) {
   $(document).ready(function () {
     lastObj = false;
-    origBg = null;
+    thmrSpanified = false;
+    //blocks = new Array('DIV', 'P', 'ADDRESS', 'BLOCKQUOTE', 'CENTER', 'DIR', 'DL', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'ISINDEX', 'MENU', 'NOFRAMES', 'NOSCRIPT', 'OL', 'PRE', 'TABLE', 'UL',  'DD', 'DT', 'FRAMESET', 'LI', 'TBODY', 'TD', 'TFOOT', 'TH', 'THEAD', 'TR');
     $('span.thmr_call')
-    .each(function () {
-      // make spans around block elements into block elements themselves
-      var kids = $(this).children();
-      for(i=0;i<kids.length;i++) {
-        //console.log(kids[i].style.display);
-        if (kids[i].clientHeight) {
-          $(this).css('display', 'block');
-          break;
-        }
-      }
-    })
     .hover(function () {
       if (themerEnabled && this.parentNode.nodeName != 'BODY' && $(this).attr('thmr_curr') != 1) {
         $(this).css('outline', 'red solid 1px');
@@ -34,6 +24,20 @@ if (Drupal.jsEnabled) {
         document.onclick = themerEvent;
         if (lastObj != false) {
           $(lastObj).css('outline', '3px solid #999');
+        }
+        if (!thmrSpanified) {
+          $('span.thmr_call')
+            .each(function () {
+              // make spans around block elements into block elements themselves
+              var kids = $(this).children();
+              for(i=0;i<kids.length;i++) {
+                //console.log(kids[i].style.display);
+                if ($(kids[i]).css('display') != 'inline' && $(kids[i]).is('DIV, P, ADDRESS, BLOCKQUOTE, CENTER, DIR, DL, FIELDSET, FORM, H1, H2, H3, H4, H5, H6, HR, ISINDEX, MENU, NOFRAMES, NOSCRIPT, OL, PRE, TABLE, UL,  DD, DT, FRAMESET, LI, TBODY, TD, TFOOT, TH, THEAD, TR')) {
+                  $(this).css('display', 'block');
+                }
+              }
+            });
+            thmrSpanified = true;
         }
       }
       else {
@@ -119,6 +123,29 @@ function thmrFindParents(obj) {
     }
   }
   return parents;
+}
+
+/**
+ * Check to see if object is a block element
+ */
+function thmrIsBlock(obj) {
+  if (obj.style.display == 'block') {
+    return true;
+  }
+  else if (obj.style.display == 'inline' || obj.style.display == 'none') {
+    return false;
+  }
+  if (obj.tagName != undefined) {
+    var i = blocks.length;
+    if (i > 0) {
+      do {
+        if (blocks[i] === obj.tagName) {
+          return true;
+        }
+      } while (i--);
+    }
+  }
+  return false;
 }
 
 function thmrRefreshCollapse() {

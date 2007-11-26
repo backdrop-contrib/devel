@@ -9,7 +9,7 @@
  */
 function devel_themer_menu() {
   $items = array();
-  
+
   $items['admin/settings/devel_themer'] = array(
     'title' => 'Devel Themer',
     'description' =>  t('Display or hide the textual template log'),
@@ -37,6 +37,10 @@ function devel_themer_init() {
     drupal_add_css($path .'/devel_themer.css');
     drupal_add_js($path .'/devel_themer.js');
     drupal_add_js($path .'/jquery-ui-drag.min.js');
+    // these needs to happen after all the other CSS
+    drupal_set_html_head('<!--[if IE]>
+    <link href="' . $path .'/devel_themer_ie_fix.css" rel="stylesheet" type="text/css" media="screen" />
+<![endif]-->');
     devel_themer_popup();
 
     if (!devel_silent() && variable_get('devel_themer_log', FALSE)) {
