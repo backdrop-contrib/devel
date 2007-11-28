@@ -73,6 +73,12 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
+  $items['devel/devel_themer'] = array(
+    'title' => 'Toggle Devel Themer module',
+    'page callback' => 'devel_devel_themer_toggle',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK,
+  );
   $items['devel/menu/reset'] = array(
     'title' => 'Reset menus',
     'page callback' => 'drupal_get_form',
@@ -165,6 +171,16 @@ function devel_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   return $items;
+}
+
+function devel_devel_themer_toggle() {
+  if ($action == 'enable') {
+    module_enable('devel_themer');
+  } 
+  else {
+    module_disable('devel_themer');
+  }
+  drupal_goto();
 }
 
 /**
@@ -308,7 +324,14 @@ function devel_block_devel() {
     $links[] = l(t('Devel settings'), 'admin/settings/devel', array('attributes' => array('title' => t('Adjust module settings for devel module.'))));
     $links[] = l(t('Empty cache'), 'devel/cache/clear', array('attributes' => array('title' => t('Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.')), 'query' => drupal_get_destination()));
     $links[] = l(t('PHPinfo()'), 'devel/phpinfo', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
-
+    $action = module_exists('devel_themer') ? 'Disable' : 'Enable';
+    $links[] = l("Devel Themer: $action", 
+                  'devel/devel_themer/'. strtolower($action), 
+                  array('attributes' => 
+                      array('title' => t("$action the Devel Themer module.")), 
+                      'query' => drupal_get_destination(),
+                  )
+                );
     $mini[] = l(t('func'), 'devel/reference', array('attributes' => array('title' => t('View a list of currently defined user functions with documentation links.'))));
     $mini[] = l(t('theme'), 'devel/theme/registry', array('attributes' => array('title' => t('View a list of available theme functions acros the whole site.'))));
     $mini[] = l(t('elements'), 'devel/elements', array('attributes' => array('title' => t('View the active form/render elements for this site.'))));

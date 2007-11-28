@@ -31,8 +31,10 @@ function devel_themer_menu() {
   return $items;
 }
 
-function devel_themer_toggle($value) {
-  $_SESSION['devel_themer_toggle'] = (int) $value;
+function devel_themer_toggle($action) {
+  $function = $action == 'enable' ? 'module_enable' : 'module_disable';
+  $$function('devel_themer');
+  drupal_set_message(t("Devel Themer module $action"));
   drupal_goto();
 }
 
@@ -135,51 +137,6 @@ function devel_get_theme_extension() {
   }
   return $extension;
 }
-
-/**
- * Log template file suggestions into a $GLOBAL.
-*/
-// function devel_themer_preprocess($vars, $hook) {
-//   $counter = devel_counter();
-//   $GLOBALS['devel_theme_calls'][$counter] = array(
-//     'name' => $hook,
-//     'type' => 'tpl',
-//     'candidates' => $vars['template_files'],
-//   );
-//   // add in a 'template' file if it was declared
-//   if (isset($vars['template_file'])) {
-//     array_unshift($GLOBALS['devel_theme_calls'][$counter]['candidates'] = $vars['template_file']);
-//   }
-//   // add the plain template name
-//   array_unshift($GLOBALS['devel_theme_calls'][$counter]['candidates'], $hook);
-// }
-//
-// // A wrapper function so we can know what template actually got called. Log that info in the GLOBAL for later display.
-// // I found no other easy way to determine this. Patches welcome.
-// function phptemplate_render_template($file, $variables) {
-//   $counter = devel_counter(FALSE);
-//
-//   $timer_name = "thmr_$counter";
-//   timer_start($timer_name);
-//   $output = theme_render_template($file, $variables);
-//   $time = timer_stop($timer_name);
-//   $GLOBALS['devel_theme_calls'][$counter]['time'] = $time['time'];
-//
-//   $GLOBALS['devel_theme_calls'][$counter]['used'] = $file;
-//   $GLOBALS['devel_theme_calls'][$counter]['args'] = $variables;
-//
-//   // awful attempt to get position #2 in the assoc array $variables
-//   $i=0;
-//   foreach ($variables as $key => $var) {
-//     if ($i == 1) {
-//       $name = $key;
-//     }
-//     $i++;
-//   }
-//   list($prefix, $suffix) = devel_theme_call_marker($name, $counter, 'tpl');
-//   drupal_add_js(array("thmr_$counter" => array('arguments' => devel_print_object($variables, '$', FALSE), 'candidates' => array_reverse($GLOBALS['devel_theme_calls'][$counter]['candidates']), 'used' => $GLOBALS['devel_theme_calls'][$counter]['used'])), 'setting', 'header', FALSE, FALSE, FALSE);
-//   return $prefix. "\n  ". $output. "\n". $suffix. "\n";
-// }
 
 /**
  * Intercepts all theme calls (including templates), adds to template log, and dispatches to original theme function.
