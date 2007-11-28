@@ -33,6 +33,7 @@ function devel_themer_menu() {
 
 function devel_themer_toggle($value) {
   $_SESSION['devel_themer_toggle'] = (int) $value;
+  drupal_goto();
 }
 
 function devel_themer_admin_settings() {
@@ -222,11 +223,13 @@ function devel_themer_catch_function() {
     $name = $meta['used'];
     $used = $meta['used'];
     $candidates = array_keys($meta['wildcards']);
+    $args = devel_print_object($meta['variables'], NULL, FALSE);
   }
   else {
     $name = $meta['hook'];
     $candidates = isset($meta['template_files']) ? array_keys($meta['template_files']) : array();
     $used = $meta['template_file'];
+    devel_print_object($meta['variables'], '$', FALSE);
   }
 
   // Log the call
@@ -238,7 +241,7 @@ function devel_themer_catch_function() {
     'used' => $used,
     'candidates' => $candidates,
     // 'suggestions' => isset($suggestions) ? $suggestions : array(),
-    'args' => devel_print_object($meta['variables'], NULL, FALSE),
+    'args' => $args
   );
 
   return isset($output) ? $output : '';
