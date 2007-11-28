@@ -223,7 +223,7 @@ function thmrRebuildPopup(objs) {
     $('#themer-popup div.duration').empty();
   }
   else {
-    $('#themer-popup div.duration').empty().prepend('<dt>' + strs.duration + '</dt><dd>' + vars.duration + ' ms</dd>');
+    $('#themer-popup div.duration').empty().prepend('<span class="dt">' + strs.duration + '</span>' + vars.duration + ' ms');
     if (type == 'func') {
       if (vars.candidates != undefined && vars.candidates.length != 0) {
         // populate the candidates

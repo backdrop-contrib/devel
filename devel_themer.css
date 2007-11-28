@@ -99,7 +99,8 @@
 #themer-popup .info .key {
   font-size: 18px;
 }
-#themer-popup .info dt {
+#themer-popup .info dt,
+#themer-popup .info .dt {
   color: #999;
 }
 
