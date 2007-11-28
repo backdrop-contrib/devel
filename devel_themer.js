@@ -159,23 +159,32 @@ function thmrRefreshCollapse() {
   $('#themer-popup .devel-obj-output dd').hide();
 }
 
+/**
+ * Rebuild the popup
+ *
+ * @param objs
+ *   The array of the current object and its parents. Current object is first element of the array
+ */
 function thmrRebuildPopup(objs) {
   // rebuild the popup box
   var id = objs[0].id;
+  // vars is the settings array element for this theme item
   var vars = Drupal.settings[id];
+  // strs is the translatable strings
   var strs = Drupal.settings.thmrStrings;
   var type = vars.type;
   var key = vars.name;
 
-  //console.log(vars);
-
+  // clear out the initial "click on any element" starter text
   $('#themer-popup div.starter').empty();
 
   if (type == 'func') {
+    // populate the function name
     $('#themer-popup dd.key').empty().prepend('<a href="'+ strs.api_site +'api/search/'+ strs.drupal_version +'/'+ key +'" title="'+ strs.drupal_api_docs +'">'+ key +'()</a>');
     $('#themer-popup dt.key-type').empty().prepend(strs.function_called);
   }
   else {
+    // populate the template name
     $('#themer-popup dd.key').empty().prepend(key);
     $('#themer-popup dt.key-type').empty().prepend(strs.template_called);
   }
@@ -184,29 +193,37 @@ function thmrRebuildPopup(objs) {
   var parents = '';
   parents = strs.parents +' <span class="parents">';
   for(i=1;i<objs.length;i++) {
+    var pvars = Drupal.settings[objs[i].id];
     parents += i!=1 ? '&lt; ' : '';
-    parents += '<span class="parent" trig="'+ objs[i].id +'">'+ $(objs[i]).attr('thmr_key') +'</span> ';
+    // populate the parents
+    // each parent is wrapped with a span containing a 'trig' attribute with the id of the element it represents
+    parents += '<span class="parent" trig="'+ objs[i].id +'">'+ pvars.name +'</span> ';
   }
   parents += '</span>';
-
+  // stick the parents spans in the #parents div
   $('#themer-popup #parents').empty().prepend(parents);
   $('#themer-popup span.parent').click(function() {
+    // make them clickable
     $('#'+ $(this).attr('trig')).each(function() { themerDoIt(this) });
   })
   .hover(function() {
-    $('#'+ $(this).attr('trig')).trigger('mouseover');
-  },
-  function() {
-    $('#'+ $(this).attr('trig')).trigger('mouseout');
-  });
+      // make them highlight their element on mouseover
+      $('#'+ $(this).attr('trig')).trigger('mouseover');
+    },
+    function() {
+      // and unhilight on mouseout
+      $('#'+ $(this).attr('trig')).trigger('mouseout');
+    });
 
   if (vars == undefined) {
+    // if there's no item in the settings array for this element
     $('#themer-popup dd.candidates').empty();
     $('#themer-popup div.attributes').empty();
     $('#themer-popup div.used').empty();
   }
   else {
     if (type == 'func') {
+      // populate the candidates
       $('#themer-popup dt.candidates-type').empty().prepend(strs.candidate_functions);
       $('#themer-popup dd.candidates').empty().prepend(vars.candidates);
 

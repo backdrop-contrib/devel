@@ -153,21 +153,21 @@ function devel_get_theme_extension() {
 //   // add the plain template name
 //   array_unshift($GLOBALS['devel_theme_calls'][$counter]['candidates'], $hook);
 // }
-// 
+//
 // // A wrapper function so we can know what template actually got called. Log that info in the GLOBAL for later display.
 // // I found no other easy way to determine this. Patches welcome.
 // function phptemplate_render_template($file, $variables) {
 //   $counter = devel_counter(FALSE);
-// 
+//
 //   $timer_name = "thmr_$counter";
 //   timer_start($timer_name);
 //   $output = theme_render_template($file, $variables);
 //   $time = timer_stop($timer_name);
 //   $GLOBALS['devel_theme_calls'][$counter]['time'] = $time['time'];
-// 
+//
 //   $GLOBALS['devel_theme_calls'][$counter]['used'] = $file;
 //   $GLOBALS['devel_theme_calls'][$counter]['args'] = $variables;
-// 
+//
 //   // awful attempt to get position #2 in the assoc array $variables
 //   $i=0;
 //   foreach ($variables as $key => $var) {
@@ -192,7 +192,7 @@ function devel_themer_catch_function() {
   $trace = debug_backtrace();
   $hook = $trace[2]['args'][0];
   array_unshift($args, $hook);
-  
+
   $counter = devel_counter();
   $timer_name = "thmr_$counter";
   timer_start($timer_name);
@@ -201,7 +201,7 @@ function devel_themer_catch_function() {
    */
   list($return, $meta) = call_user_func_array('devel_themer_theme_twin', $args);
   $time = timer_stop($timer_name);
-  
+
   $skip = array('hidden');
   if (!empty($return)) {
     list($prefix, $suffix) = devel_theme_call_marker($hook, $counter, 'func');
@@ -211,18 +211,18 @@ function devel_themer_catch_function() {
     // Pass the call to the original function. Wrap as needed.
     if ($start_return != $start_prefix && !in_array($hook, $skip)) {
       $output = $prefix. "\n  ". $return. $suffix. "\n";
-        
+
       if ($meta['type'] == 'func') {
         $name = $meta['used'];
         $used = $meta['used'];
         $candidates = array_keys($meta['wildcards']);
-        $args = devel_print_object($meta['variables'], NULL, FALSE);
+        $variables = devel_print_object($meta['variables'], NULL, FALSE);
       }
       else {
         $name = $meta['hook'];
         $candidates = isset($meta['template_files']) ? array_keys($meta['template_files']) : array();
         $used = $meta['template_file'];
-        devel_print_object($meta['variables'], '$', FALSE);
+        $variables = devel_print_object($meta['variables'], '$', FALSE);
       }
 
       // Log the call. This gets emitted in javascript in hook_exit();
@@ -233,20 +233,20 @@ function devel_themer_catch_function() {
         'time' => $time['time'],
         'used' => $used,
         'candidates' => $candidates,
-        'args' => $args
+        'args' => $variables
       );
     }
     else {
       $output = $return;
     }
   }
-  
+
   return isset($output) ? $output : '';
 }
 
 /**
  * An unfortunate copy/paste of theme(). This one is called by the devel_themer_catch_function()
- * and processes all theme calls but gives us info about the candidates, timings, etc. Without this twin, 
+ * and processes all theme calls but gives us info about the candidates, timings, etc. Without this twin,
  * it was impossible to capture calls to module owned templates (e.g. user_profile) and awkward to determine
  * which template was finally called and how long it took.
  *
@@ -260,7 +260,7 @@ function devel_themer_theme_twin() {
     init_theme();
     $hooks = theme_get_registry();
   }
-  
+
   // Gather all possible wildcard functions.
   $meta['wildcards'] = array();
   if (is_array($hook)) {
@@ -273,7 +273,7 @@ function devel_themer_theme_twin() {
     }
     $hook = $candidate;
   }
-  
+
   $meta['hook'] = $hook;
   // extract the original registry info that we set aside in the devel element.
   $info = $hooks[$hook]['devel_themer'];
@@ -383,7 +383,7 @@ function devel_themer_theme_twin() {
     }
     $output = $render_function($template_file, $variables);
     $meta['template_file'] = $template_file;
-    $meta['variables'] = array_keys($variables);
+    $meta['variables'] = $variables;
   }
   // restore path_to_theme()
   // $theme_path = $temp;
@@ -445,7 +445,7 @@ function devel_themer_popup() {
     , 'setting');
 
   $title = t('Drupal Themer Information');
-  $intro = t('Click on any element on the page to see the Drupal theme function or template that created it.');
+  $intro = t('Click on any element to see information about the Drupal theme function or template that created it.');
 
   $popup = <<<EOT
   <div id="themer-fixeder">
@@ -466,14 +466,14 @@ function devel_themer_popup() {
           <dd class="key">
 
           </dd>
+          <div class="used">
+          </div>
           <dt class="candidates-type">
 
           </dt>
           <dd class="candidates">
 
           </dd>
-          <div class="used">
-          </div>
         </dl>
       </div><!-- /info -->
       <div class="attributes row">

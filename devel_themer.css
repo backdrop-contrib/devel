@@ -35,6 +35,10 @@
   z-index: 10001;
 }
 
+#themer-popup h2, #themer-popup h3, #themer-popup h4 {
+  font-family: "lucida grande", helvetica, arial, sans-serif;
+}
+
 #themer-popup a, #themer-popup a:visited, #themer-popup span.parent {
   color: #FFF;
   text-decoration: none;
