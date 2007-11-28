@@ -162,10 +162,11 @@ function thmrRefreshCollapse() {
 function thmrRebuildPopup(objs) {
   // rebuild the popup box
   var id = objs[0].id;
-  var type = $(objs[0]).attr('thmr_type');
-  var key = $(objs[0]).attr('thmr_key');
   var vars = Drupal.settings[id];
   var strs = Drupal.settings.thmrStrings;
+  var type = vars.type;
+  var key = vars.name;
+
   //console.log(vars);
 
   $('#themer-popup div.starter').empty();
@@ -216,7 +217,7 @@ function thmrRebuildPopup(objs) {
       $('#themer-popup dt.candidates-type').empty().prepend(strs.candidate_files);
       $('#themer-popup dd.candidates').empty().prepend(vars.candidates.join(", "));
 
-      $('#themer-popup div.attributes').empty().prepend('<h4>'+ strs.template_variables + '</h4>' + vars.arguments);
+      $('#themer-popup div.attributes').empty().prepend('<h4>'+ strs.template_variables + '</h4>' + vars.args);
       $('#themer-popup div.used').empty().prepend('<dt>'+ strs.file_used  +'</dt><dd>'+ vars.used +'</dd>');
     }
     thmrRefreshCollapse();
