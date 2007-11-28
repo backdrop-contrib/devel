@@ -220,13 +220,16 @@ function thmrRebuildPopup(objs) {
     $('#themer-popup dd.candidates').empty();
     $('#themer-popup div.attributes').empty();
     $('#themer-popup div.used').empty();
+    $('#themer-popup div.duration').empty();
   }
   else {
+    $('#themer-popup div.duration').empty().prepend('<dt>' + strs.duration + '</dt><dd>' + vars.duration + ' ms</dd>');
     if (type == 'func') {
-      // populate the candidates
-      $('#themer-popup dt.candidates-type').empty().prepend(strs.candidate_functions);
-      $('#themer-popup dd.candidates').empty().prepend(vars.candidates);
-
+      if (vars.candidates != undefined && vars.candidates.length != 0) {
+        // populate the candidates
+        $('#themer-popup dt.candidates-type').empty().prepend(strs.candidate_functions);
+        $('#themer-popup dd.candidates').empty().prepend(vars.candidates.join(', '));
+      }
       $('#themer-popup div.attributes').empty().prepend('<h4>'+ strs.function_arguments + '</h4>' + vars.args);
       $('#themer-popup div.used').empty();
     }

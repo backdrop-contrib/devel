@@ -111,9 +111,9 @@ function devel_themer_log() {
         }
       }
       $name = $call['type'] == 'func' ? $call['name']. '()' : $call['name']. $extension;
-      $rows[] = array($call['time'], $marker. $name, implode(', ', $call['candidates']));
+      $rows[] = array($call['duration'], $marker. $name, implode(', ', $call['candidates']));
     }
-    $header = array('Time (ms)', 'Template/Function', "Candidate template files or function names");
+    $header = array('Duration (ms)', 'Template/Function', "Candidate template files or function names");
     $output = theme('table', $header, $rows);
     return $output;
   }
@@ -230,7 +230,7 @@ function devel_themer_catch_function() {
         'name' => $name,
         'type' => $meta['type'],
         'empty' => empty($return),
-        'time' => $time['time'],
+        'duration' => $time['time'],
         'used' => $used,
         'candidates' => $candidates,
         'args' => $variables
@@ -439,6 +439,7 @@ function devel_themer_popup() {
       'function_arguments' => t('Function Arguments'),
       'template_variables' => t('Template Variables'),
       'file_used' => t('File used: '),
+      'duration' => t('Duration: '),
       'api_site' => variable_get('devel_api_site', 'http://api.drupal.org/'),
       'drupal_version' => $majorver,
     ))
@@ -474,6 +475,7 @@ function devel_themer_popup() {
           <dd class="candidates">
 
           </dd>
+          <div class="duration"></div>
         </dl>
       </div><!-- /info -->
       <div class="attributes row">
