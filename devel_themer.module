@@ -1,9 +1,5 @@
 <?php
 
-
-
-// devel_template_log()
-
 /**
  * Implementation of hook_menu().
  */
@@ -18,7 +14,25 @@ function devel_themer_menu() {
     'access arguments' => array('administer site configuration'),
     'type' => MENU_NORMAL_ITEM
   );
+  $items['devel_themer/enable'] = array(
+    'title' => 'Devel Themer Enable',
+    'page callback' => 'devel_themer_toggle',
+    'page arguments' => array(1),
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['devel_themer/disable'] = array(
+    'title' => 'Devel Themer Enable',
+    'page callback' => 'devel_themer_toggle',
+    'page arguments' => array(0),
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK,
+  );
   return $items;
+}
+
+function devel_themer_toggle($value) {
+  $_SESSION['devel_themer_toggle'] = (int) $value;
 }
 
 function devel_themer_admin_settings() {
@@ -56,27 +70,25 @@ function devel_themer_shutdown() {
 /**
  * An implementation of hook_theme_registry_alter()
  * Iterate over theme registry, injecting our catch function into every theme function.
+ * The catch function logs theme calls and performs divine nastiness.
  *
  * @return void
  **/
 function devel_themer_theme_registry_alter($theme_registry) {
   foreach ($theme_registry as $hook => $data) {
-    if (isset($data['function'])) {
-      // For intercepting theme functions not connected to template files.
+    // if (isset($data['function'])) {
       // Copy over original registry of the hook so it can be caught later.
-      $theme_registry[$hook]['devel'] = $theme_registry[$hook];
-      // Replace the defaults to be intercepted.
-      $theme_registry[$hook]['function'] = 'devel_catch_theme_function';
+      $theme_registry[$hook]['devel_themer'] = $theme_registry[$hook];
+      // Replace with our catch function.
+      $theme_registry[$hook]['function'] = 'devel_themer_catch_function';
       $theme_registry[$hook]['type'] = 'module';
       $theme_registry[$hook]['theme path'] = drupal_get_path('module', 'devel_themer');
-    }
+    // }
   }
 }
 
 /**
  * Show all theme templates and functions that could have been used on this page.
- *
- * Not currently used.
  **/
 function devel_themer_log() {
   $extension = devel_get_theme_extension();
@@ -89,7 +101,7 @@ function devel_themer_log() {
         $used = $call['used'];
         foreach ($call['candidates'] as $key => $value) {
           if ($call['type'] == 'tpl') {
-            $test = $value. $extension == basename($used);
+            $test = $value == basename($used);
           }
           else {
             $test = $value == $used;
@@ -126,122 +138,256 @@ function devel_get_theme_extension() {
 /**
  * Log template file suggestions into a $GLOBAL.
 */
-function devel_themer_preprocess($vars, $hook) {
-  $counter = devel_counter();
-  $GLOBALS['devel_theme_calls'][$counter] = array(
-    'name' => $hook,
-    'type' => 'tpl',
-    'candidates' => $vars['template_files'],
-  );
-  // add in a 'template' file if it was declared
-  if (isset($vars['template_file'])) {
-    array_unshift($GLOBALS['devel_theme_calls'][$counter]['candidates'] = $vars['template_file']);
-  }
-  // add the plain template name
-  array_unshift($GLOBALS['devel_theme_calls'][$counter]['candidates'], $hook);
-}
-
-// A wrapper function so we can know what template actually got called. Log that info in the GLOBAL for later display.
-// I found no other easy way to determine this. Patches welcome.
-function phptemplate_render_template($file, $variables) {
-  $counter = devel_counter(FALSE);
-
-  $timer_name = "thmr_$counter";
-  timer_start($timer_name);
-  $output = theme_render_template($file, $variables);
-  $time = timer_stop($timer_name);
-  $GLOBALS['devel_theme_calls'][$counter]['time'] = $time['time'];
-
-  $GLOBALS['devel_theme_calls'][$counter]['used'] = $file;
-  $GLOBALS['devel_theme_calls'][$counter]['args'] = $variables;
-
-  // awful attempt to get position #2 in the assoc array $variables
-  $i=0;
-  foreach ($variables as $key => $var) {
-    if ($i == 1) {
-      $name = $key;
-    }
-    $i++;
-  }
-  list($prefix, $suffix) = devel_theme_call_marker($name, $counter, 'tpl');
-  drupal_add_js(array("thmr_$counter" => array('arguments' => devel_print_object($variables, '$', FALSE), 'candidates' => array_reverse($GLOBALS['devel_theme_calls'][$counter]['candidates']), 'used' => $GLOBALS['devel_theme_calls'][$counter]['used'])), 'setting', 'header', FALSE, FALSE, FALSE);
-  return $prefix. "\n  ". $output. "\n". $suffix. "\n";
-}
+// function devel_themer_preprocess($vars, $hook) {
+//   $counter = devel_counter();
+//   $GLOBALS['devel_theme_calls'][$counter] = array(
+//     'name' => $hook,
+//     'type' => 'tpl',
+//     'candidates' => $vars['template_files'],
+//   );
+//   // add in a 'template' file if it was declared
+//   if (isset($vars['template_file'])) {
+//     array_unshift($GLOBALS['devel_theme_calls'][$counter]['candidates'] = $vars['template_file']);
+//   }
+//   // add the plain template name
+//   array_unshift($GLOBALS['devel_theme_calls'][$counter]['candidates'], $hook);
+// }
+// 
+// // A wrapper function so we can know what template actually got called. Log that info in the GLOBAL for later display.
+// // I found no other easy way to determine this. Patches welcome.
+// function phptemplate_render_template($file, $variables) {
+//   $counter = devel_counter(FALSE);
+// 
+//   $timer_name = "thmr_$counter";
+//   timer_start($timer_name);
+//   $output = theme_render_template($file, $variables);
+//   $time = timer_stop($timer_name);
+//   $GLOBALS['devel_theme_calls'][$counter]['time'] = $time['time'];
+// 
+//   $GLOBALS['devel_theme_calls'][$counter]['used'] = $file;
+//   $GLOBALS['devel_theme_calls'][$counter]['args'] = $variables;
+// 
+//   // awful attempt to get position #2 in the assoc array $variables
+//   $i=0;
+//   foreach ($variables as $key => $var) {
+//     if ($i == 1) {
+//       $name = $key;
+//     }
+//     $i++;
+//   }
+//   list($prefix, $suffix) = devel_theme_call_marker($name, $counter, 'tpl');
+//   drupal_add_js(array("thmr_$counter" => array('arguments' => devel_print_object($variables, '$', FALSE), 'candidates' => array_reverse($GLOBALS['devel_theme_calls'][$counter]['candidates']), 'used' => $GLOBALS['devel_theme_calls'][$counter]['used'])), 'setting', 'header', FALSE, FALSE, FALSE);
+//   return $prefix. "\n  ". $output. "\n". $suffix. "\n";
+// }
 
 /**
- * Intercepts theme *functions*, adds to template log, and dispatches to original theme function.
+ * Intercepts all theme calls (including templates), adds to template log, and dispatches to original theme function.
  * This function gets injected into theme registry in devel_exit().
  */
-function devel_catch_theme_function() {
-  static $i=0;
+function devel_themer_catch_function() {
   $args = func_get_args();
 
   // Get the function that is normally called.
   $trace = debug_backtrace();
-  $candidates = $trace[2]['args'][0];
-  // The node form has an array of theme functions.
-  if (is_array($candidates)) {
-    foreach ($candidates as $func) {
-      if (function_exists($func)) {
-        $call_theme_func = $func;
-        break;
-      }
-    }
-  }
-  else {
-    $call_theme_func = $candidates;
-  }
-
-  // Get registry for the original function data.
-  $theme_registry = theme_get_registry();
-  $hook_registry_data = $theme_registry[$call_theme_func]['devel'];
-
-  // Include a file if this theme function is held elsewhere. Partial copy of theme().
-  if (!empty($hook_registry_data['file'])) {
-    $function_file = $hook_registry_data['file'];
-    if (isset($hook_registry_data['path'])) {
-      $function_file = $hook_registry_data['path'] .'/'. $function_file;
-    }
-    include_once($function_file);
-  }
-
+  $hook = $trace[2]['args'][0];
+  array_unshift($args, $hook);
+  
   $counter = devel_counter();
-  $output = NULL;
-  $name = $hook_registry_data['function'];
-  $skip = array('theme_hidden');
-
   $timer_name = "thmr_$counter";
   timer_start($timer_name);
-  $return = call_user_func_array($name, $args);
+  /**
+   * The twin of theme(). All rendering done through here.
+   */
+  list($return, $meta) = call_user_func_array('devel_themer_theme_twin', $args);
   $time = timer_stop($timer_name);
-
+  
   if (!empty($return)) {
-    list($prefix, $suffix) = devel_theme_call_marker($name, $counter, 'func');
+    list($prefix, $suffix) = devel_theme_call_marker($hook, $counter, 'func');
     $start_return = substr($return, 0, 31);
     $start_prefix = substr($prefix, 0, 31);
 
+    $skip = array('theme_hidden');
     // Pass the call to the original function. Wrap as needed.
-    if ($start_return != $start_prefix && !in_array($name, $skip)) {
+    if ($start_return != $start_prefix && !in_array($hook, $skip)) {
       $output = $prefix. "\n  ". $return. $suffix. "\n";
-      drupal_add_js(array("thmr_$counter" => array('args' => devel_print_object($args, NULL, FALSE), 'candidates' => $candidates)), 'setting', 'header', FALSE, FALSE, FALSE);
+      // TODO: this is fishy
+      // drupal_add_js(array("thmr_$counter" => array('args' => devel_print_object($args, NULL, FALSE), 'candidates' => $candidates)), 'setting', 'header', FALSE, FALSE, FALSE);
     }
     else {
       $output = $return;
     }
   }
+  
+  if ($meta['type'] == 'func') {
+    $name = $meta['used'];
+    $used = $meta['used'];
+    $candidates = array_keys($meta['wildcards']);
+  }
+  else {
+    $name = $meta['hook'];
+    $candidates = isset($meta['template_files']) ? array_keys($meta['template_files']) : array();
+    $used = $meta['template_file'];
+  }
 
   // Log the call
   $GLOBALS['devel_theme_calls']["thmr_$counter"] = array(
     'name' => $name,
-    'type' => 'func',
-    'args' => $args,
+    'type' => $meta['type'],
     'empty' => empty($return),
     'time' => $time['time'],
-    'used' => $call_theme_func,
-    'candidates' => is_array($trace[2]['args'][0]) ? $trace[2]['args'][0] : array($call_theme_func),
+    'used' => $used,
+    'candidates' => $candidates,
+    // 'suggestions' => isset($suggestions) ? $suggestions : array(),
+    'args' => devel_print_object($meta['variables'], NULL, FALSE),
   );
 
-  return $output;
+  return isset($output) ? $output : '';
+}
+
+/**
+ * An unfortunate copy/paste of theme(). This one is called by the devel_themer_catch_function()
+ * and processes all theme calls but gives us info about the candidates, timings, etc. Without this twin, 
+ * it was impossible to capture calls to module owned templates (e.g. user_profile) and awkward to determine
+ * which template was finally called and how long it took.
+ *
+ **/
+function devel_themer_theme_twin() {
+  $args = func_get_args();
+  $hook = array_shift($args);
+
+  static $hooks = NULL;
+  if (!isset($hooks)) {
+    init_theme();
+    $hooks = theme_get_registry();
+  }
+  
+  // Gather all possible wildcard functions.
+  $meta['wildcards'] = array();
+  if (is_array($hook)) {
+    foreach ($hook as $candidate) {
+      $meta['wildcards'][$candidate] = FALSE;
+      if (isset($hooks[$candidate])) {
+        $meta['wildcards'][$candidate] = TRUE;
+        break;
+      }
+    }
+    $hook = $candidate;
+  }
+  
+  $meta['hook'] = $hook;
+  // extract the original registry info that we set aside in the devel element.
+  $info = $hooks[$hook]['devel_themer'];
+
+  global $theme_path;
+  $temp = $theme_path;
+  $meta['path'] = $theme_path;
+  // point path_to_theme() to the currently used theme path:
+  // MW: hope this isn't needed
+  // $theme_path = $info[$hook]['theme path'];
+
+  // Include a file if the theme function or preprocess function is held elsewhere.
+  if (!empty($info['file'])) {
+    $include_file = $info['file'];
+    if (isset($info['path'])) {
+      $include_file = $info['path'] .'/'. $include_file;
+    }
+    include_once($include_file);
+  }
+  if (isset($info['function'])) {
+    // The theme call is a function.
+    $output = call_user_func_array($info['function'], $args);
+    $meta['type'] = 'func';
+    $meta['used'] = $info['function'];
+    $meta['variables'] = $args;
+  }
+  else {
+    // The theme call is a template.
+    $meta['type'] = 'tpl';
+    $variables = array(
+      'template_files' => array()
+    );
+    if (!empty($info['arguments'])) {
+      $count = 0;
+      foreach ($info['arguments'] as $name => $default) {
+        $variables[$name] = isset($args[$count]) ? $args[$count] : $default;
+        $count++;
+      }
+    }
+
+    // default render function and extension.
+    $render_function = 'theme_render_template';
+    $extension = '.tpl.php';
+
+    // Run through the theme engine variables, if necessary
+    global $theme_engine;
+    if (isset($theme_engine)) {
+      // If theme or theme engine is implementing this, it may have
+      // a different extension and a different renderer.
+      if ($hooks[$hook]['type'] != 'module') {
+        if (function_exists($theme_engine .'_render_template')) {
+          $render_function = $theme_engine .'_render_template';
+        }
+        $extension_function = $theme_engine .'_extension';
+        if (function_exists($extension_function)) {
+          $extension = $extension_function();
+        }
+      }
+    }
+    $meta['extension'] = $extension;
+
+    if (isset($info['preprocess functions']) && is_array($info['preprocess functions'])) {
+      // This construct ensures that we can keep a reference through
+      // call_user_func_array.
+      $args = array(&$variables, $hook);
+      foreach ($info['preprocess functions'] as $preprocess_function) {
+        if (function_exists($preprocess_function)) {
+          call_user_func_array($preprocess_function, $args);
+        }
+      }
+      // $meta['preprocess functions'] = $info['preprocess functions'];
+    }
+
+    // Get suggestions for alternate templates out of the variables
+    // that were set. This lets us dynamically choose a template
+    // from a list. The order is FILO, so this array is ordered from
+    // least appropriate first to most appropriate last.
+    $suggestions = array();
+
+    if (isset($variables['template_files'])) {
+      $suggestions = $variables['template_files'];
+    }
+    if (isset($variables['template_file'])) {
+      $suggestions[] = $variables['template_file'];
+    }
+
+    if ($suggestions) {
+      $template_file = drupal_discover_template($info['theme paths'], $suggestions, $extension);
+      // Log all the candidate files and note which was actually used.
+      foreach ($suggestions as $candidate) {
+        $meta['template_files'][$candidate . $extension] = FALSE;
+        if ($candidate . $extension == $template_file) {
+          $meta['template_files'][$candidate . $extension] = TRUE;
+        }
+        elseif (file_exists(path_to_theme() .'/'. $candidate . $extension)) {
+          $meta['template_files'][$candidate . $extension] = NULL;
+        }
+      }
+    }
+
+    if (empty($template_file)) {
+      $template_file = $hooks[$hook]['template'] . $extension;
+      $meta['template_files'][$template_file] = TRUE;
+      if (isset($hooks[$hook]['path'])) {
+        $template_file = $hooks[$hook]['path'] .'/'. $template_file;
+      }
+    }
+    $output = $render_function($template_file, $variables);
+    $meta['template_file'] = $template_file;
+    $meta['variables'] = array_keys($variables);
+  }
+  // restore path_to_theme()
+  // $theme_path = $temp;
+  return array($output, $meta);
 }
 
 /**
@@ -249,8 +395,15 @@ function devel_catch_theme_function() {
  *
  * @return void
  **/
-function devel_themer_footer() {
-  drupal_add_js(array("devel_themer" => $GLOBALS['devel_theme_calls']), 'setting', 'footer', FALSE, FALSE, FALSE);
+// function devel_themer_footer() {
+//   drupal_add_js(array("devel_themer" => $GLOBALS['devel_theme_calls']), 'setting', 'footer', FALSE, FALSE, FALSE);
+// }
+
+// we emit the huge js array here instead of hook_footer so we can catch theme('page')
+function devel_themer_exit() {
+  if (!empty($GLOBALS['devel_theme_calls'])) {
+    print '<script type="text/javascript">jQuery.extend(Drupal.settings, '.  drupal_to_js($GLOBALS['devel_theme_calls']) .");</script>\n";
+  }
 }
 
 function devel_theme_call_marker($name, $counter, $type) {
@@ -332,5 +485,4 @@ function devel_themer_popup() {
 EOT;
 
   drupal_add_js(array('thmr_popup' => $popup), 'setting');
-
 }
