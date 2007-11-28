@@ -202,48 +202,45 @@ function devel_themer_catch_function() {
   list($return, $meta) = call_user_func_array('devel_themer_theme_twin', $args);
   $time = timer_stop($timer_name);
   
+  $skip = array('hidden');
   if (!empty($return)) {
     list($prefix, $suffix) = devel_theme_call_marker($hook, $counter, 'func');
     $start_return = substr($return, 0, 31);
     $start_prefix = substr($prefix, 0, 31);
 
-    $skip = array('theme_hidden');
     // Pass the call to the original function. Wrap as needed.
     if ($start_return != $start_prefix && !in_array($hook, $skip)) {
       $output = $prefix. "\n  ". $return. $suffix. "\n";
-      // TODO: this is fishy
-      // drupal_add_js(array("thmr_$counter" => array('args' => devel_print_object($args, NULL, FALSE), 'candidates' => $candidates)), 'setting', 'header', FALSE, FALSE, FALSE);
+        
+      if ($meta['type'] == 'func') {
+        $name = $meta['used'];
+        $used = $meta['used'];
+        $candidates = array_keys($meta['wildcards']);
+        $args = devel_print_object($meta['variables'], NULL, FALSE);
+      }
+      else {
+        $name = $meta['hook'];
+        $candidates = isset($meta['template_files']) ? array_keys($meta['template_files']) : array();
+        $used = $meta['template_file'];
+        devel_print_object($meta['variables'], '$', FALSE);
+      }
+
+      // Log the call. This gets emitted in javascript in hook_exit();
+      $GLOBALS['devel_theme_calls']["thmr_$counter"] = array(
+        'name' => $name,
+        'type' => $meta['type'],
+        'empty' => empty($return),
+        'time' => $time['time'],
+        'used' => $used,
+        'candidates' => $candidates,
+        'args' => $args
+      );
     }
     else {
       $output = $return;
     }
   }
   
-  if ($meta['type'] == 'func') {
-    $name = $meta['used'];
-    $used = $meta['used'];
-    $candidates = array_keys($meta['wildcards']);
-    $args = devel_print_object($meta['variables'], NULL, FALSE);
-  }
-  else {
-    $name = $meta['hook'];
-    $candidates = isset($meta['template_files']) ? array_keys($meta['template_files']) : array();
-    $used = $meta['template_file'];
-    devel_print_object($meta['variables'], '$', FALSE);
-  }
-
-  // Log the call
-  $GLOBALS['devel_theme_calls']["thmr_$counter"] = array(
-    'name' => $name,
-    'type' => $meta['type'],
-    'empty' => empty($return),
-    'time' => $time['time'],
-    'used' => $used,
-    'candidates' => $candidates,
-    // 'suggestions' => isset($suggestions) ? $suggestions : array(),
-    'args' => $args
-  );
-
   return isset($output) ? $output : '';
 }
 
