@@ -79,6 +79,12 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
+  $items['devel/source'] = array(
+    'title' => 'Display the PHP code of any file in your Drupal installation',
+    'page callback' => 'devel_display_source',
+    'access arguments' => array('display source code'),
+    'type' => MENU_CALLBACK,
+  );
   $items['devel/menu/reset'] = array(
     'title' => 'Reset menus',
     'page callback' => 'drupal_get_form',
@@ -176,7 +182,7 @@ function devel_menu() {
 function devel_devel_themer_toggle($action) {
   if ($action == 'enable') {
     module_enable(array('devel_themer'));
-  } 
+  }
   else {
     module_disable(array('devel_themer'));
   }
@@ -193,6 +199,65 @@ function devel_theme() { // &$cache, $type, $theme, $path
         'arguments' => array('form' => NULL)
     ),
   );
+}
+
+
+/**
+ * Page callback to display syntax hilighted source code
+ *
+ * note: the path for this function is received via $_GET['path']
+ *  example http://www.example.com/devel/source?file=modules/node/node.module
+ *
+ * @param $standalone
+ *   Set to FALSE to place the code inside a Drupal page. Otherwise code displays on its own.
+ */
+function devel_display_source($standalone = TRUE) {
+  $path = $_GET['file'];
+  // take out the nasties
+  $path = str_replace('../', '', $path);
+  $output = devel_highlight_file($path, $standalone);
+  if ($output) {
+    if ($standalone) {
+      print $output;
+      exit();
+    }
+    return $output;
+  }
+  else {
+    drupal_set_message(t('Invalid file path'), 'error');
+    drupal_not_found();
+  }
+}
+
+/**
+ * Return PHP highlighted file
+ *
+ * @param $path
+ *   path to the file
+ *    *warning* there is NO VALIDATION in this function
+ *    Beware of paths such as '../../../../../etc/apache/httpd.conf'
+ *
+ * @param $standalone
+ *   should the returned HTML be wrapped in a full <html> page or will it be output by Drupal?
+ */
+function devel_highlight_file($path = NULL, $standalone = FALSE) {
+  if (file_exists($path)) {
+    $source = highlight_file($path, TRUE);
+    // add anchor links before all functions
+    // with doxygen
+    $source = preg_replace('!(\/\*\*.*?\*\/.*?)<br.*?function.*?#0000BB">(.*?)<\/span>!', '<a id="$2"></a> $0', $source);
+    //$source = preg_replace('!(\/\*\*.*?\*\/).*?function.*?#0000BB">(.*?)<\/span>!', '<a id="$2"></a> $0', $source);
+    if ($standalone) {
+      $source = <<<EOT
+<head><title>$path</title></head>
+<body>$source</body>
+EOT;
+    }
+    return $source;
+  }
+  else {
+    return FALSE;
+  }
 }
 
 /**
@@ -285,7 +350,7 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
  * Implementation of hook_perm().
  */
 function devel_perm() {
-  return array('access devel information', 'execute php code', 'switch users');
+  return array('access devel information', 'execute php code', 'switch users', 'display source code');
 }
 
 /**
@@ -326,10 +391,10 @@ function devel_block_devel() {
     $links[] = l(t('Empty cache'), 'devel/cache/clear', array('attributes' => array('title' => t('Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.')), 'query' => drupal_get_destination()));
     $links[] = l(t('PHPinfo()'), 'devel/phpinfo', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
     $action = module_exists('devel_themer') ? 'Disable' : 'Enable';
-    $links[] = l("Devel Themer: $action", 
-                  'devel/devel_themer/'. strtolower($action), 
-                  array('attributes' => 
-                      array('title' => t("$action the Devel Themer module.")), 
+    $links[] = l("Devel Themer: $action",
+                  'devel/devel_themer/'. strtolower($action),
+                  array('attributes' =>
+                      array('title' => t("$action the Devel Themer module.")),
                       'query' => drupal_get_destination(),
                   )
                 );
@@ -1151,12 +1216,15 @@ function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = F
               $summary = t("{empty}");
             }
             elseif (strlen($value) < 40) {
-              $summary = '"'. $value .'"';
+              $summary = $value;
+            }
+            else {
+              $summary = format_plural(drupal_strlen($value), '1 character', '@count characters');
             }
             break;
           case 'array' :
           case 'object' :
-            $summary = format_plural(count($value), '1 element', '@count elements');
+            $summary = format_plural(count((array)$value), '1 element', '@count elements');
             break;
           case 'boolean' :
             $summary = $value ? t('TRUE') : t('FALSE');
