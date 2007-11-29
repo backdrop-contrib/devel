@@ -209,7 +209,6 @@ function devel_themer_catch_function() {
       $GLOBALS['devel_theme_calls']["thmr_$counter"] = array(
         'name' => $name,
         'type' => $meta['type'],
-        'empty' => empty($return),
         'duration' => $time['time'],
         'used' => $used,
         'candidates' => $candidates,
