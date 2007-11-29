@@ -1216,7 +1216,7 @@ function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = F
               $summary = t("{empty}");
             }
             elseif (strlen($value) < 40) {
-              $summary = $value;
+              $summary = htmlspecialchars($value);
             }
             else {
               $summary = format_plural(drupal_strlen($value), '1 character', '@count characters');
