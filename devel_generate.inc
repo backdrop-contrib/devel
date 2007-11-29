@@ -409,10 +409,55 @@ function devel_generate_add_upload(&$node) {
   $node->files[$file->fid] = $file;
 }
 
-// Enrich the $node that is about to be saved with arbitrary information in each of its CCK fields.
-// Not yet implemented by CCK fields. See http://drupal.org/node/187599 for status.
+/**
+ * Enrich the $node that is about to be saved with arbitrary information in each of its CCK fields.
+ * Not yet implemented by CCK fields. See http://drupal.org/node/187599 for status.
+ *
+ * Borrows from _content_field_invoke() but calls fields multiple times if content.module handles multiples.
+ * 
+ * @return void
+ **/
 function devel_generate_fields(&$node) {
- $return = _content_field_invoke('generate', $node);
- $array_node = array_merge((array)$node, $return);
- $node = (object)$array_node;
+  $type_name = $node->type;
+  $type = content_types($type_name);
+  $field_types = _content_field_types();
+
+  $return = array();
+  if (!empty($type['fields'])) {
+    foreach ($type['fields'] as $field) {
+      // If module handles own multiples, then only call its hook once.
+      if (content_callback('field', 'multiple values', $field) != CONTENT_CALLBACK_DEFAULT) {
+        $max = 1;
+      }
+      else {
+        switch ($field['multiple']) {
+          case 0:
+            $max = 0;
+            break;
+          case 1:
+            $max = 2; //just an arbitrary number for 'unlimited'
+            break;
+          default:
+            $max = $field['multiple'];
+            break;
+        }
+      }
+
+      for ($i=0; $i <= $max; $i++) {
+         $module = $field_types[$field['type']]['module'];
+        $function = $module .'_content_generate';
+        if (function_exists($function)) {
+          $result = $function($op, $node, $field); // $items, $teaser, $page
+          if (is_array($result)) {
+            $return = array_merge($return, $result);
+          }
+          else if (isset($result)) {
+            $return[] = $result;
+          }
+        }
+      }
+
+      $node->$field['field_name'] = $return;
+    }
+  }
 }

@@ -54,7 +54,7 @@ function devel_themer_init() {
     drupal_add_css($path .'/devel_themer.css');
     drupal_add_js($path .'/devel_themer.js');
     drupal_add_js($path .'/jquery-ui-drag.min.js');
-    // these needs to happen after all the other CSS
+    // This needs to happen after all the other CSS.
     drupal_set_html_head('<!--[if IE]>
     <link href="' . $path .'/devel_themer_ie_fix.css" rel="stylesheet" type="text/css" media="screen" />
 <![endif]-->');
@@ -79,14 +79,12 @@ function devel_themer_shutdown() {
  **/
 function devel_themer_theme_registry_alter($theme_registry) {
   foreach ($theme_registry as $hook => $data) {
-    // if (isset($data['function'])) {
-      // Copy over original registry of the hook so it can be caught later.
-      $theme_registry[$hook]['devel_themer'] = $theme_registry[$hook];
-      // Replace with our catch function.
-      $theme_registry[$hook]['function'] = 'devel_themer_catch_function';
-      $theme_registry[$hook]['type'] = 'module';
-      $theme_registry[$hook]['theme path'] = drupal_get_path('module', 'devel_themer');
-    // }
+    // Copy over original registry of the hook so it can be caught later.
+    $theme_registry[$hook]['devel_themer'] = $theme_registry[$hook];
+    // Replace with our catch function.
+    $theme_registry[$hook]['function'] = 'devel_themer_catch_function';
+    $theme_registry[$hook]['type'] = 'module';
+    $theme_registry[$hook]['theme path'] = drupal_get_path('module', 'devel_themer');
   }
 }
 
@@ -94,7 +92,7 @@ function devel_themer_theme_registry_alter($theme_registry) {
  * Show all theme templates and functions that could have been used on this page.
  **/
 function devel_themer_log() {
-  $extension = devel_get_theme_extension();
+  $extension = devel_themer_get_extension();
   if (isset($GLOBALS['devel_theme_calls'])) {
     foreach ($GLOBALS['devel_theme_calls'] as $counter => $call) {
       $id = "devel_theme_log_link_$counter";
@@ -122,7 +120,7 @@ function devel_themer_log() {
 }
 
 // Would be nice if theme() broke this into separate function so we don't copy logic here. this one is better - has cache
-function devel_get_theme_extension() {
+function devel_themer_get_extension() {
   global $theme_engine;
   static $extension = NULL;
 
@@ -153,9 +151,8 @@ function devel_themer_catch_function() {
   $counter = devel_counter();
   $timer_name = "thmr_$counter";
   timer_start($timer_name);
-  /**
-   * The twin of theme(). All rendering done through here.
-   */
+
+  // The twin of theme(). All rendering done through here.
   list($return, $meta) = call_user_func_array('devel_themer_theme_twin', $args);
   $time = timer_stop($timer_name);
 
@@ -176,7 +173,7 @@ function devel_themer_catch_function() {
         $variables = devel_print_object($meta['variables'], NULL, FALSE);
       }
       else {
-        $name = $meta['hook'];
+        $name = $meta['hook']. devel_themer_get_extension();
         $candidates = isset($meta['template_files']) ? array_keys($meta['template_files']) : array();
         $used = $meta['template_file'];
         $variables = devel_print_object($meta['variables'], '$', FALSE);
@@ -239,7 +236,7 @@ function devel_themer_theme_twin() {
   $temp = $theme_path;
   $meta['path'] = $theme_path;
   // point path_to_theme() to the currently used theme path:
-  // MW: hope this isn't needed
+  // MW: not needed
   // $theme_path = $info[$hook]['theme path'];
 
   // Include a file if the theme function or preprocess function is held elsewhere.
@@ -290,7 +287,6 @@ function devel_themer_theme_twin() {
         }
       }
     }
-    $meta['extension'] = $extension;
 
     if (isset($info['preprocess functions']) && is_array($info['preprocess functions'])) {
       // This construct ensures that we can keep a reference through
@@ -347,15 +343,6 @@ function devel_themer_theme_twin() {
   return array($output, $meta);
 }
 
-/**
- * An implementation of hook_footer(). Emit huge js array for the benefit of the popup.
- *
- * @return void
- **/
-// function devel_themer_footer() {
-//   drupal_add_js(array("devel_themer" => $GLOBALS['devel_theme_calls']), 'setting', 'footer', FALSE, FALSE, FALSE);
-// }
-
 // we emit the huge js array here instead of hook_footer so we can catch theme('page')
 function devel_themer_exit() {
   if (!empty($GLOBALS['devel_theme_calls'])) {
@@ -365,7 +352,7 @@ function devel_themer_exit() {
 
 function devel_theme_call_marker($name, $counter, $type) {
   $id = "thmr_". $counter;
-  return array("<span id=\"$id\" thmr_key=\"$name\" thmr_type=\"$type\" class=\"thmr_call\">", "</span>\n");
+  return array("<span id=\"$id\" class=\"thmr_call\">", "</span>\n");
 }
 
 // just hand out next counter, or return current value
