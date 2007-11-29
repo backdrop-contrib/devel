@@ -31,6 +31,11 @@ function devel_themer_menu() {
   return $items;
 }
 
+/**
+ * A menu callback. Usually called from the devel block. 
+ * 
+ * @return void
+ */
 function devel_themer_toggle($action) {
   $function = $action == 'enable' ? 'module_enable' : 'module_disable';
   $$function('devel_themer');
@@ -169,7 +174,7 @@ function devel_themer_catch_function() {
   $time = timer_stop($timer_name);
 
   $skip = array('hidden');
-  if (!empty($return) && !is_array($return) && !is_object($return)) {
+  if (!empty($return) && !is_array($return) && !is_object($return) && user_access('access devel information')) {
     list($prefix, $suffix) = devel_theme_call_marker($hook, $counter, 'func');
     $start_return = substr($return, 0, 31);
     $start_prefix = substr($prefix, 0, 31);
