@@ -297,7 +297,6 @@ function devel_themer_theme_twin() {
           call_user_func_array($preprocess_function, $args);
         }
       }
-      // $meta['preprocess functions'] = $info['preprocess functions'];
     }
 
     // Get suggestions for alternate templates out of the variables
