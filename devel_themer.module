@@ -182,6 +182,16 @@ function devel_themer_catch_function() {
         $name = $meta['used'];
         $used = $meta['used'];
         $candidates = array_map('devel_themer_ancestry', !empty($meta['wildcards']) ? array_keys($meta['wildcards']) : array($hook));
+        if (count($candidates) > 1) {
+          foreach ($candidates as $candidate) {
+            $candidates_html_arr[] = implode(' ', $candidate);
+          }
+          $candidates_html = theme_item_list($candidates_html_arr);
+          unset($candidates_html_arr);
+        }
+        else {
+          $candidates_html = implode(' ', $candidates[0]);
+        }
         $variables = devel_print_object($meta['variables'], NULL, FALSE);
       }
       else {
@@ -190,6 +200,7 @@ function devel_themer_catch_function() {
           array_unshift($meta['suggestions'], $meta['hook']);
         }
         $candidates = array_reverse(array_map('devel_themer_append_extension', $meta['suggestions']));
+        $candidates_html = implode(' ', $candidates);
         $used = $meta['template_file'];
         $variables = devel_print_object($meta['variables'], '$', FALSE);
       }
@@ -202,6 +213,7 @@ function devel_themer_catch_function() {
         'duration' => $time['time'],
         'used' => $used,
         'candidates' => $candidates,
+        'candidates_html' => $candidates_html,
         'args' => $variables
       );
     }
