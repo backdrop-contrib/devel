@@ -115,6 +115,16 @@
   color: #999;
 }
 
+#themer-popup .item-list ul li {
+  background: none;
+  list-style-type: none;
+  padding: 0 0 0 .5em;
+  text-indent: -.5em;
+}
+#themer-popup .item-list ul li:before {
+  content: "- ";
+}
+
 #themer-toggle {
   position: fixed;
   bottom: 0;
