@@ -84,6 +84,9 @@
   margin: 0 0 0 15px;
   display:block;
 }
+#themer-popup dd.candidates {
+  word-spacing: 10px;
+}
 
 #themer-popup .devel-obj-output {
   max-height: 250px;

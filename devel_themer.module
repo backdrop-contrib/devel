@@ -106,7 +106,7 @@ function devel_themer_log() {
               $items[] = "<strong>$used</strong>";
             }
             else {
-              $items[] = $item;              
+              $items[] = $item;
             }
           }
         }
@@ -118,7 +118,7 @@ function devel_themer_log() {
             $items[] = "<strong>$used</strong>";
           }
           else {
-            $items[] = $item;              
+            $items[] = $item;
           }
         }
       }
@@ -238,7 +238,7 @@ function devel_themer_ancestry($call) {
     $prefixes[] = $theme;
     $prefixes = array_filter($prefixes);
   }
-  
+
   foreach ($prefixes as $prefix) {
     $candidates[] = $prefix. '_'. $call;
   }
@@ -422,6 +422,7 @@ function devel_themer_popup() {
       'duration' => t('Duration: '),
       'api_site' => variable_get('devel_api_site', 'http://api.drupal.org/'),
       'drupal_version' => $majorver,
+      'source_link' => url('devel/source', array('query' => array('file' => ''))),
     ))
     , 'setting');
 

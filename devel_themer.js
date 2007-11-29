@@ -228,17 +228,17 @@ function thmrRebuildPopup(objs) {
       if (vars.candidates != undefined && vars.candidates.length != 0) {
         // populate the candidates
         $('#themer-popup dt.candidates-type').empty().prepend(strs.candidate_functions);
-        $('#themer-popup dd.candidates').empty().prepend(vars.candidates.join(', '));
+        $('#themer-popup dd.candidates').empty().prepend(vars.candidates.join(' '));
       }
       $('#themer-popup div.attributes').empty().prepend('<h4>'+ strs.function_arguments + '</h4>' + vars.args);
       $('#themer-popup div.used').empty();
     }
     else {
       $('#themer-popup dt.candidates-type').empty().prepend(strs.candidate_files);
-      $('#themer-popup dd.candidates').empty().prepend(vars.candidates.join(", "));
+      $('#themer-popup dd.candidates').empty().prepend(vars.candidates.join(" "));
 
       $('#themer-popup div.attributes').empty().prepend('<h4>'+ strs.template_variables + '</h4>' + vars.args);
-      $('#themer-popup div.used').empty().prepend('<dt>'+ strs.file_used  +'</dt><dd>'+ vars.used +'</dd>');
+      $('#themer-popup div.used').empty().prepend('<dt>'+ strs.file_used  +'</a></dt><dd><a href="'+ strs.source_link + vars.used +'">'+ vars.used +'</a></dd>');
     }
     thmrRefreshCollapse();
   }
