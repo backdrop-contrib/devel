@@ -85,7 +85,7 @@
   display:block;
 }
 #themer-popup dd.candidates {
-  word-spacing: 10px;
+  word-spacing: .7em;
 }
 
 #themer-popup .devel-obj-output {
