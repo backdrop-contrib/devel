@@ -92,26 +92,38 @@ function devel_themer_theme_registry_alter($theme_registry) {
  * Show all theme templates and functions that could have been used on this page.
  **/
 function devel_themer_log() {
-  $extension = devel_themer_get_extension();
   if (isset($GLOBALS['devel_theme_calls'])) {
     foreach ($GLOBALS['devel_theme_calls'] as $counter => $call) {
       $id = "devel_theme_log_link_$counter";
       $marker = "<div id=\"$id\" class=\"devel_theme_log_link\"></div>\n";
 
-      if (count($call['candidates']) > 1) {
-        $used = $call['used'];
-        foreach ($call['candidates'] as $key => $value) {
-          if ($call['type'] == 'tpl') {
-            $test = $value == basename($used);
+      $used = $call['used'];
+      if ($call['type'] == 'func') {
+        $name = $call['name']. '()';
+        foreach ($call['candidates'] as $candidate) {
+          foreach ($candidate as $item) {
+            if ($item == $used) {
+              $items[] = "<strong>$used</strong>";
+            }
+            else {
+              $items[] = $item;              
+            }
           }
-          else {
-            $test = $value == $used;
-          }
-          $call['candidates'][$key] = $test ? "<strong>$used</strong>" : $value;
         }
       }
-      $name = $call['type'] == 'func' ? $call['name']. '()' : $call['name']. $extension;
-      $rows[] = array($call['duration'], $marker. $name, implode(', ', $call['candidates']));
+      else {
+        $name = $call['name'];
+        foreach ($call['candidates'] as $item) {
+          if ($item == basename($used)) {
+            $items[] = "<strong>$used</strong>";
+          }
+          else {
+            $items[] = $item;              
+          }
+        }
+      }
+      $rows[] = array($call['duration'], $marker. $name, implode(', ', $items));
+      unset($items);
     }
     $header = array('Duration (ms)', 'Template/Function', "Candidate template files or function names");
     $output = theme('table', $header, $rows);
@@ -169,12 +181,15 @@ function devel_themer_catch_function() {
       if ($meta['type'] == 'func') {
         $name = $meta['used'];
         $used = $meta['used'];
-        $candidates = array_keys($meta['wildcards']);
+        $candidates = array_map('devel_themer_ancestry', !empty($meta['wildcards']) ? array_keys($meta['wildcards']) : array($hook));
         $variables = devel_print_object($meta['variables'], NULL, FALSE);
       }
       else {
         $name = $meta['hook']. devel_themer_get_extension();
-        $candidates = isset($meta['template_files']) ? array_keys($meta['template_files']) : array();
+        if (empty($suggestions)) {
+          array_unshift($meta['suggestions'], $meta['hook']);
+        }
+        $candidates = array_reverse(array_map('devel_themer_append_extension', $meta['suggestions']));
         $used = $meta['template_file'];
         $variables = devel_print_object($meta['variables'], '$', FALSE);
       }
@@ -196,6 +211,38 @@ function devel_themer_catch_function() {
   }
 
   return isset($output) ? $output : '';
+}
+
+function devel_themer_append_extension($string) {
+  return $string. devel_themer_get_extension();
+}
+
+/**
+ * For  given theme *function* call, return the ancestry of function names which could have handled the call.
+ * This mimics the way the theme registry is built.
+ *
+ * @return array()
+ *   A list of function names.
+ **/
+function devel_themer_ancestry($call) {
+  global $theme, $theme_engine, $base_theme_info;
+  static $prefixes;
+  if (!isset($prefixes)) {
+    $prefixes[] = 'theme';
+    if (isset($base_theme_info)) {
+      foreach ($base_theme_info as $base) {
+        $prefixes[] = $base->name;
+      }
+    }
+    $prefixes[] = $theme_engine;
+    $prefixes[] = $theme;
+    $prefixes = array_filter($prefixes);
+  }
+  
+  foreach ($prefixes as $prefix) {
+    $candidates[] = $prefix. '_'. $call;
+  }
+  return array_reverse($candidates);
 }
 
 /**
@@ -314,26 +361,16 @@ function devel_themer_theme_twin() {
 
     if ($suggestions) {
       $template_file = drupal_discover_template($info['theme paths'], $suggestions, $extension);
-      // Log all the candidate files and note which was actually used.
-      foreach ($suggestions as $candidate) {
-        $meta['template_files'][$candidate . $extension] = FALSE;
-        if ($candidate . $extension == $template_file) {
-          $meta['template_files'][$candidate . $extension] = TRUE;
-        }
-        elseif (file_exists(path_to_theme() .'/'. $candidate . $extension)) {
-          $meta['template_files'][$candidate . $extension] = NULL;
-        }
-      }
     }
 
     if (empty($template_file)) {
       $template_file = $hooks[$hook]['template'] . $extension;
-      $meta['template_files'][$template_file] = TRUE;
       if (isset($hooks[$hook]['path'])) {
         $template_file = $hooks[$hook]['path'] .'/'. $template_file;
       }
     }
     $output = $render_function($template_file, $variables);
+    $meta['suggestions'] = $suggestions;
     $meta['template_file'] = $template_file;
     $meta['variables'] = $variables;
   }
