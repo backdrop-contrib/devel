@@ -173,13 +173,14 @@ function devel_menu() {
   return $items;
 }
 
-function devel_devel_themer_toggle() {
+function devel_devel_themer_toggle($action) {
   if ($action == 'enable') {
-    module_enable('devel_themer');
+    module_enable(array('devel_themer'));
   } 
   else {
-    module_disable('devel_themer');
+    module_disable(array('devel_themer'));
   }
+  drupal_rebuild_theme_registry();
   drupal_goto();
 }
 
