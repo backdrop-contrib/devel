@@ -501,7 +501,7 @@ function devel_exit($destination = NULL) {
 }
 
 /**
- * See devel_start() which registers this function as a shutdown function. 
+ * See devel_start() which registers this function as a shutdown function.
  */
 function devel_shutdown() {
   // Register the real shutdown function so it runs later than other shutdown functions.
@@ -1138,13 +1138,40 @@ function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = F
         }
       }
 
-      $type = "";
-      if (!is_string($value)) {
-        $type = " (". gettype($value) .")";
+      $type = gettype($value);
+
+      $show_summary = TRUE;
+      $summary = '';
+      if ($show_summary) {
+        switch ($type) {
+          case 'string' :
+          case 'float' :
+          case 'integer' :
+            if (strlen($value) == 0) {
+              $summary = t("{empty}");
+            }
+            elseif (strlen($value) < 40) {
+              $summary = '"'. $value .'"';
+            }
+            break;
+          case 'array' :
+          case 'object' :
+            $summary = format_plural(count($value), '1 element', '@count elements');
+            break;
+          case 'boolean' :
+            $summary = $value ? t('TRUE') : t('FALSE');
+            break;
+        }
+      }
+      if ($summary) {
+        $typesum = '('. $type .', <em>'. $summary .'</em>)';
+      }
+      else {
+        $typesum = '('. $type .')';
       }
 
       $output .= '<span class="devel-attr">';
-      $output .= "<dt><span class=\"field\">{$prefix}{$field}</span>$type</dt>\n";
+      $output .= "<dt><span class=\"field\">{$prefix}{$field}</span> $typesum</dt>\n";
       $output .= "<dd>\n";
       if (is_array($value)) {
         $output .= _devel_print_object($value, $prefix, $field);
