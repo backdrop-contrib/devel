@@ -427,6 +427,7 @@ function devel_themer_popup() {
       'candidate_files' => t('Candidate template files: '),
       'candidate_functions' => t('Candidate function names: '),
       'drupal_api_docs' => t('link to Drupal API documentation'),
+      'source_link_title' => t('link to source code'),
       'function_arguments' => t('Function Arguments'),
       'template_variables' => t('Template Variables'),
       'file_used' => t('File used: '),

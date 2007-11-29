@@ -1206,7 +1206,7 @@ function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = F
       $type = gettype($value);
 
       $show_summary = TRUE;
-      $summary = '';
+      $summary = NULL;
       if ($show_summary) {
         switch ($type) {
           case 'string' :
@@ -1231,7 +1231,7 @@ function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = F
             break;
         }
       }
-      if ($summary) {
+      if (!is_null($summary)) {
         $typesum = '('. $type .', <em>'. $summary .'</em>)';
       }
       else {
