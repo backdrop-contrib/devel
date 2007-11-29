@@ -169,7 +169,7 @@ function devel_themer_catch_function() {
   $time = timer_stop($timer_name);
 
   $skip = array('hidden');
-  if (!empty($return)) {
+  if (!empty($return) && !is_array($return) && !is_object($return)) {
     list($prefix, $suffix) = devel_theme_call_marker($hook, $counter, 'func');
     $start_return = substr($return, 0, 31);
     $start_prefix = substr($prefix, 0, 31);
@@ -221,7 +221,7 @@ function devel_themer_catch_function() {
     }
   }
 
-  return isset($output) ? $output : '';
+  return isset($output) ? $output : $return;
 }
 
 function devel_themer_append_extension($string) {
