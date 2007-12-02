@@ -186,17 +186,10 @@ function devel_themer_catch_function() {
       if ($meta['type'] == 'func') {
         $name = $meta['used'];
         $used = $meta['used'];
-        $candidates = array_map('devel_themer_ancestry', !empty($meta['wildcards']) ? array_keys($meta['wildcards']) : array($hook));
-        if (count($candidates) > 1) {
-          foreach ($candidates as $candidate) {
-            $candidates_html_arr[] = implode(' ', $candidate);
-          }
-          $candidates_html = theme_item_list($candidates_html_arr);
-          unset($candidates_html_arr);
-        }
-        else {
-          $candidates_html = implode(' ', $candidates[0]);
-        }
+        if (empty($meta['wildcards'])) {
+          $meta['wildcards'][$hook] = '';
+        }  
+        $candidates = devel_themer_ancestry(array_reverse(array_keys($meta['wildcards'])));
         $variables = devel_print_object($meta['variables'], NULL, FALSE);
       }
       else {
@@ -205,7 +198,6 @@ function devel_themer_catch_function() {
           array_unshift($meta['suggestions'], $meta['hook']);
         }
         $candidates = array_reverse(array_map('devel_themer_append_extension', $meta['suggestions']));
-        $candidates_html = implode(' ', $candidates);
         $used = $meta['template_file'];
         $variables = devel_print_object($meta['variables'], '$', FALSE);
       }
@@ -217,7 +209,6 @@ function devel_themer_catch_function() {
         'duration' => $time['time'],
         'used' => $used,
         'candidates' => $candidates,
-        'candidates_html' => $candidates_html,
         'args' => $variables
       );
     }
@@ -237,10 +228,12 @@ function devel_themer_append_extension($string) {
  * For  given theme *function* call, return the ancestry of function names which could have handled the call.
  * This mimics the way the theme registry is built.
  *
+ * @param array
+ *  A list of theme calls.
  * @return array()
- *   A list of function names.
+ *   An array of function names.
  **/
-function devel_themer_ancestry($call) {
+function devel_themer_ancestry($calls) {
   global $theme, $theme_engine, $base_theme_info;
   static $prefixes;
   if (!isset($prefixes)) {
@@ -255,8 +248,10 @@ function devel_themer_ancestry($call) {
     $prefixes = array_filter($prefixes);
   }
 
-  foreach ($prefixes as $prefix) {
-    $candidates[] = $prefix. '_'. $call;
+  foreach ($calls as $call) {
+    foreach ($prefixes as $prefix) {
+      $candidates[] = $prefix. '_'. $call;
+    }
   }
   return array_reverse($candidates);
 }
