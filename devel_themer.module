@@ -173,7 +173,7 @@ function devel_themer_catch_function() {
   list($return, $meta) = call_user_func_array('devel_themer_theme_twin', $args);
   $time = timer_stop($timer_name);
 
-  $skip = array('hidden');
+  $skip = array('hidden', 'form_element', 'placeholder');
   if (!empty($return) && !is_array($return) && !is_object($return) && user_access('access devel information')) {
     list($prefix, $suffix) = devel_theme_call_marker($hook, $counter, 'func');
     $start_return = substr($return, 0, 31);
