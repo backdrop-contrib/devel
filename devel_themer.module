@@ -56,6 +56,11 @@ function devel_themer_admin_settings() {
 function devel_themer_init() {
   if (user_access('access devel information')) {
     $path = drupal_get_path('module', 'devel_themer');
+    // we inject our HTML after page has loaded we have to add this manually.
+    if (has_krumo()) {
+      drupal_add_js($path. '/krumo/krumo.js');
+      drupal_add_css($path. '/krumo/skins/default/skin.css');
+    }
     drupal_add_css($path .'/devel_themer.css');
     drupal_add_js($path .'/devel_themer.js');
     drupal_add_js($path .'/jquery-ui-drag.min.js');
@@ -190,7 +195,12 @@ function devel_themer_catch_function() {
           $meta['wildcards'][$hook] = '';
         }  
         $candidates = devel_themer_ancestry(array_reverse(array_keys($meta['wildcards'])));
-        $variables = devel_print_object($meta['variables'], NULL, FALSE);
+        if (has_krumo()) {
+          $variables = krumo_ob($meta['variables']);
+        }
+        else {
+          $variables = devel_print_object($meta['variables'], NULL, FALSE);
+        }
       }
       else {
         $name = $meta['hook']. devel_themer_get_extension();
@@ -199,17 +209,21 @@ function devel_themer_catch_function() {
         }
         $candidates = array_reverse(array_map('devel_themer_append_extension', $meta['suggestions']));
         $used = $meta['template_file'];
-        $variables = devel_print_object($meta['variables'], '$', FALSE);
+        if (has_krumo()) {
+          $variables = krumo_ob($meta['variables']);
+        }
+        else {
+          $variables = devel_print_object($meta['variables'], '$', FALSE);
+        }
       }
 
-      // Log the call. This gets emitted in javascript in hook_exit();
       $GLOBALS['devel_theme_calls']["thmr_$counter"] = array(
         'name' => $name,
         'type' => $meta['type'],
         'duration' => $time['time'],
         'used' => $used,
         'candidates' => $candidates,
-        'args' => $variables
+        'args' => $variables,
       );
     }
     else {

@@ -131,3 +131,23 @@
   border-top: 1px solid #000;
   border-right: 1px solid #000;
 }
+
+#themer-popup div.krumo-element {
+  background: #222222;
+} 
+ 
+#themer-popup div.krumo-expand {
+  background: #999999;
+}
+
+#themer-popup div.krumo-hover {
+	background: #000;
+}
+
+#themer-popup div.krumo-preview {
+	background: #494949;
+}
+
+#themer-popup li.krumo-footnote {
+  display: none;
+}
