@@ -1057,7 +1057,10 @@ function devel_variable_edit_submit($form, &$form_state) {
  * Menu callback: display the session.
  */
 function devel_session() {
-  return dprint_r($_SESSION, TRUE);
+  global $user;
+  $output = dprint_r($_SESSION, TRUE);
+  $output .= session_name(). '='. $user->sid;
+  return $output;
 }
 
 /**
