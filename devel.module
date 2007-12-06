@@ -953,7 +953,14 @@ function devel_variable_form() {
     array('data' => t('Operations')),
   );
   // TODO: we could get variables out of $conf but that would include hard coded ones too. ideally i would highlight overrridden/hard coded variables
-  $sql = "SELECT *, LENGTH(value) AS length FROM {variable}";
+  switch ($GLOBALS['db_type']) {
+    case 'mssql':
+      $sql = "SELECT *, COL_LENGTH('{variable}', 'value') AS length FROM {variable}";
+      break;
+    default:
+      $sql = "SELECT *, LENGTH(value) AS length FROM {variable}";
+      break;
+  }
   $result = db_query($sql. tablesort_sql($header));
   while ($row = db_fetch_object($result)) {
     $variables[$row->name] = '';
