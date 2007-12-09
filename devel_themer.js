@@ -1,19 +1,23 @@
+// $Id$
+
 if (Drupal.jsEnabled) {
   $(document).ready(function () {
     lastObj = false;
     thmrSpanified = false;
-    //blocks = new Array('DIV', 'P', 'ADDRESS', 'BLOCKQUOTE', 'CENTER', 'DIR', 'DL', 'FIELDSET', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HR', 'ISINDEX', 'MENU', 'NOFRAMES', 'NOSCRIPT', 'OL', 'PRE', 'TABLE', 'UL',  'DD', 'DT', 'FRAMESET', 'LI', 'TBODY', 'TD', 'TFOOT', 'TH', 'THEAD', 'TR');
+    strs = Drupal.settings.thmrStrings;
     $('span.thmr_call')
-    .hover(function () {
-      if (themerEnabled && this.parentNode.nodeName != 'BODY' && $(this).attr('thmr_curr') != 1) {
-        $(this).css('outline', 'red solid 1px');
+    .hover(
+      function () {
+        if (themerEnabled && this.parentNode.nodeName != 'BODY' && $(this).attr('thmr_curr') != 1) {
+          $(this).css('outline', 'red solid 1px');
+        }
+      },
+      function () {
+        if (themerEnabled && $(this).attr('thmr_curr') != 1) {
+          $(this).css('outline', 'none');
+        }
       }
-    },
-    function () {
-      if (themerEnabled && $(this).attr('thmr_curr') != 1) {
-        $(this).css('outline', 'none');
-      }
-    });
+    );
 
     var themerEnabled = 0;
     var themerToggle = function () {
@@ -26,18 +30,9 @@ if (Drupal.jsEnabled) {
           $(lastObj).css('outline', '3px solid #999');
         }
         if (!thmrSpanified) {
-          $('span.thmr_call')
-            .each(function () {
-              // make spans around block elements into block elements themselves
-              var kids = $(this).children();
-              for(i=0;i<kids.length;i++) {
-                //console.log(kids[i].style.display);
-                if ($(kids[i]).css('display') != 'inline' && $(kids[i]).is('DIV, P, ADDRESS, BLOCKQUOTE, CENTER, DIR, DL, FIELDSET, FORM, H1, H2, H3, H4, H5, H6, HR, ISINDEX, MENU, NOFRAMES, NOSCRIPT, OL, PRE, TABLE, UL,  DD, DT, FRAMESET, LI, TBODY, TD, TFOOT, TH, THEAD, TR')) {
-                  $(this).css('display', 'block');
-                }
-              }
-            });
-            thmrSpanified = true;
+          // turn on the throbber
+          $('#themer-toggle img.throbber').show();
+          window.setTimeout('spanify()', 100);
         }
       }
       else {
@@ -50,14 +45,18 @@ if (Drupal.jsEnabled) {
     $(Drupal.settings.thmr_popup)
       .appendTo($('body'));
 
-    $('<div id="themer-toggle"><input type="checkbox" />Themer Info</div>')
+    $('<div id="themer-toggle"><input type="checkbox" />'+ strs.themer_info + strs.toggle_throbber +'</div>')
       .appendTo($('body'))
       .click(themerToggle);
 
-    $('#themer-popup').draggable({
-      opacity: .6,
-          handle: $('#themer-popup .topper')
-    });
+    $('#themer-popup')
+      .draggable({
+        opacity: .6,
+        handle: $('#themer-popup .topper')
+      })
+      .prepend(strs.toggle_throbber)
+    ;
+
     // close box
     $('#themer-popup .topper .close').click(function() {
       themerToggle();
@@ -75,16 +74,34 @@ function themerHilight(obj) {
 }
 
 function themerDoIt(obj) {
-  //console.log(obj);
   if (thmrInPop(obj)) {
     return true;
   }
+  // start throbber
+  $('#themer-popup img.throbber').show();
   var objs = thmrFindParents(obj);
   if (objs.length) {
     themerHilight(objs[0]);
     thmrRebuildPopup(objs);
   }
   return false;
+}
+
+function spanify() {
+  $('span.thmr_call')
+    .each(function () {
+      // make spans around block elements into block elements themselves
+      var kids = $(this).children();
+      for(i=0;i<kids.length;i++) {
+        //console.log(kids[i].style.display);
+        if ($(kids[i]).css('display') != 'inline' && $(kids[i]).is('DIV, P, ADDRESS, BLOCKQUOTE, CENTER, DIR, DL, FIELDSET, FORM, H1, H2, H3, H4, H5, H6, HR, ISINDEX, MENU, NOFRAMES, NOSCRIPT, OL, PRE, TABLE, UL,  DD, DT, FRAMESET, LI, TBODY, TD, TFOOT, TH, THEAD, TR')) {
+          $(this).css('display', 'block');
+        }
+      }
+    });
+  thmrSpanified = true;
+  // turn off the throbber
+  $('#themer-toggle img.throbber').hide();
 }
 
 function thmrInPop(obj) {
@@ -156,7 +173,6 @@ function thmrRefreshCollapse() {
             $(this).parent().children('dd').hide();
           });
     });
-  $('#themer-popup .devel-obj-output dd').hide();
 }
 
 /**
@@ -240,4 +256,6 @@ function thmrRebuildPopup(objs) {
     }
     thmrRefreshCollapse();
   }
+  // stop throbber
+  $('#themer-popup img.throbber').hide();
 }

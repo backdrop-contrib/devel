@@ -1187,10 +1187,13 @@ function devel_print_object($object, $prefix = NULL, $header = TRUE) {
  * @todo
  *   currently there are problems sending an array with a varname
  */
-function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = FALSE) {
+function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FALSE) {
   static $root_type, $out_format;
   if (!isset($root_type)) {
     $root_type = gettype($obj);
+    if ($root_type == 'object') {
+      $object = TRUE;
+    }
   }
 
   if (is_object($obj)) {
@@ -1199,7 +1202,7 @@ function _devel_print_object($obj, $prefix = NULL, $parents = FALSE, $object = F
   if (is_array($obj)) {
     $output = "<dl>\n";
     foreach($obj as $field => $value) {
-      if ($parents) {
+      if (!is_null($parents)) {
         if ($object) {
           $field = $parents .'->'. $field;
         }

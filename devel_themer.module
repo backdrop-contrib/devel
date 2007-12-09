@@ -435,6 +435,8 @@ function devel_themer_popup() {
   // add translatable strings
   drupal_add_js(array('thmrStrings' =>
     array(
+      'themer_info' => t('Themer info'),
+      'toggle_throbber' => ' <img src="'. base_path() . drupal_get_path('module', 'devel'). '/loader-little.gif' .'" alt="'. t('loading') .'" class="throbber" width="16" height="16" style="display:none" />',
       'parents' => t('Parents: '),
       'function_called' => t('Function called: '),
       'template_called' => t('Template called: '),

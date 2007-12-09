@@ -95,6 +95,9 @@
 #themer-popup .devel-obj-output dt {
   cursor: pointer;
 }
+#themer-popup .devel-obj-output dd {
+  display: none;
+}
 #themer-popup .devel-obj-output .field {
   color: #CCC;
 }
@@ -113,6 +116,23 @@
   text-align: center;
   font-weight:normal;
   color: #999;
+}
+
+#themer-popup .item-list ul li {
+  background: none;
+  list-style: none;
+  padding: 0 0 0 .5em;
+  margin: 0;
+  text-indent: -.5em;
+}
+#themer-popup .item-list ul li:before {
+  content: "- ";
+}
+
+#themer-popup img.throbber {
+  position:absolute;
+  left:3px;
+  top:2px;
 }
 
 #themer-toggle {
