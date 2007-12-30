@@ -1,5 +1,5 @@
 ; $Id$
-name = Devel Themer
+name = Theme developer
 description = Essential theme API information for theme developers
 package = Development
 dependencies[] = devel
