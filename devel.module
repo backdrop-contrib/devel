@@ -408,8 +408,6 @@ function devel_block_devel() {
     $links[] = l(t('Reinstall modules'), 'devel/reinstall', array('attributes' => array('title' => t('Re-run hook_install() for a given module.')), 'query' => drupal_get_destination()));
     $links[] = l(t('Rebuild menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Rebuild menu based on hook_menu() and any custom changes all menu items to their default settings.')), 'query' => drupal_get_destination()));
     $links[] = l(t('Variable editor'), 'devel/variable', array('attributes' => array('title' => t('Edit and delete site variables.'))));
-    // of limited usefulness
-    // $links[] = l('Rebuild NCS table', 'devel/rebuild_node_comment_statistics', array('title' => t('Rebuild node_comment_statistics table'), 'query' => drupal_get_destination()));
   }
   if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
     // True only if devel_node_access enabled.
@@ -1550,16 +1548,14 @@ function devel_rebuild_node_comment_statistics_page() {
 }
 
 /**
- * Empty node_comment_statistics table and rebuild. Is fast.
+ * Update node_comment_statistics table for nodes with comments. Assumes that rows for each nid are already present.
  * TODO: if 2 comments have exact same timestamp, the function can get wrong uid and name fields.
  * Handles when comment timestamps have been manually set in admin
  *
  * @return void
  **/
 function devel_rebuild_node_comment_statistics() {
-  $sql = "DELETE FROM {node_comment_statistics}";
-  db_query($sql);
-  $sql = "INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (select nid, c.timestamp, name, uid, comment_count FROM {comments} c INNER JOIN (SELECT MAX(timestamp) AS timestamp, COUNT(*) AS comment_count FROM {comments} WHERE status=%d GROUP BY nid) as c2 ON c.timestamp=c2.timestamp)";
+  $sql = "REPLACE INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (select nid, c.timestamp, name, uid, comment_count FROM {comments} c INNER JOIN (SELECT MAX(timestamp) AS timestamp, COUNT(*) AS comment_count FROM {comments} WHERE status=%d GROUP BY nid) as c2 ON c.timestamp=c2.timestamp)";
   db_query($sql, COMMENT_PUBLISHED);
 }
 
