@@ -486,7 +486,7 @@ function devel_switch_user_form() {
 }
 
 function devel_doc_function_form() {
-  $version = drupal_major_version_map(VERSION);
+  $version = devel_get_core_version(VERSION);
   $form['function'] = array(
     '#type' => 'textfield',
     '#description' => t('Enter function name for api lookup'),
@@ -706,7 +706,7 @@ function t_safe($string, $args) {
  */
 function devel_function_reference() {
   $functions = get_defined_functions();
-  $version = drupal_major_version_map(VERSION);
+  $version = devel_get_core_version(VERSION);
   $ufunctions = $functions['user'];
   sort($ufunctions);
   $api = variable_get('devel_api_url', 'api.drupal.org');
@@ -716,15 +716,16 @@ function devel_function_reference() {
   return theme('item_list', $links);
 }
 
-// verify the keys in map
-function drupal_major_version_map($version = NULL) {
-  $map = array(
-    '4.7' => '4.7',
-    '5.1' => '5.1',
-    '6.0' => '6.0',
-    '6.0-dev' => 'HEAD',
-  );
-  return $version ? $map[$version] : $map;
+function devel_get_core_version($version) {
+  $version_parts = explode('.', $version);
+  // Map from 4.7.10 -> 4.7
+  if ($version_parts[0] < 5) {
+    return $version_parts[0] .'.'. $version_parts[1];
+  }
+  // Map from 5.5 -> 5 or 6.0-beta2 -> 6
+  else {
+    return $version_parts[0];
+  }
 }
 
 function devel_db_query($query) {
@@ -1280,7 +1281,7 @@ function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FA
  * generate the page.
  */
 function devel_query_table($queries, $counts) {
-  $version = drupal_major_version_map(VERSION);
+  $version = devel_get_core_version(VERSION);
   $header = array ('ms', '#', 'where', 'query');
   $i = 0;
   $api = variable_get('devel_api_url', 'api.drupal.org');
