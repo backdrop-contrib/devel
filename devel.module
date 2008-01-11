@@ -969,7 +969,7 @@ function devel_variable_form() {
   $result = db_query($sql. tablesort_sql($header));
   while ($row = db_fetch_object($result)) {
     $variables[$row->name] = '';
-    $form['name'][$row->name] = array('#value' => $row->name);
+    $form['name'][$row->name] = array('#value' => check_plain($row->name));
     if (has_krumo()) {
       $value = krumo_ob(variable_get($row->name, NULL));
     }
@@ -981,7 +981,7 @@ function devel_variable_form() {
         $value = $row->value;
       }
     }
-    $form[$row->name]['value'] = array('#value' => $value);
+    $form[$row->name]['value'] = array('#value' => check_plain($value));
     $form[$row->name]['length'] = array('#value' => $row->length);
     $form[$row->name]['edit'] = array('#value' => l(t('edit'), "devel/variable/edit/$row->name"));
   }
