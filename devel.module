@@ -392,7 +392,7 @@ function devel_block_devel() {
     $links[] = l(t('Run cron'), 'admin/reports/status/run-cron', array('attributes' => array('title' => t('Execute functions scheduled for cron runs.')), 'query' => drupal_get_destination()));
     $links[] = l(t('PHPinfo()'), 'devel/phpinfo', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
     $action = module_exists('devel_themer') ? 'Disable' : 'Enable';
-    $links[] = l("Devel Themer: $action",
+    $links[] = l("Theme Devel: $action",
                   'devel/devel_themer/'. strtolower($action),
                   array('attributes' =>
                       array('title' => t("$action the Devel Themer module.")),
