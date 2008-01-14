@@ -1,71 +1,58 @@
 <?php
 // $Id$
 /**
+ * Implementation of hook_schema().
+ */
+function devel_schema() {
+  $schema['devel_queries'] = array(
+    'fields' => array(
+      'qid' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '10'),
+      'function' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => ''),
+      'query' => array('type' => 'text', 'not null' => TRUE),
+      'hash' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => '')),
+    'primary key' => array('hash'),
+    'indexes' => array(
+      'qid' => array('qid'))
+  );
+  $schema['devel_times'] = array(
+    'fields' => array(
+      'tid' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '10'),
+      'qid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '10'),
+      'time' => array('type' => 'float', 'not null' => FALSE)),
+    'primary key' => array('tid'),
+    'indexes' => array(
+      'qid' => array('qid'))
+  );
+  return $schema;
+}
+ 
+ /**
  * Implementation of hook_install()
  */
 function devel_install() {
+  drupal_install_schema('devel');
+     
   // New module weights in core: put devel as the very last in the chain.
-  db_query("UPDATE {system} SET weight = 88 WHERE name = 'devel'");
+  db_query('UPDATE {system} SET weight = 88 WHERE name = "devel"');
+}
 
-  switch ($GLOBALS['db_type']) {
-    case 'mysqli':
-    case 'mysql':
-      $sql = "CREATE TABLE {devel_queries} (
-        qid int(10) NOT NULL auto_increment,
-        function varchar(255) NOT NULL default '',
-        query text NOT NULL,
-        hash varchar(255) NOT NULL default '',
-        PRIMARY KEY (`hash`),
-        KEY qid (qid)
-        ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
-      db_query($sql);
-
-      $sql = "CREATE TABLE {devel_times} (
-        tid int(10) NOT NULL auto_increment,
-        qid int(10) NOT NULL default 0,
-        time float default NULL,
-        PRIMARY KEY (tid),
-        KEY qid (qid)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
-      db_query($sql);
-      break;
-    case 'mssql':
-      $sql = "CREATE TABLE {devel_queries} (
-        qid INT IDENTITY(1,1),
-        \"function\" varchar(255) NOT NULL default '',
-        query text NOT NULL,
-        hash varchar(255) NOT NULL default '',
-        PRIMARY KEY (qid));";
-      db_query($sql);
-      break;
-    case 'pgsql':
-      $sql = "CREATE TABLE {devel_queries} (
-        qid SERIAL NOT NULL,
-        \"function\" varchar(255) NOT NULL default '',
-        query text NOT NULL,
-        hash varchar(255) NOT NULL default '',
-        PRIMARY KEY (qid)
-        ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
-      db_query($sql);
-      db_query("CREATE INDEX devel_queries_hash_idx ON {devel_queries}(hash)");
-
-      $sql = "CREATE TABLE {devel_times} (
-        tid SERIAL NOT NULL,
-        qid integer NOT NULL default 0,
-        time float default NULL,
-        PRIMARY KEY (tid)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
-      db_query($sql);
-      break;
-
-      $sql = "CREATE TABLE {devel_times} (
-        tid INT IDENTITY(1,1),
-        qid INT NOT NULL default 0,
-        time FLOAT default NULL,
-        PRIMARY KEY (tid)
-      );";
-      db_query($sql);      
-  }
+ /**
+ * Implementation of hook_install()
+ */
+function devel_uninstall() {
+  drupal_uninstall_schema('devel');
+  variable_del('dev_query');
+  variable_del('devel_old_smtp_library');
+  variable_del('devel_form_weights');
+  variable_del('devel_store_random');
+  variable_del('devel_execution');
+  variable_del('dev_timer');
+  variable_del('devel_query_display');
+  variable_del('devel_redirect_page');
+  variable_del('devel_api_url');
+  variable_del('dev_mem');
+  variable_del('devel_error_handler');
+  variable_del('devel_store_queries');
 }
 
 /**
@@ -77,6 +64,13 @@ function devel_disable() {
     variable_set('dev_query',0);
     drupal_set_message(t('Disabled query logging since devel module is disabled.'));
   }
+  
+  // The SMTP server should also be restored.
+  variable_set('smtp_library', variable_get('devel_old_smtp_library', ''));
+  variable_del('devel_old_smtp_library');
+  
+  // Same for storing queries
+  variable_del('devel_store_queries');
 }
 
 /**
@@ -85,7 +79,8 @@ function devel_disable() {
  */
 function devel_update_2() {
   // New module weights in core: put devel as the very last in the chain.
-  $ret[] = update_sql("UPDATE {system} SET weight = 10 WHERE name = 'devel'");
+  $ret = array();
+  $ret[] = update_sql('UPDATE {system} SET weight = 10 WHERE name = "devel"');
   return $ret;
 }
 
@@ -116,21 +111,17 @@ function devel_update_3() {
 
 function devel_update_4() {
   $ret = array();
-  switch ($GLOBALS['db_type']) {
-    case 'mysqli':
-    case 'mysql':
-      $ret[] = update_sql("ALTER TABLE {devel_queries} ADD `function` varchar(255) NOT NULL default ''");
-  }
+  
+  db_add_field($ret, 'devel_queries', 'function', array('type' => 'varchar', 'length' => 255, 'not null' => true, 'default' => ''));
+  
   return $ret;
 }
 
 function devel_update_5() {
   $ret = array();
-  switch ($GLOBALS['db_type']) {
-    case 'mysqli':
-    case 'mysql':
-      $ret[] = update_sql("ALTER TABLE {devel_queries} CHANGE query query text NOT NULL");
-  }
+  
+  db_change_field($ret, 'devel_queries', 'query', 'query text', array('type' => 'varchar', 'length' => 255, 'not null' => true, 'default' => ''));
+  
   return $ret;
 }
 
