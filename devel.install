@@ -37,6 +37,26 @@ function devel_install() {
         hash varchar(255) NOT NULL default '',
         PRIMARY KEY (qid));";
       db_query($sql);
+      break;
+    case 'pgsql':
+      $sql = "CREATE TABLE {devel_queries} (
+        qid SERIAL NOT NULL,
+        \"function\" varchar(255) NOT NULL default '',
+        query text NOT NULL,
+        hash varchar(255) NOT NULL default '',
+        PRIMARY KEY (qid)
+        ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
+      db_query($sql);
+      db_query("CREATE INDEX devel_queries_hash_idx ON {devel_queries}(hash)");
+
+      $sql = "CREATE TABLE {devel_times} (
+        tid SERIAL NOT NULL,
+        qid integer NOT NULL default 0,
+        time float default NULL,
+        PRIMARY KEY (tid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
+      db_query($sql);
+      break;
 
       $sql = "CREATE TABLE {devel_times} (
         tid INT IDENTITY(1,1),

@@ -649,7 +649,8 @@ function devel_shutdown_real() {
 
 function devel_store_queries() {
   if (variable_get('devel_store_queries', 0) && rand(1, variable_get('devel_store_random', 1)) == 1) {
-    global $active_db, $queries;
+    global $active_db, $queries, $db_type;
+
     $qids = array();
     $values = array();
     $fields = array();
@@ -663,7 +664,12 @@ function devel_store_queries() {
         $qids[$hash] = db_result(devel_db_query("SELECT qid FROM {devel_queries} WHERE hash = '%s'", $hash));
         if (!$qids[$hash]) {
           devel_db_query("INSERT INTO {devel_queries} (query, function, hash) VALUES ('%s', '%s', '%s')", $query, $function, $hash);
-          $qids[$hash] = mysql_insert_id();
+          if($db_type=='pgsql') {
+            $qids[$hash] = db_result(db_query("SELECT lastval();"));
+          }
+          else {
+            $qids[$hash] = mysql_insert_id();
+          }
         }
       }
       $fields[] = "(%d, '%f')";
@@ -738,7 +744,7 @@ function devel_db_query($query) {
   }
   _db_query_callback($args, TRUE);
   $query = preg_replace_callback(DB_QUERY_REGEXP, '_db_query_callback', $query);
-  return mysql_query($query, $active_db);
+  return db_query($query, $active_db);
 }
 
 function devel_admin_settings() {
@@ -767,7 +773,7 @@ function devel_admin_settings() {
   $form['queries']['devel_store_queries'] = array('#type' => 'checkbox',
     '#title' => t('Store executed queries'),
     '#default_value' => variable_get('devel_store_queries', 0),
-    '#description' => t('Store statistics about executed queries. See the devel_x tables. This feature is currently only available for the MySQL database backend.'));
+    '#description' => t('Store statistics about executed queries. See the devel_x tables.'));
   $form['queries']['devel_store_random'] = array('#type' => 'textfield',
     '#title' => t('Sampling interval'),
     '#default_value' => variable_get('devel_store_random', 1),
@@ -1474,25 +1480,25 @@ if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) 
    * Log the mails sent out instead of mailing.
    */
   function drupal_mail_wrapper($mailkey, $to, $subject, $body, $from, $headers) {
-    $mimeheaders = array();
-    foreach ($headers as $name => $value) {
-      // the check_plain nicely encodes <> chars for web presentation
-      $mimeheaders[] = check_plain($name .': '. mime_header_encode($value));
-    }
-    watchdog(
-      'devel',
-      'Mail sent:<br />Key: %mailkey<br />To: %to<br />From: %from<br />Subject: %subject<br />Body: %body<br /><br />Additional headers: !header',
-       array(
-         '%mailkey' => $mailkey,
-         '%to' => $to,
-         '%from' => $from,
-         '%subject' => $subject,
-         '%body' => $body,
-         '!header' => implode("<br />", $mimeheaders),
-         WATCHDOG_INFO,
-         )
-    );
-    return TRUE;
+  $mimeheaders = array();
+  foreach ($headers as $name => $value) {
+    // the check_plain nicely encodes <> chars for web presentation
+    $mimeheaders[] = check_plain($name .': '. mime_header_encode($value));
+  }
+  watchdog(
+    'devel',
+    'Mail sent:<br />Key: %mailkey<br />To: %to<br />From: %from<br />Subject: %subject<br />Body: %body<br /><br />Additional headers: !header',
+     array(
+       '%mailkey' => $mailkey,
+       '%to' => $to,
+       '%from' => $from,
+       '%subject' => $subject,
+       '%body' => $body,
+       '!header' => implode("<br />", $mimeheaders),
+       WATCHDOG_INFO,
+       )
+  );
+  return TRUE;
   }
 }
 
@@ -1506,7 +1512,13 @@ function devel_queries() {
                   array('data' => t('Query'), 'field' => 'q.query'),
                   );
 
-  $result = pager_query('SELECT q.qid, q.query, q.function, t.*, COUNT(t.qid) AS count, SUM(t.time) AS total_time, AVG(t.time) AS average, STDDEV(t.time) AS stddev FROM {devel_queries} q INNER JOIN {devel_times} t ON q.qid = t.qid GROUP BY t.qid '. tablesort_sql($header), 30, 0, 'SELECT COUNT(qid) FROM {devel_queries}');
+  global $db_type;
+  if($db_type == 'pgsql') {
+    $result = pager_query('SELECT q.qid, q.query, q.function , t.* FROM {devel_queries} q INNER JOIN (SELECT t.qid, COUNT(t.qid) AS count,SUM(t.time) AS total_time, AVG(t.time) AS average, STDDEV(t.time) AS stddev FROM {devel_times} t GROUP BY t.qid) AS t ON t.qid=q.qid ' . tablesort_sql($header), 30, 0, 'SELECT COUNT(qid) FROM {devel_queries}');
+  }
+  else {
+    $result = pager_query('SELECT q.qid, q.query, q.function, t.*, COUNT(t.qid) AS count, SUM(t.time) AS total_time, AVG(t.time) AS average, STDDEV(t.time) AS stddev FROM {devel_queries} q INNER JOIN {devel_times} t ON q.qid = t.qid GROUP BY t.qid '. tablesort_sql($header), 30, 0, 'SELECT COUNT(qid) FROM {devel_queries}');
+  }
   while ($log = db_fetch_object($result)) {
     $rows[] = array(
                     round($log->total_time * 1000, 3),
@@ -1518,7 +1530,6 @@ function devel_queries() {
                     );
   }
 
-  drupal_set_title(check_plain($node->title));
   $output = theme('table', $header, $rows);
   $output .= theme('pager', NULL, 30, 0);
   $output .= l(t('Delete collected query statistics'), 'devel/queries/empty');

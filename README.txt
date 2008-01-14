@@ -22,7 +22,7 @@ development. Many other nice functions like dpm(), dvm().
 
 You might also download Krumo from http://krumo.sourceforge.net/. Unpack it into a subdirectory 
 called krumo. Devel will automatically start using it. You may also call krumo($variable) to get 
-a pretty print of any variable. krumo::backtrace() can be useful too.
+a pretty print of any variable.
 
 Included in this package is also: 
 - devel_themer.module which outputs deep information related to all theme calls on a page.
