@@ -167,15 +167,17 @@ function devel_node_access_block($op = 'list', $delta = 0) {
   $nids = array_merge(array(0 => 0), dna_visible_nodes());
   $result = db_query('SELECT na.*, n.title FROM {node_access} na LEFT JOIN {node} n ON n.nid = na.nid WHERE na.nid IN (%s) ORDER BY na.nid',
              implode(',', $nids));
-  $headers = array(t('node'), t('realm'), t('gid'), t('view'), t('update'), t('delete'));
+  $headers = array(t('node'), t('realm'), t('gid'), t('view'), t('update'), t('delete'), t('explained'));
   $rows = array();
   while ($row = db_fetch_object($result)) {
+    $explained = module_invoke_all('node_access_explain', $row);
     $rows[] = array($row->title ? $row->title : $row->nid,
             $row->realm,
             $row->gid,
             $row->grant_view,
             $row->grant_update,
-            $row->grant_delete);
+            $row->grant_delete,
+            implode('; ', $explained));
   }
   $output = theme_table($headers, $rows);
   $subject = t('node_access entries for nodes shown on this page');

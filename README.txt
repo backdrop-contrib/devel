@@ -26,7 +26,7 @@ a pretty print of any variable.
 
 Included in this package is also: 
 - devel_themer.module which outputs deep information related to all theme calls on a page.
-- devel_node_access module which prints out the node_access records for a given node._
+- devel_node_access module which prints out the node_access records for a given node. Also offers hook_node_access_explain for all node access modules to implement. Handy.
 - devel_generate.module which bulk creates nodes, users, comment, terms for development
 - macro.module which records form submissions and can pay them back later or on another site. More
 information available at http://drupal.org/node/79900.
