@@ -836,16 +836,8 @@ function devel_admin_settings() {
  * Menu callback; clears all caches, then redirects to the previous page.
  */
 function devel_cache_clear() {
-  // clear core tables
-  $core = array('cache', 'cache_filter', 'cache_form', 'cache_page');
-  $alltables = array_merge($core, module_invoke_all('devel_caches'));
-  foreach ($alltables as $table) {
-    cache_clear_all('*', $table, TRUE);
-  }
-
-  drupal_clear_css_cache();
-  drupal_rebuild_theme_registry();
-  menu_rebuild();
+  // If you used to implement our own cache clear hook, implement hook_flush_caches instead. See drupal_flush_all_caches()
+  drupal_flush_all_caches();
 
   drupal_set_message('Cache cleared.');
 
