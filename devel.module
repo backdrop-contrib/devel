@@ -975,13 +975,13 @@ function devel_variable_form() {
     }
     else {
       if (drupal_strlen($row->value) > 70) {
-        $value = drupal_substr($row->value, 0, 65) .'...';
+        $value = check_plain(drupal_substr($row->value, 0, 65)) .'...';
       }
       else {
-        $value = $row->value;
+        $value = check_plain($row->value);
       }
     }
-    $form[$row->name]['value'] = array('#value' => check_plain($value));
+    $form[$row->name]['value'] = array('#value' => $value);
     $form[$row->name]['length'] = array('#value' => $row->length);
     $form[$row->name]['edit'] = array('#value' => l(t('edit'), "devel/variable/edit/$row->name"));
   }
@@ -1033,7 +1033,7 @@ function devel_variable_edit($form_state, $name) {
   );
   $form['value'] = array(
     '#type' => 'item',
-    '#title' => t('Old value'), // maybe check_plain() done by fapi
+    '#title' => t('Old value'), 
     '#value' => dpr($value, TRUE),
   );
   if (is_string($value) || is_numeric($value)) {
