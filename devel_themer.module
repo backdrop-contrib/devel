@@ -22,7 +22,7 @@ function devel_themer_menu() {
     'type' => MENU_CALLBACK,
   );
   $items['devel_themer/disable'] = array(
-    'title' => 'Devel Themer Enable',
+    'title' => 'Theme Development Enable',
     'page callback' => 'devel_themer_toggle',
     'page arguments' => array(0),
     'access arguments' => array('access devel information'),
