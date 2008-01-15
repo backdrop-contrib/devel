@@ -18,21 +18,21 @@ function devel_node_access_perm() {
 /**
  * Implementation of hook_help().
  */
-function devel_node_access_help($section) {
-  switch ($section) {
-  case 'admin/settings/modules#description':
-  return t('Development helper for node_access table');
-  break;
-  case 'admin/help#devel_node_access':
-  $output .= '<p>'.t('This module helps in site development.  Specifically, when an access control module is used to limit access to some or all nodes, this module provides some feedback showing the node_access table in the database.') ."</p>\n";
-  $output .= '<p>'.t('The node_access table is one method Drupal provides to hide content from some users while displaying it to others.  By default, Drupal shows all nodes to all users.  There are a number of optional modules which may be installed to hide content from some users.')."</p>\n";
-  $output .= '<p>'.t('If you have not installed one of these modules, you really have no need for the devel_node_access module.  This module is intended for use during development, so that developers and admins can confirm that node_access table is working as expected.  You probably do not want this module enabled on a production site.')."</p>\n";
-  $output .= '<p>'.t('This module provides a %summary_page which shows show general information about your node_access table.  If you have installed the Views module, you may %browse_link.  This module also provides a block showing the rows of the node_access table relevant to whatever node(s) are shown on a given page.  Because the table shown is wide, it is recommended to enable the block in the page footer rather than a sidebar.',
-             array('%summary_page' => l(t('summary page'), 'devel/node_access/summary'),
-               '%browse_link' => l(t('browse node_access by realm'), 'devel/node_access/view'))
-             )."</p>\n";
-  $output .= '<p>'.t('')."</p>\n";
-  return $output;
+function devel_node_access_help($path, $arg) {
+  switch ($path) {
+    case 'admin/settings/modules#description':
+      return t('Development helper for node_access table');
+      break;
+    case 'admin/help#devel_node_access':
+      $output  = '<p>'.t('This module helps in site development.  Specifically, when an access control module is used to limit access to some or all nodes, this module provides some feedback showing the node_access table in the database.') ."</p>\n";
+      $output .= '<p>'.t('The node_access table is one method Drupal provides to hide content from some users while displaying it to others.  By default, Drupal shows all nodes to all users.  There are a number of optional modules which may be installed to hide content from some users.')."</p>\n";
+      $output .= '<p>'.t('If you have not installed one of these modules, you really have no need for the devel_node_access module.  This module is intended for use during development, so that developers and admins can confirm that node_access table is working as expected.  You probably do not want this module enabled on a production site.')."</p>\n";
+      $output .= '<p>'.t('This module provides a !summary_page which shows show general information about your node_access table.  If you have installed the Views module, you may !browse_link.  This module also provides a block showing the rows of the node_access table relevant to whatever node(s) are shown on a given page.  Because the table shown is wide, it is recommended to enable the block in the page footer rather than a sidebar.',
+                 array('!summary_page' => l(t('summary page'), 'devel/node_access/summary'),
+                   '!browse_link' => l(t('browse node_access by realm'), 'devel/node_access/view'))
+                 )."</p>\n";
+      $output .= '<p>'.t('')."</p>\n";
+      return $output;
   }
 }
 
@@ -52,81 +52,82 @@ function devel_node_access_menu() {
 
 function dna_summary() {
   // Warn user if they have any entries that could grant access to all nodes
+  $output = '';
   $result = db_query('SELECT DISTINCT realm FROM {node_access} WHERE nid=0 AND gid=0');
-  if (db_num_rows($result)) {
-  $output .= '<h3>'.t('Access Granted to All Nodes (All Users)')."</h3>\n";
-  $output .= '<p>'.t('Your node_access table contains entries that may be granting all users access to all nodes.  Depending on which access control module(s) you use, you may want to delete these entries.  If you are not using an access control module, you should probably leave these entries as is.')."</p>\n";
-  $headers = array(t('realm'));
   $rows = array();
   while ($row = db_fetch_object($result)) {
     $rows[] = array($row->realm);
   }
-  $output .= theme('table', $headers, $rows);
+  if (!empty($rows)) {
+    $output .= '<h3>'.t('Access Granted to All Nodes (All Users)')."</h3>\n";
+    $output .= '<p>'.t('Your node_access table contains entries that may be granting all users access to all nodes.  Depending on which access control module(s) you use, you may want to delete these entries.  If you are not using an access control module, you should probably leave these entries as is.')."</p>\n";
+    $headers = array(t('realm'));
+    $output .= theme('table', $headers, $rows);
   }
 
   // how many nodes are not represented in the node_access table
   $result = db_fetch_object(db_query('SELECT COUNT(n.nid) as num_nodes FROM {node} n LEFT JOIN {node_access} na ON n.nid = na.nid WHERE na.nid IS NULL'));
   if ($num = $result->num_nodes) {
-  $output .= '<h3>'.t('Legacy Nodes')."</h3>\n";
-  $output .= '<p>'.
-    t('You have !num nodes in your node table which are not represented in your node_access table.  If you have an access control module installed, these nodes may be hidden from all users.  This could be caused by publishing nodes before enabling the access control module.  If this is the case, manually updating each node should add it to the node_access table and fix the problem.', array('!num' => l($num, 'devel/node_access/view/NULL'))).
-    "</p>\n";
+    $output .= '<h3>'.t('Legacy Nodes')."</h3>\n";
+    $output .= '<p>'.
+      t('You have !num nodes in your node table which are not represented in your node_access table.  If you have an access control module installed, these nodes may be hidden from all users.  This could be caused by publishing nodes before enabling the access control module.  If this is the case, manually updating each node should add it to the node_access table and fix the problem.', array('!num' => l($num, 'devel/node_access/view/NULL'))).
+      "</p>\n";
   }
   else {
-  $output .= '<h3>'.t('All Nodes Represented')."</h3>\n";
-  $output .= '<p>'.
-    t('All nodes are represented in the node_access table.').
-    "</p>\n";
+    $output .= '<h3>'.t('All Nodes Represented')."</h3>\n";
+    $output .= '<p>'.
+      t('All nodes are represented in the node_access table.').
+      "</p>\n";
   }
 
 
   // a similar warning to the one above, but slightly more specific
   $result = db_query('SELECT DISTINCT realm FROM {node_access} WHERE nid=0 AND gid!=0');
-  if (db_num_rows($result)) {
-  $output .= '<h3>'.t('Access Granted to All Nodes (Some Users)')."</h3>\n";
-  $output .= '<p>'.t('Your node_access table contains entries that may be granting some users access to all nodes.  This may be perfectly normal, depending on which access control module(s) you use.')."</p>\n";
-  $headers = array(t('realm'));
   $rows = array();
   while ($row = db_fetch_object($result)) {
     $rows[] = array($row->realm);
   }
-  $output .= theme('table', $headers, $rows);
+  if (!empty($rows)) {
+    $output .= '<h3>'.t('Access Granted to All Nodes (Some Users)')."</h3>\n";
+    $output .= '<p>'.t('Your node_access table contains entries that may be granting some users access to all nodes.  This may be perfectly normal, depending on which access control module(s) you use.')."</p>\n";
+    $headers = array(t('realm'));
+    $output .= theme('table', $headers, $rows);
   }
 
 
   // find specific nodes which may be visible to all users
   $result = db_query('SELECT DISTINCT realm, COUNT(DISTINCT nid) as node_count FROM {node_access} WHERE gid=0 AND nid > 0 GROUP BY realm');
-  if (db_num_rows($result)) {
-  $output .= '<h3>'.t('Access Granted to Some Nodes')."</h3>\n";
-  $output .= '<p>'.
-    t('The following realms appear to grant all users access to some specific nodes.  This may be perfectly normal, if some of your content is available to the public.').
-    "</p>\n";
-  $headers = array(t('realm'), t('public nodes'));
   $rows = array();
   while ($row = db_fetch_object($result)) {
     $rows[] = array($row->realm,
             array('data' => $row->node_count,
               'align' => 'center'));
   }
-  $output .= theme('table', $headers, $rows, array(), t('Public Nodes'));
+  if (!empty($rows)) {
+    $output .= '<h3>'.t('Access Granted to Some Nodes')."</h3>\n";
+    $output .= '<p>'.
+      t('The following realms appear to grant all users access to some specific nodes.  This may be perfectly normal, if some of your content is available to the public.').
+      "</p>\n";
+    $headers = array(t('realm'), t('public nodes'));
+    $output .= theme('table', $headers, $rows, array(), t('Public Nodes'));
   }
 
 
   // find specific nodes protected by node_access table
   $result = db_query('SELECT DISTINCT realm, COUNT(DISTINCT nid) as node_count FROM {node_access} WHERE gid != 0 AND nid > 0 GROUP BY realm');
-  if (db_num_rows($result)) {
-  $output .= '<h3>'.t('Summary by Realm')."</h3>\n";
-  $output .= '<p>'.
-    t('The following realms grant limited access to some specific nodes.').
-    "</p>\n";
-  $headers = array(t('realm'), t('private nodes'));
   $rows = array();
   while ($row = db_fetch_object($result)) {
     $rows[] = array(l($row->realm, "devel/node_access/view/$row->realm"),
             array('data' => $row->node_count,
               'align' => 'center'));
   }
-  $output .= theme('table', $headers, $rows, array(), t('Protected Nodes'));
+  if (!empty($rows)) {
+    $output .= '<h3>'.t('Summary by Realm')."</h3>\n";
+    $output .= '<p>'.
+      t('The following realms grant limited access to some specific nodes.').
+      "</p>\n";
+    $headers = array(t('realm'), t('private nodes'));
+    $output .= theme('table', $headers, $rows, array(), t('Protected Nodes'));
   }
 
 
