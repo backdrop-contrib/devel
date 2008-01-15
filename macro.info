@@ -2,3 +2,4 @@
 name = Macro
 description = Allows administrators to record and playback form submissions.
 package = Development
+core = 6.x
