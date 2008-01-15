@@ -1471,21 +1471,22 @@ if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) 
   /**
    * Log the mails sent out instead of mailing.
    */
-  function drupal_mail_wrapper($mailkey, $to, $subject, $body, $from, $headers) {
+  function drupal_mail_wrapper($message) {
   $mimeheaders = array();
-  foreach ($headers as $name => $value) {
+  foreach ($message['headers'] as $name => $value) {
     // the check_plain nicely encodes <> chars for web presentation
     $mimeheaders[] = check_plain($name .': '. mime_header_encode($value));
   }
   watchdog(
     'devel',
-    'Mail sent:<br />Key: %mailkey<br />To: %to<br />From: %from<br />Subject: %subject<br />Body: %body<br /><br />Additional headers: !header',
+    'Mail sent:<br />Id: %mail_id<br />To: %to<br />From: %from<br />Language: %lang<br />Subject: %subject<br />Body: %body<br /><br />Additional headers: <br />!header',
      array(
-       '%mailkey' => $mailkey,
-       '%to' => $to,
-       '%from' => $from,
-       '%subject' => $subject,
-       '%body' => $body,
+       '%mail_id' => $message['id'],
+       '%to' => $message['to'],
+       '%from' => $message['from'],
+       '%lang' => $message['language'],
+       '%subject' => $message['subject'],
+       '%body' => $message['body'],
        '!header' => implode("<br />", $mimeheaders),
        WATCHDOG_INFO,
        )
