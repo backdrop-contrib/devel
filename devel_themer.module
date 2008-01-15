@@ -194,7 +194,10 @@ function devel_themer_catch_function() {
           $meta['wildcards'][$hook] = '';
         }  
         $candidates = devel_themer_ancestry(array_reverse(array_keys($meta['wildcards'])));
-        if (has_krumo()) {
+        if (empty($meta['variables'])) {
+          $variables = array();
+        }
+        elseif (has_krumo()) {
           $variables = krumo_ob($meta['variables']);
         }
         else {
