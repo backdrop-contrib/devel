@@ -184,7 +184,6 @@ function devel_themer_catch_function() {
     $start_return = substr($return, 0, 31);
     $start_prefix = substr($prefix, 0, 31);
 
-    // Pass the call to the original function. Wrap as needed.
     if ($start_return != $start_prefix && !in_array($hook, $skip)) {
       $output = $prefix. "\n  ". $return. $suffix. "\n";
 
@@ -324,7 +323,17 @@ function devel_themer_theme_twin() {
     $output = call_user_func_array($info['function'], $args);
     $meta['type'] = 'func';
     $meta['used'] = $info['function'];
-    $meta['variables'] = $args;
+    // Try to populate the keys of $args with variable names. Works on PHP5+.
+    if (!empty($args) && class_exists('ReflectionFunction')) {
+      $reflect = new ReflectionFunction($info['function']);
+      $params = $reflect->getParameters();
+      for ($i=0; $i < count($args); $i++) {
+        $meta['variables'][$params[$i]->getName()] = $args[$i];
+      }
+    }
+    else {
+      $meta['variables'] = $args;
+    }
   }
   else {
     // The theme call is a template.
