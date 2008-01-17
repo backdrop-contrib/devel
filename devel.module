@@ -47,7 +47,7 @@ function devel_menu() {
   $items['devel/rebuild_node_comment_statistics'] = array(
     'title' => 'Rebuild node_comment_statistics table',
     'page callback' => 'devel_rebuild_node_comment_statistics_page',
-    'access' => array('access devel information'),
+    'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
   if (variable_get('devel_store_queries', 0)) {
@@ -1561,8 +1561,16 @@ function devel_rebuild_node_comment_statistics_page() {
  * @return void
  **/
 function devel_rebuild_node_comment_statistics() {
-  $sql = "REPLACE INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (select nid, c.timestamp, name, uid, comment_count FROM {comments} c INNER JOIN (SELECT MAX(timestamp) AS timestamp, COUNT(*) AS comment_count FROM {comments} WHERE status=%d GROUP BY nid) as c2 ON c.timestamp=c2.timestamp)";
+  // Empty table
+  $sql = "DELETE FROM {node_comment_statistics}";
+  db_query($sql);
+  
+  $sql = "INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (select nid, c.timestamp, name, uid, comment_count FROM {comments} c INNER JOIN (SELECT MAX(timestamp) AS timestamp, COUNT(*) AS comment_count FROM {comments} WHERE status=%d GROUP BY nid) as c2 ON c.timestamp=c2.timestamp)";
   db_query($sql, COMMENT_PUBLISHED);
+  
+  // Insert 0 count records into the node_comment_statistics for nodes that are missing. See comment_enable()
+  db_query_temporary("SELECT n.nid, n.changed, n.uid FROM {node} n LEFT JOIN {node_comment_statistics} c ON n.nid = c.nid WHERE c.comment_count IS NULL", 'missing_nids');
+  db_query("INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) SELECT n.nid, n.changed, NULL, n.uid, 0 FROM missing_nids n");
 }
 
 /**
