@@ -1554,7 +1554,7 @@ function devel_rebuild_node_comment_statistics_page() {
 }
 
 /**
- * Update node_comment_statistics table for nodes with comments. Assumes that rows for each nid are already present.
+ * Update node_comment_statistics table for nodes with comments.
  * TODO: if 2 comments have exact same timestamp, the function can get wrong uid and name fields.
  * Handles when comment timestamps have been manually set in admin
  *
