@@ -21,7 +21,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2008-01-19 14:04+0100\n"
+"POT-Creation-Date: 2008-01-19 15:06+0100\n"
 "PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
 "Last-Translator: NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -132,6 +132,18 @@ msgstr ""
 
 #: devel.module:393
 msgid "Display information about your PHP installation."
+msgstr ""
+
+#: devel.module:394
+msgid "Disable"
+msgstr ""
+
+#: devel.module:394
+msgid "Enable"
+msgstr ""
+
+#: devel.module:395
+msgid "Theme Devel: @action"
 msgstr ""
 
 #: devel.module:398
