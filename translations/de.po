@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Devel\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2008-01-19 15:02+0100\n"
+"PO-Revision-Date: 2008-01-19 15:07+0100\n"
 "Last-Translator: Alexander Hass\n"
 "Language-Team: Alexander Hass\n"
 "MIME-Version: 1.0\n"
@@ -116,6 +116,18 @@ msgstr "PHPinfo()"
 #: devel.module:393
 msgid "Display information about your PHP installation."
 msgstr "Informationen über die PHP-Installation anzeigen."
+
+#: devel.module:394
+msgid "Disable"
+msgstr "Deaktivieren"
+
+#: devel.module:394
+msgid "Enable"
+msgstr "Aktivieren"
+
+#: devel.module:395
+msgid "Theme Devel: @action"
+msgstr ""
 
 #: devel.module:398
 msgid "@action the Devel Themer module."
