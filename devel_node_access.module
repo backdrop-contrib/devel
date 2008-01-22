@@ -192,8 +192,12 @@ function devel_node_access_block($op = 'list', $delta = 0) {
 * Implementation of hook_node_access_explain
 */
 function devel_node_access_node_access_explain($row) {
-  if ($row->nid == 0 && $row->gid == 0 && $row->realm == 'all') {
-    return 'all users may view all nodes.';
+  if ($row->gid == 0 && $row->realm == 'all') {
+    if ($row->nid == 0) {
+      return 'All users may view all nodes.';
+    } else {
+      return 'All users may view this node.';
+    }
   }
 }
 
