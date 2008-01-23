@@ -552,7 +552,7 @@ function devel_form_alter(&$form, $form_state, $form_id, $key_in = NULL) {
 function devel_exit($destination = NULL) {
   global $user;
 
-  if (isset($destination)) {
+  if (isset($destination) && !devel_silent()) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
     if (isset($user) && user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
