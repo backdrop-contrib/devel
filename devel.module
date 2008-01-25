@@ -356,12 +356,25 @@ function devel_perm() {
 /**
  * Implementation of hook_block().
  */
-function devel_block($op = 'list', $delta = 0) {
+function devel_block($op = 'list', $delta = 0, $edit = array()) {
   if ($op == 'list') {
     $blocks[0]['info'] = t('Switch user');
     $blocks[1]['info'] = t('Devel');
     $blocks[2]['info'] = t('Execute PHP');
     return $blocks;
+  }
+  else if ($op == 'configure' && $delta == 0) {
+    $form['devel_switch_user_list_size'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Number of users to display in the list'),
+      '#default_value' => variable_get('devel_switch_user_list_size', 10),
+      '#size' => '3',
+      '#maxlength' => '4',
+    );
+    return $form;
+  }
+  else if ($op == 'save' && $delta == 0) {
+    variable_set('devel_switch_user_list_size', $edit['devel_switch_user_list_size']);
   }
   else if ($op == 'view') {
     $block = array();
