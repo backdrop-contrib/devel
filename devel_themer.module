@@ -82,19 +82,20 @@ function devel_themer_shutdown() {
 
 /**
  * An implementation of hook_theme_registry_alter()
- * Iterate over theme registry, injecting our catch function into every theme function.
+ * Iterate over theme registry, injecting our catch function into every theme call, including template calls.
  * The catch function logs theme calls and performs divine nastiness.
  *
  * @return void
  **/
 function devel_themer_theme_registry_alter($theme_registry) {
   foreach ($theme_registry as $hook => $data) {
-    // Copy over original registry of the hook so it can be caught later.
-    $theme_registry[$hook]['devel_themer'] = $theme_registry[$hook];
-    // Replace with our catch function.
+    if (isset($theme_registry[$hook]['function'])) {
+      // If the hook is a function, store it so it can be run after it has been intercepted.
+      // This does not apply to template calls.
+      $theme_registry[$hook]['devel_function_intercept'] = $theme_registry[$hook]['function'];
+    }
+    // Add  our catch function to intercept functions as well as templates.
     $theme_registry[$hook]['function'] = 'devel_themer_catch_function';
-    $theme_registry[$hook]['type'] = 'module';
-    $theme_registry[$hook]['theme path'] = drupal_get_path('module', 'devel_themer');
   }
 }
 
@@ -302,16 +303,9 @@ function devel_themer_theme_twin() {
     $hook = $candidate;
   }
 
+  $info = $hooks[$hook];
   $meta['hook'] = $hook;
-  // extract the original registry info that we set aside in the devel element.
-  $info = $hooks[$hook]['devel_themer'];
-
-  global $theme_path;
-  $temp = $theme_path;
-  $meta['path'] = $theme_path;
-  // point path_to_theme() to the currently used theme path:
-  // MW: not needed
-  // $theme_path = $info[$hook]['theme path'];
+  $meta['path'] = $info['theme path'];
 
   // Include a file if the theme function or preprocess function is held elsewhere.
   if (!empty($info['file'])) {
@@ -321,14 +315,14 @@ function devel_themer_theme_twin() {
     }
     include_once($include_file);
   }
-  if (isset($info['function'])) {
+  if (isset($info['devel_function_intercept'])) {
     // The theme call is a function.
-    $output = call_user_func_array($info['function'], $args);
+    $output = call_user_func_array($info['devel_function_intercept'], $args);
     $meta['type'] = 'func';
-    $meta['used'] = $info['function'];
+    $meta['used'] = $info['devel_function_intercept'];
     // Try to populate the keys of $args with variable names. Works on PHP5+.
     if (!empty($args) && class_exists('ReflectionFunction')) {
-      $reflect = new ReflectionFunction($info['function']);
+      $reflect = new ReflectionFunction($info['devel_function_intercept']);
       $params = $reflect->getParameters();
       for ($i=0; $i < count($args); $i++) {
         $meta['variables'][$params[$i]->getName()] = $args[$i];
@@ -411,8 +405,7 @@ function devel_themer_theme_twin() {
     $meta['template_file'] = $template_file;
     $meta['variables'] = $variables;
   }
-  // restore path_to_theme()
-  // $theme_path = $temp;
+
   return array($output, $meta);
 }
 
