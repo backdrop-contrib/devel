@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Devel\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2008-01-19 15:07+0100\n"
+"PO-Revision-Date: 2008-01-26 10:44+0100\n"
 "Last-Translator: Alexander Hass\n"
 "Language-Team: Alexander Hass\n"
 "MIME-Version: 1.0\n"
@@ -927,7 +927,7 @@ msgstr "Verwendete Datei:"
 
 #: devel_themer.module:462
 msgid "Duration: "
-msgstr "Dauer:"
+msgstr "Dauer: "
 
 #: devel_themer.module:469
 msgid "Drupal Themer Information"
