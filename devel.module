@@ -488,8 +488,9 @@ function devel_switch_user_form() {
   $form['username'] = array(
     '#type' => 'textfield',
     '#description' => t('Enter username'),
+    '#autocomplete_path' => 'user/autocomplete',
+    '#maxlength' => USERNAME_MAX_LENGTH,
     '#size' => 16,
-    '#maxlength' => 255,
   );
   $form['submit'] = array(
     '#type' => 'submit',
