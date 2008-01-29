@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Devel\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2008-01-29 08:45+0100\n"
-"Last-Translator: Alexander Hass\n"
-"Language-Team: Alexander Hass\n"
+"PO-Revision-Date: 2008-01-29 22:00+0800\n"
+"Last-Translator: Axel Kollmorgen <axel AT kollmorgen , net>\n"
+"Language-Team: German\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -46,11 +46,11 @@ msgstr[1] "@count Beiträge erstellt."
 
 #: devel.module:24
 msgid "This is a list of defined user functions that generated this current request lifecycle. Click on a function name to view its documention."
-msgstr ""
+msgstr "Liste von definierten Benutzerfunktionen, die den aktuellen Anfragezyklus erzeugten. Die Verweise führen zur Dokumentation der jeweiligen Funktion."
 
 #: devel.module:26
 msgid "Clicking a module's reinstall button will simulate uninstalling/installing a module. <code>hook_uninstall()</code> and <code>hook_install()</code> will be executed and the schema version number will be set to the most recent update number. You may have to manually clear out any existing tables first if the module doesn't implement <code>hook_uninstall()</code>."
-msgstr ""
+msgstr "\"Neu installieren\" simuliert das Deinstallieren/Installieren eines Moduls. <code>hook_uninstall()</code> und <code>hook_install()</code> werden ausgeführt und die Schemaversionsnummer auf die letzte update-Nummer gesetzt. Wenn das Modul <code>hook_uninstall()</code> nicht oder nur unvollständig implementiert, müssen existierende Tabellen zuerst manuell bereinigt werden."
 
 #: devel.module:28
 msgid "Here are the contents of your <code>$_SESSION</code> variable."
@@ -58,7 +58,7 @@ msgstr "Hier sind die Inhalte Ihrer <code>$_SESSION</code> Variable."
 
 #: devel.module:31
 msgid "This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href=\"@variable-get-doc\">variable_get()</a> and <a href=\"@variable-set-doc\">variable_set()</a>. Variables that are too long can slow down your pages."
-msgstr ""
+msgstr "Liste von Variablen und ihren Werten, wie sie momentan in der <code>variables</code>-Tabelle und dem <code>$conf</code>-Array aus <code>settings.php</code> gespeichert sind. Auf diese Variablen wird gewöhnlich mit <a href=\"@variable-get-doc\">variable_get()</a> und <a href=\"@variable-set-doc\">variable_set()</a> zugegriffen. Zu lange Variablen können die Antwortzeit verlangsamen."
 
 #: devel.module:141
 msgid "block administration"
@@ -579,7 +579,7 @@ msgstr "Sessionansicht"
 
 #: devel.module:141
 msgid "Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the !block page."
-msgstr ""
+msgstr "Hilfsfunktionen, -seiten und -blöcke zur Unterstützung von Drupal-Entwicklern. Die devel-Blöcke können auf der !block-Seite verwaltet werden."
 
 #: devel.module:148
 #, fuzzy
