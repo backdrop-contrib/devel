@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Devel\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2008-01-26 10:44+0100\n"
+"PO-Revision-Date: 2008-01-29 08:45+0100\n"
 "Last-Translator: Alexander Hass\n"
 "Language-Team: Alexander Hass\n"
 "MIME-Version: 1.0\n"
@@ -656,7 +656,7 @@ msgstr ""
 
 #: devel_generate.module:154
 msgid "How many vocabularies would you like to generate?"
-msgstr "Wie viele Vakabularien sollen generiert werden?"
+msgstr "Wie viele Vokabularien sollen generiert werden?"
 
 #: devel_generate.module:160
 msgid "How many terms would you like to generate?"
