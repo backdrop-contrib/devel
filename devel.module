@@ -36,86 +36,99 @@ function devel_help($section) {
  * Implementation of hook_menu().
  */
 function devel_menu() {
+  // TODO: 
+  // - get 'run cron' in here
+  // devel/node_access/summary'
+  
   $items = array();
 
+  // note: we can't dynamically append destination to querystring. do so at theme layer. fix in D7?
   $items['devel/cache/clear'] = array(
     'title' => 'Empty cache',
     'page callback' => 'devel_cache_clear',
+    'description' => 'Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.',
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
-  $items['devel/rebuild_node_comment_statistics'] = array(
-    'title' => 'Rebuild node_comment_statistics table',
-    'page callback' => 'devel_rebuild_node_comment_statistics_page',
-    'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+  
+  $items['devel/queries'] = array(
+    'title' => 'Database queries',
+    'page callback' => 'devel_queries',
+    'access callback' => devel_menu_access_store_queries(),
+    'menu_name' => 'devel',
   );
-  if (variable_get('devel_store_queries', 0)) {
-    $items['devel/queries'] = array(
-      'title' => 'Database queries',
-      'page callback' => 'devel_queries',
-      'access arguments' => array('access devel information'));
-    $items['devel/queries/empty'] = array(
-      'title' => 'Empty database queries',
-      'page callback' => 'devel_queries_empty',
-      'access arguments' => array('access devel information'),
-      'type' => MENU_CALLBACK);
-  }
+  $items['devel/queries/empty'] = array(
+    'title' => 'Empty database queries',
+    'page callback' => 'devel_queries_empty',
+    'access callback' => devel_menu_access_store_queries(),
+    'menu_name' => 'devel',
+  );
   $items['devel/reference'] = array(
-    'title' => 'function reference',
+    'title' => 'Function reference',
+    'description' => 'View a list of currently defined user functions with documentation links.',
     'page callback' => 'devel_function_reference',
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/reinstall'] = array(
     'title' => 'Reinstall modules',
     'page callback' => 'devel_reinstall',
+    'description' => 'Run hook_uninstall() and then hook_install() for a given module.',
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/devel_themer'] = array(
-    'title' => 'Toggle Devel Themer module',
+    'title callback' => 'devel_menu_title_theme_developer',
+    'title arguments' => array(NULL),
+    'title' => 'foo',
+    'description' => 'Quickly enable or disable theme developer module. Useful for removing HTML cruft added by that module.',
     'page callback' => 'devel_devel_themer_toggle',
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/source'] = array(
     'title' => 'Display the PHP code of any file in your Drupal installation',
     'page callback' => 'devel_display_source',
     'access arguments' => array('display source code'),
     'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/menu/reset'] = array(
     'title' => 'Reset menus',
+    'description' => 'Rebuild menu based on hook_menu() and revert any custom changes. All menu items return to their default settings.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_menu_reset'),
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/variable'] = array(
     'title' => 'Variable editor',
+    'description' => 'Edit and delete site variables.',
     'page callback' => 'devel_variable_page',
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   // we don't want the abbreviated version provided by status report
   $items['devel/phpinfo'] = array(
     'title' => 'PHPinfo()',
+    'description' => 'View your server\'s PHP configuration',
     'page callback' => 'devel_phpinfo',
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/theme/registry'] = array(
     'title' => 'Theme registry',
+    'description' => 'View a list of available theme functions acros the whole site.',
     'page callback' => 'devel_theme_registry',
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/elements'] = array(
-    'title' => 'hook_elements()',
+    'title' => 'Hook_elements()',
+    'description' => 'View the active form/render elements for this site.',
     'page callback' => 'devel_elements_page',
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/variable/edit/%'] = array(
     'title' => 'Variable editor',
@@ -123,26 +136,29 @@ function devel_menu() {
     'page arguments' => array('devel_variable_edit', 3),
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/session'] = array(
     'title' => 'Session viewer',
+    'description' => 'List the contents of $_SESSION.',
     'page callback' => 'devel_session',
     'access arguments' => array('access devel information'),
-    'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['devel/switch'] = array(
     'title' => 'Switch user',
     'page callback' => 'devel_switch_user',
     'access arguments' => array('switch users'),
     'type' => MENU_CALLBACK,
+    'menu_name' => 'devel',
   );
   $items['admin/settings/devel'] = array(
-    'title' => 'Devel',
+    'title' => 'Devel settings',
     'description' =>  'Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the !block page.', array('!block' => l(t('block administration'), 'admin/build/block')),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_admin_settings'),
     'access arguments' => array('administer site configuration'),
-    'type' => MENU_NORMAL_ITEM
+    'menu_name' => 'devel',
   );
   $items['node/%node/load'] = array(
     'title' => 'Dev load',
@@ -179,12 +195,25 @@ function devel_menu() {
   return $items;
 }
 
-function devel_devel_themer_toggle($action) {
-  if ($action == 'enable') {
-    module_enable(array('devel_themer'));
+function devel_menu_access_store_queries() {
+  return user_access('access devel information') && variable_get('devel_store_queries', 0);
+}
+
+function devel_menu_title_theme_developer() {
+  if (module_exists('devel_themer')) {
+    return t('Disable Theme developer');
   }
   else {
+    return t('Enable Theme developer');
+  }
+}
+
+function devel_devel_themer_toggle() {
+  if (module_exists('devel_themer')) {
     module_disable(array('devel_themer'));
+  }
+  else {
+    module_enable(array('devel_themer'));
   }
   drupal_rebuild_theme_registry();
   drupal_goto();
@@ -271,6 +300,13 @@ function devel_init() {
       has_krumo();
     }
   }
+  
+  // add destination params to some of our menu items. wish we had a href_callback in hook_menu()
+  $path = 'devel/cache/clear';
+  $item = menu_get_item($path);
+  $item['options']['query'] = drupal_get_destination();
+  menu_set_item($path, $item);
+  
 }
 
 // return boolean. no need for cache here.
@@ -359,7 +395,7 @@ function devel_perm() {
 function devel_block($op = 'list', $delta = 0, $edit = array()) {
   if ($op == 'list') {
     $blocks[0]['info'] = t('Switch user');
-    $blocks[1]['info'] = t('Devel');
+//     $blocks[1]['info'] = t('Devel');
     $blocks[2]['info'] = t('Execute PHP');
     return $blocks;
   }
@@ -383,7 +419,7 @@ function devel_block($op = 'list', $delta = 0, $edit = array()) {
         $block = devel_block_switch_user();
         break;
       case 1:
-        $block = devel_block_devel();
+        // Deleted in favor of custom menu. do not reuse this index.
         break;
       case 2:
         if (user_access('execute php code')) {
@@ -392,43 +428,6 @@ function devel_block($op = 'list', $delta = 0, $edit = array()) {
         }
         break;
     }
-    return $block;
-  }
-}
-
-function devel_block_devel() {
-  $links = array();
-  $block['subject'] = t('devel');
-  if (user_access('access devel information')) {
-    $links[] = l(t('Devel settings'), 'admin/settings/devel', array('attributes' => array('title' => t('Adjust module settings for devel module.'))));
-    $links[] = l(t('Empty cache'), 'devel/cache/clear', array('attributes' => array('title' => t('Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.')), 'query' => drupal_get_destination()));
-    $links[] = l(t('Run cron'), 'admin/reports/status/run-cron', array('attributes' => array('title' => t('Execute functions scheduled for cron runs.')), 'query' => drupal_get_destination()));
-    $links[] = l(t('PHPinfo()'), 'devel/phpinfo', array('attributes' => array('title' => t('Display information about your PHP installation.'))));
-    $action = module_exists('devel_themer') ? 'Disable' : 'Enable';
-    $links[] = l("Theme Devel: $action",
-                  'devel/devel_themer/'. strtolower($action),
-                  array('attributes' =>
-                      array('title' => t("$action the Devel Themer module.")),
-                      'query' => drupal_get_destination(),
-                  )
-                );
-    $mini[] = l(t('func'), 'devel/reference', array('attributes' => array('title' => t('View a list of currently defined user functions with documentation links.'))));
-    $mini[] = l(t('theme'), 'devel/theme/registry', array('attributes' => array('title' => t('View a list of available theme functions acros the whole site.'))));
-    $mini[] = l(t('elements'), 'devel/elements', array('attributes' => array('title' => t('View the active form/render elements for this site.'))));
-    $mini[] = l(t('sess'), 'devel/session', array('attributes' => array('title' => t('List the contents of $_SESSION.'))));
-    $links[] = implode('&nbsp;&nbsp;', $mini);
-
-    $links[] = l(t('Reinstall modules'), 'devel/reinstall', array('attributes' => array('title' => t('Re-run hook_install() for a given module.')), 'query' => drupal_get_destination()));
-    $links[] = l(t('Rebuild menus'), 'devel/menu/reset', array('attributes' => array('title' => t('Rebuild menu based on hook_menu() and any custom changes all menu items to their default settings.')), 'query' => drupal_get_destination()));
-    $links[] = l(t('Variable editor'), 'devel/variable', array('attributes' => array('title' => t('Edit and delete site variables.'))));
-  }
-  if (function_exists('devel_node_access_perm') && user_access(DNA_ACCESS_VIEW)) {
-    // True only if devel_node_access enabled.
-    $links[] = l(t('Node access summary'), 'devel/node_access/summary');
-  }
-
-  if ($links) {
-    $block['content'] = theme('item_list', $links). drupal_get_form('devel_doc_function_form');
     return $block;
   }
 }
