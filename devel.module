@@ -300,13 +300,6 @@ function devel_init() {
       has_krumo();
     }
   }
-  
-  // add destination params to some of our menu items. wish we had a href_callback in hook_menu()
-  $path = 'devel/cache/clear';
-  $item = menu_get_item($path);
-  $item['options']['query'] = drupal_get_destination();
-  menu_set_item($path, $item);
-  
 }
 
 // return boolean. no need for cache here.

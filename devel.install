@@ -34,6 +34,10 @@ function devel_install() {
      
   // New module weights in core: put devel as the very last in the chain.
   db_query('UPDATE {system} SET weight = 88 WHERE name = "devel"');
+  
+  //create our menu. see menu.install for an example.
+  $t = get_t();
+  db_query("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('%s', '%s', '%s')", 'devel', $t('Development'), $t('Development links.'));
 }
 
  /**
