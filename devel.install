@@ -35,7 +35,7 @@ function devel_install() {
   // New module weights in core: put devel as the very last in the chain.
   db_query('UPDATE {system} SET weight = 88 WHERE name = "devel"');
   
-  //create our menu. see menu.install for an example.
+  // Create our menu. See menu.install for an example.
   $t = get_t();
   db_query("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('%s', '%s', '%s')", 'devel', $t('Development'), $t('Development links.'));
 }
@@ -57,6 +57,7 @@ function devel_uninstall() {
   variable_del('dev_mem');
   variable_del('devel_error_handler');
   variable_del('devel_store_queries');
+  // TODO: delete custom menu 
 }
 
 /**
@@ -129,4 +130,9 @@ function devel_update_5() {
   return $ret;
 }
 
-// attention: from now on numbering as per http://drupal.org/node/114774
+function devel_update_6001() {
+  // Create our menu. See menu.install for an example.
+  $t = get_t();
+  $ret = update_sql("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('%s', '%s', '%s')", 'devel', $t('Development'), $t('Development links.'));
+  return $ret;
+}
