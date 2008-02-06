@@ -40,11 +40,12 @@ function devel_node_access_help($path, $arg) {
 function devel_node_access_menu() {
   $items = array();
 
+  // add this to the custom menu 'devel' created by devel module.
   $items['devel/node_access/summary'] = array(
-           'title' => 'node_access summary',
+           'title' => 'Node_access summary',
            'page callback' => 'dna_summary',
            'access arguments' => array(DNA_ACCESS_VIEW),
-           'type' => MENU_CALLBACK,
+           'menu_name' => 'devel',
            );
 
   return $items;

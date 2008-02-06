@@ -38,7 +38,6 @@ function devel_help($section) {
 function devel_menu() {
   // TODO: 
   // - get 'run cron' in here
-  // devel/node_access/summary'
   
   $items = array();
 
