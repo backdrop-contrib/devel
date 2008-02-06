@@ -195,6 +195,28 @@ function devel_menu() {
   return $items;
 }
 
+/**
+ * An implementation of hook_menu_link_alter(). Flag this link as needing alter at display time.
+ * See devel_translated_menu_link_alter().
+ *
+ **/
+function devel_menu_link_alter(&$item, &$menu) {
+  if ($item['link_path'] == 'devel/cache/clear') {
+    $item['options']['alter'] = TRUE;
+  }
+}
+
+/**
+ * An implementation of hook_translated_menu_item_alter(). Append dynamic 
+ * querystring 'destination' to several of our own menu items.
+ * 
+ **/
+function devel_translated_menu_link_alter(&$item) {
+  if ($item['href'] == 'devel/cache/clear') {
+    $item['localized_options']['query'] = drupal_get_destination();
+  }
+}
+
 function devel_menu_access_store_queries() {
   return user_access('access devel information') && variable_get('devel_store_queries', 0);
 }
@@ -229,7 +251,6 @@ function devel_theme() { // &$cache, $type, $theme, $path
     ),
   );
 }
-
 
 /**
  * Page callback to display syntax hilighted source code
