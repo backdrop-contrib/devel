@@ -64,7 +64,8 @@ function devel_uninstall() {
   variable_del('dev_mem');
   variable_del('devel_error_handler');
   variable_del('devel_store_queries');
-  // TODO: delete custom menu 
+  
+  db_query("DELETE FROM {menu_custom} WHERE menu_name = 'devel'");
 }
 
 /**
