@@ -1097,8 +1097,9 @@ function devel_variable_edit_submit($form, &$form_state) {
  */
 function devel_session() {
   global $user;
-  $output = dprint_r($_SESSION, TRUE);
-  $output .= session_name(). '='. $user->sid;
+  $output = kprint_r($_SESSION, TRUE);
+  $headers = array(t('Session name'), t('Session ID'));
+  $output .= theme('table', $headers, array(array(session_name(), $user->sid)));
   return $output;
 }
 
