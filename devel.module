@@ -42,13 +42,14 @@ function devel_menu() {
   
   $items = array();
 
-  // note: we can't dynamically append destination to querystring. do so at theme layer. fix in D7?
+  $desc = 'Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.';
   $items['devel/cache/clear'] = array(
     'title' => 'Empty cache',
     'page callback' => 'devel_cache_clear',
-    'description' => 'Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.',
+    'description' => $desc,
     'access arguments' => array('access devel information'),
-    'menu_name' => 'devel',
+    'options' => array('alter' => TRUE, 'attributes' => array('title' => $desc)),
+    'menu_name' => 'devel', 
   );
   
   $items['devel/queries'] = array(
@@ -193,17 +194,6 @@ function devel_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   return $items;
-}
-
-/**
- * An implementation of hook_menu_link_alter(). Flag this link as needing alter at display time.
- * See devel_translated_menu_link_alter().
- *
- **/
-function devel_menu_link_alter(&$item, &$menu) {
-  if ($item['link_path'] == 'devel/cache/clear') {
-    $item['options']['alter'] = TRUE;
-  }
 }
 
 /**
