@@ -38,6 +38,13 @@ function devel_install() {
   // Create our menu. See menu.install for an example.
   $t = get_t();
   db_query("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('%s', '%s', '%s')", 'devel', $t('Development'), $t('Development links.'));
+  
+  $item = array(
+    'link_title' => 'Run cron',
+    'link_path' => 'admin/reports/status/run-cron',
+    'menu_name' => 'devel',
+  );
+  menu_link_save($item);
 }
 
  /**

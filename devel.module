@@ -36,11 +36,7 @@ function devel_help($section) {
  * Implementation of hook_menu().
  */
 function devel_menu() {
-  // TODO: 
-  // - get 'run cron' in here
-  
   $items = array();
-
   // note: we can't dynamically append destination to querystring. do so at theme layer. fix in D7?
   $items['devel/cache/clear'] = array(
     'title' => 'Empty cache',
@@ -191,12 +187,12 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
   );
+  
   return $items;
 }
 
 function devel_menu_need_destination() {
-  // add admin/reports/status/run-cron when it is in our menu
-  return array('devel/cache/clear', 'devel/devel_themer', 'devel/reinstall', 'devel/menu/reset', 'admin/og/og', 'devel/variable');
+  return array('devel/cache/clear', 'devel/devel_themer', 'devel/reinstall', 'devel/menu/reset', 'admin/og/og', 'devel/variable', 'admin/reports/status/run-cron');
 }
 
 /**
