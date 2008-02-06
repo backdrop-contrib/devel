@@ -42,14 +42,13 @@ function devel_menu() {
   
   $items = array();
 
-  $desc = 'Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.';
+  // note: we can't dynamically append destination to querystring. do so at theme layer. fix in D7?
   $items['devel/cache/clear'] = array(
     'title' => 'Empty cache',
     'page callback' => 'devel_cache_clear',
-    'description' => $desc,
+    'description' => 'Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.',
     'access arguments' => array('access devel information'),
-    'options' => array('alter' => TRUE, 'attributes' => array('title' => $desc)),
-    'menu_name' => 'devel', 
+    'menu_name' => 'devel',
   );
   
   $items['devel/queries'] = array(
@@ -196,13 +195,29 @@ function devel_menu() {
   return $items;
 }
 
+function devel_menu_need_destination() {
+  // add admin/reports/status/run-cron when it is in our menu
+  return array('devel/cache/clear', 'devel/devel_themer', 'devel/reinstall', 'devel/menu/reset', 'admin/og/og', 'devel/variable');
+}
+
+/**
+ * An implementation of hook_menu_link_alter(). Flag this link as needing alter at display time.
+ * This is more robust that setting alter in hook_menu(). See devel_translated_menu_link_alter().
+ *
+ **/
+function devel_menu_link_alter(&$item, &$menu) {
+  if (in_array($item['link_path'], devel_menu_need_destination())) {
+    $item['options']['alter'] = TRUE;
+  }
+}
+
 /**
  * An implementation of hook_translated_menu_item_alter(). Append dynamic 
  * querystring 'destination' to several of our own menu items.
  * 
  **/
 function devel_translated_menu_link_alter(&$item) {
-  if ($item['href'] == 'devel/cache/clear') {
+  if (in_array($item['href'], devel_menu_need_destination())) {
     $item['localized_options']['query'] = drupal_get_destination();
   }
 }
