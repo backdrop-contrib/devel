@@ -279,6 +279,10 @@ function devel_themer_ancestry($calls) {
  * it was impossible to capture calls to module owned templates (e.g. user_profile) and awkward to determine
  * which template was finally called and how long it took.
  *
+ * @return array
+ *   A two element array. First element contains the HTML from the theme call. The second contains 
+ *   a metadata array about the call. 
+ *
  **/
 function devel_themer_theme_twin() {
   $args = func_get_args();
@@ -301,6 +305,11 @@ function devel_themer_theme_twin() {
       }
     }
     $hook = $candidate;
+  }
+
+  // This should not be needed but some users are getting errors. See http://drupal.org/node/209929
+  if (!isset($hooks[$hook])) {
+    return array('', $meta);
   }
 
   $info = $hooks[$hook];
