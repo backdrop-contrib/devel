@@ -1469,11 +1469,14 @@ function ddebug_backtrace() {
   if (user_access('access devel information')) {
     $trace = debug_backtrace();
     array_shift($trace);
+    foreach ($trace as $key => $value) {
+      $rich_trace[$value['function']] = $value;
+    }
     if (has_krumo()) {
-      print krumo($trace);
+      print krumo($rich_trace);
     }
     else {
-      dprint_r($trace);
+      dprint_r($rich_trace);
     }
   }
 }
