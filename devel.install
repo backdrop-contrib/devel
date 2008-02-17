@@ -145,3 +145,13 @@ function devel_update_6001() {
   $ret = update_sql("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('%s', '%s', '%s')", 'devel', 'Development', 'Development links.');
   return $ret;
 }
+
+function devel_update_6002() {
+  $item = array(
+    'link_title' => 'Run cron',
+    'link_path' => 'admin/reports/status/run-cron',
+    'menu_name' => 'devel',
+    'module' => 'devel',
+  );
+  menu_link_save($item);
+}
