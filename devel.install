@@ -43,6 +43,7 @@ function devel_install() {
     'link_title' => 'Run cron',
     'link_path' => 'admin/reports/status/run-cron',
     'menu_name' => 'devel',
+    'module' => 'devel',
   );
   menu_link_save($item);
 }
@@ -66,6 +67,7 @@ function devel_uninstall() {
   variable_del('devel_store_queries');
   
   db_query("DELETE FROM {menu_custom} WHERE menu_name = 'devel'");
+  db_query("DELETE FROM {menu_links} WHERE module = 'devel'");
 }
 
 /**
