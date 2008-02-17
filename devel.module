@@ -1517,7 +1517,7 @@ if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) 
        '%mail_id' => $message['id'],
        '%to' => $message['to'],
        '%from' => $message['from'],
-       '%lang' => $message['language'],
+       '%lang' => $message['language']->language,
        '%subject' => $message['subject'],
        '%body' => $message['body'],
        '!header' => implode("<br />", $mimeheaders),
