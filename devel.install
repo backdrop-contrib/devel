@@ -36,8 +36,8 @@ function devel_install() {
   db_query("UPDATE {system} SET weight = 88 WHERE name = 'devel'");
   
   // Create our menu. See menu.install for an example.
-  $t = get_t();
-  db_query("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('%s', '%s', '%s')", 'devel', $t('Development'), $t('Development links.'));
+  // update_sql() does not support printf args. See http://drupal.org/node/36324
+  db_query("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('devel', 'Development', 'Development links')");
   
   $item = array(
     'link_title' => 'Run cron',
@@ -154,4 +154,11 @@ function devel_update_6002() {
     'module' => 'devel',
   );
   menu_link_save($item);
+}
+
+function devel_update_6003() {
+  // Another try. update_sql() does not support printf args. See http://drupal.org/node/36324
+  $ret[] = update_sql("DELETE FROM {menu_custom} WHERE menu_name = 'devel' OR menu_name = ''");
+  $ret[] = update_sql("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('devel', 'Development', 'Development links')");
+  return $ret;
 }
