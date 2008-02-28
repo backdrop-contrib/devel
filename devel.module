@@ -777,10 +777,18 @@ function devel_db_query($query) {
 
 function devel_admin_settings() {
   $form['queries'] = array('#type' => 'fieldset', '#title' => t('Query log'));
+  
+  $description = t("Collect query info. If disabled, no query log functionality will work.");
+  if (extension_loaded('Zend Optimizer')) {
+    $description = t('You must disable the php Zend Optimizer extension in order to enable this feature. Zend Optimizer is <a href="!url">horribly buggy and segfaults your Apache</a> ... ', array('!url' => url('http://drupal.org/node/126098'))). $description;
+  } 
   $form['queries']['dev_query'] = array('#type' => 'checkbox',
     '#title' => t('Collect query info'),
     '#default_value' => variable_get('dev_query', 0),
-    '#description' => t("Collect query info. If disabled, no query log functionality will work."));
+    '#disabled' => extension_loaded('Zend Optimizer') ? TRUE : FALSE,
+    '#description' => $description,
+  );
+  
   $form['queries']['devel_query_display'] = array('#type' => 'checkbox',
     '#title' => t('Display query log'),
     '#default_value' => variable_get('devel_query_display', 0),
