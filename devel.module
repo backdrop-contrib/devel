@@ -400,7 +400,12 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
  * Implementation of hook_perm().
  */
 function devel_perm() {
-  return array('access devel information', 'execute php code', 'switch users', 'display source code');
+  return array(
+    'access devel information' => t('View developer output like variable printouts, query log, etc.'), 
+    'execute php code' => t('Run arbitrary PHP from a block. Danger!'),
+    'switch users' => t('Become any user on the site with just a click. Danger!'),
+    'display source code' => t('View the site\'s php source code. Danger!'),
+  );
 }
 
 /**
