@@ -6,3 +6,19 @@
 function devel_themer_disable() {
   // nothing yet
 }
+
+function devel_themer_requirements($phase) {
+  // Ensure translations don't break at install time
+   $t = get_t();
+   
+   if ($phase == 'install' || $phase == 'runtime') {
+     if (extension_loaded('Zend Optimizer')) {
+       $requirements['optimizer'] = array(
+         'title' => $t('Zend Optimizer'),
+         'description' => $t('You must disable the Zend Optimizer php extension in order to enable this module. Zend Optimizer is <a href="!url">horribly buggy and segfaults your Apache</a>.', array('!url' => url('http://drupal.org/node/126098'))),
+         'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+  return isset($requirements) ? $requirements : array();
+}
