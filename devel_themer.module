@@ -206,9 +206,9 @@ function devel_themer_catch_function() {
         }
       }
       else {
-        $name = $meta['hook']. devel_themer_get_extension();
+        $name = $meta['used']. devel_themer_get_extension();
         if (empty($suggestions)) {
-          array_unshift($meta['suggestions'], $meta['hook']);
+          array_unshift($meta['suggestions'], $meta['used']);
         }
         $candidates = array_reverse(array_map('devel_themer_append_extension', $meta['suggestions']));
         $used = $meta['template_file'];
@@ -344,6 +344,7 @@ function devel_themer_theme_twin() {
   else {
     // The theme call is a template.
     $meta['type'] = 'tpl';
+    $meta['used'] = str_replace($info['theme path'] .'/', '', $info['template']);
     $variables = array(
       'template_files' => array()
     );
