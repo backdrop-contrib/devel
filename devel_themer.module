@@ -367,7 +367,7 @@ function devel_themer_theme_twin() {
     if (isset($theme_engine)) {
       // If theme or theme engine is implementing this, it may have
       // a different extension and a different renderer.
-      if ($hooks[$hook]['type'] != 'module') {
+      if ($info['type'] != 'module') {
         if (function_exists($theme_engine .'_render_template')) {
           $render_function = $theme_engine .'_render_template';
         }
@@ -407,9 +407,9 @@ function devel_themer_theme_twin() {
     }
 
     if (empty($template_file)) {
-      $template_file = $hooks[$hook]['template'] . $extension;
-      if (isset($hooks[$hook]['path'])) {
-        $template_file = $hooks[$hook]['path'] .'/'. $template_file;
+      $template_file = $info['template'] . $extension;
+      if (isset($info['path'])) {
+        $template_file = $info['path'] .'/'. $template_file;
       }
     }
     $output = $render_function($template_file, $variables);
