@@ -423,7 +423,7 @@ function devel_themer_theme_twin() {
 
 // we emit the huge js array here instead of hook_footer so we can catch theme('page')
 function devel_themer_exit() {
-  if (!empty($GLOBALS['devel_theme_calls'])) {
+  if (!empty($GLOBALS['devel_theme_calls']) && $_SERVER['REQUEST_METHOD'] != 'POST') {
     print '<script type="text/javascript">jQuery.extend(Drupal.settings, '.  drupal_to_js($GLOBALS['devel_theme_calls']) .");</script>\n";
   }
 }
