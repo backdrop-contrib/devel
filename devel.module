@@ -1301,9 +1301,14 @@ function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FA
       $output .= "<dt><span class=\"field\">{$prefix}{$field}</span> $typesum</dt>\n";
       $output .= "<dd>\n";
       if (is_array($value)) {
-        $output .= _devel_print_object($value, $prefix, $field);
+        // Check for references to prevent errors from recursions.
+        if (!empty($value['check_reference'])) {
+          $value['check_reference'] = TRUE;
+          $output .= _devel_print_object($value, $prefix, $field);
+        }
       }
       elseif (is_object($value)) {
+        $value->check_reference = TRUE;
         $output .= _devel_print_object((array)$value, $prefix, $field, TRUE);
       }
       else {
