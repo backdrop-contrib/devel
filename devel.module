@@ -1248,6 +1248,9 @@ function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FA
   if (is_array($obj)) {
     $output = "<dl>\n";
     foreach($obj as $field => $value) {
+      if ($field == 'devel_flag_reference') {
+        continue;
+      }
       if (!is_null($parents)) {
         if ($object) {
           $field = $parents .'->'. $field;
@@ -1300,15 +1303,17 @@ function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FA
       $output .= '<span class="devel-attr">';
       $output .= "<dt><span class=\"field\">{$prefix}{$field}</span> $typesum</dt>\n";
       $output .= "<dd>\n";
-      if (is_array($value)) {
-        // Check for references to prevent errors from recursions.
-        if (!empty($value['check_reference'])) {
-          $value['check_reference'] = TRUE;
-          $output .= _devel_print_object($value, $prefix, $field);
-        }
+      // Check for references.
+      if (is_array($value) && isset($value['devel_flag_reference'])) {
+        $value['devel_flag_reference'] = TRUE;
+      }
+      // Check for references to prevent errors from recursions.
+      if (is_array($value) && isset($value['devel_flag_reference']) && !$value['devel_flag_reference']) {
+        $value['devel_flag_reference'] = FALSE;
+        $output .= _devel_print_object($value, $prefix, $field);
       }
       elseif (is_object($value)) {
-        $value->check_reference = TRUE;
+        $value->devel_flag_reference = FALSE;
         $output .= _devel_print_object((array)$value, $prefix, $field, TRUE);
       }
       else {
