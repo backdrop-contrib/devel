@@ -89,10 +89,10 @@ function devel_menu() {
     'menu_name' => 'devel',
   );
   $items['devel/menu/reset'] = array(
-    'title' => 'Reset menus',
+    'title' => 'Rebuild menus',
     'description' => 'Rebuild menu based on hook_menu() and revert any custom changes. All menu items return to their default settings.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('devel_menu_reset'),
+    'page arguments' => array('devel_menu_rebuild'),
     'access arguments' => array('access devel information'),
     'menu_name' => 'devel',
   );
@@ -912,9 +912,9 @@ function devel_execute_form_submit($form, &$form_state) {
 /**
  * Menu callback; clear the database, resetting the menu to factory defaults.
  */
-function devel_menu_reset() {
+function devel_menu_rebuild() {
   menu_rebuild();
-  drupal_set_message(t('The menu router has been built.'));
+  drupal_set_message(t('The menu router has been rebuilt.'));
   drupal_goto();
 }
 
