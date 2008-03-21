@@ -327,7 +327,7 @@ function devel_init() {
 function has_krumo() {
   // see README.txt or just download from http://krumo.sourceforge.net/
   @include_once './'. drupal_get_path('module', 'devel'). '/krumo/class.krumo.php';
-  if (function_exists('krumo')) {
+  if (function_exists('krumo') && php_sapi_name() != 'cli') {
     return TRUE;
   }
   else {
