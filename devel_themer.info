@@ -3,4 +3,4 @@ name = Theme developer
 description = Essential theme API information for theme developers
 package = Development
 dependencies[] = devel
-core = 6.x
+core = 7.x

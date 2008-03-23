@@ -780,17 +780,52 @@ function devel_db_query($query) {
   return db_query($query, $active_db);
 }
 
+// See http://drupal.org/node/126098
+function devel_is_compatible_optimizer() {
+   ob_start();
+   phpinfo();
+   $info = ob_get_contents();
+   ob_end_clean();
+
+   // Match the Zend Optimezer version in the phpinfo information
+   $found = preg_match('/Zend&nbsp;Optimizer&nbsp;v([0-9])\.([0-9])\.([0-9])/', $info, $matches);
+
+   if ($matches) {
+     $major = $matches[1];
+     $minor = $matches[2];
+     $build = $matches[3];
+     
+     if ($major >= 3) {
+       if ($minor >= 3) {
+         return TRUE;
+       } 
+       elseif ($minor == 2 && $build >= 8) {
+         return TRUE;
+       } 
+       else {
+         return FALSE;
+       }
+    } 
+    else {
+      return FALSE;
+    }
+  }
+  else {
+    return TRUE;
+  }
+}
+
 function devel_admin_settings() {
   $form['queries'] = array('#type' => 'fieldset', '#title' => t('Query log'));
   
   $description = t("Collect query info. If disabled, no query log functionality will work.");
-  if (extension_loaded('Zend Optimizer')) {
-    $description = t('You must disable the php Zend Optimizer extension in order to enable this feature. Zend Optimizer is <a href="!url">horribly buggy and segfaults your Apache</a> ... ', array('!url' => url('http://drupal.org/node/126098'))). $description;
+  if (!devel_is_compatible_optimizer()) {
+    $description = t('You must disable or upgrade the php Zend Optimizer extension in order to enable this feature. The minimum required version is 3.2.8. Earlier versions of Zend Optimizer are <a href="!url">horribly buggy and segfault your Apache</a> ... ', array('!url' => url('http://drupal.org/node/126098'))). $description;
   } 
   $form['queries']['dev_query'] = array('#type' => 'checkbox',
     '#title' => t('Collect query info'),
     '#default_value' => variable_get('dev_query', 0),
-    '#disabled' => extension_loaded('Zend Optimizer') ? TRUE : FALSE,
+    '#disabled' => !devel_is_compatible_optimizer() ? TRUE : FALSE,
     '#description' => $description,
   );
   
