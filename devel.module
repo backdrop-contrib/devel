@@ -355,7 +355,7 @@ function devel_set_handler($handler) {
 function devel_silent() {
   // isset($_GET['q']) is needed on IIS when calling the front page. q is not set.
   // Don't interfere with private files/images.
-  return isset($GLOBALS['devel_shutdown']) || strstr($_SERVER['PHP_SELF'], 'update.php') || (isset($_GET['q']) && (in_array($_GET['q'], array('upload/js')) || substr($_GET['q'], 0, strlen('system/files')) == 'system/files'));
+  return isset($GLOBALS['devel_shutdown']) || strstr($_SERVER['PHP_SELF'], 'update.php') || (isset($_GET['q']) && (in_array($_GET['q'], array('upload/js', 'admin/content/node-settings/rebuild')) || substr($_GET['q'], 0, strlen('system/files')) == 'system/files'));
 }
 
 /**
