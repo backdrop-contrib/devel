@@ -46,6 +46,7 @@ function devel_install() {
     'module' => 'devel',
   );
   menu_link_save($item);
+  return array();
 }
 
  /**
