@@ -320,7 +320,7 @@ function devel_init() {
       // We want to include the class early so that anyone may call krumo() as needed. See http://krumo.sourceforge.net/
       has_krumo();
       // See http://www.firephp.org/
-      include_once drupal_get_path('module', 'devel') .'/fb.php';
+      @include_once drupal_get_path('module', 'devel') .'/fb.php';
     }
   }
 }
