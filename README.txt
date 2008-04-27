@@ -24,6 +24,9 @@ You might also download Krumo from http://krumo.sourceforge.net/. Unpack it into
 called krumo. Devel will automatically start using it. You may also call krumo($variable) to get 
 a pretty print of any variable.
 
+- You should grab fb.php from http://www.firephp.org/ and put it in the devel directory. Then you can log 
+php variables to the firebug console. Is quite useful. See http://www.firephp.org/ for usage information.
+
 Included in this package is also: 
 - devel_themer.module which outputs deep information related to all theme calls on a page.
 - devel_node_access module which prints out the node_access records for a given node. Also offers hook_node_access_explain for all node access modules to implement. Handy.

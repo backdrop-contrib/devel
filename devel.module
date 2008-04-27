@@ -317,8 +317,10 @@ function devel_init() {
   if (!devel_silent()) {
     if (user_access('access devel information')) {
       devel_set_handler(variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD));
-      // we want to include the class early so that anyone may call krumo() as needed.
+      // We want to include the class early so that anyone may call krumo() as needed. See http://krumo.sourceforge.net/
       has_krumo();
+      // See http://www.firephp.org/
+      include_once drupal_get_path('module', 'devel') .'/fb.php';
     }
   }
 }
@@ -334,6 +336,19 @@ function has_krumo() {
     return FALSE;
   }
 }
+
+/**
+ * Calls the http://www.firephp.org/ fb() function if it is found.
+ *
+ * @return void
+ */
+function dfb() {
+  if (function_exists('fb')) {
+    $args = func_get_args();
+    call_user_func_array('fb', $args);
+  }
+}
+
 
 function devel_set_handler($handler) {
   switch ($handler) {
