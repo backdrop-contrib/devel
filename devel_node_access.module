@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * This module gives developers feedback as to what there
+ * This module gives developers feedback as to what their
  * node_access table contains, and which nodes are protected or
  * visible to the public.
  *
@@ -25,12 +25,14 @@ function devel_node_access_help($path, $arg) {
       break;
     case 'admin/help#devel_node_access':
       $output  = '<p>'. t('This module helps in site development.  Specifically, when an access control module is used to limit access to some or all nodes, this module provides some feedback showing the node_access table in the database.') ."</p>\n";
-      $output .= '<p>'. t('This module provides two blocks.  One called Devel Node Access by User is visible when a single node is shown on a page.  This block shows which users can view, update or delete the node shown.  Note that this block uses an inefficient algorithm to produce it\'s output.  You should only enable this block on sites with very few user accounts.  The second block provided by this module shows the entries in the node_access database table for any nodes shown on the current page.') ."</p>\n";
       $output .= '<p>'. t('The node_access table is one method Drupal provides to hide content from some users while displaying it to others.  By default, Drupal shows all nodes to all users.  There are a number of optional modules which may be installed to hide content from some users.') ."</p>\n";
-      $output .= '<p>'. t('If you have not installed one of these modules, you really have no need for the devel_node_access module.  This module is intended for use during development, so that developers and admins can confirm that node_access table is working as expected.  You probably do not want this module enabled on a production site.') ."</p>\n";
-      $output .= '<p>'. t('This module provides a !summary_page which shows show general information about your node_access table.  If you have installed the Views module, you may !browse_link.  This module also provides a block showing the rows of the node_access table relevant to whatever node(s) are shown on a given page.  Because the table shown is wide, it is recommended to enable the block in the page footer rather than a sidebar.',
-                          array('!summary_page' => l(t('summary page'), 'devel/node_access/summary'),
-                                '!browse_link' => l(t('browse node_access by realm'), 'devel/node_access/view'))
+      $output .= '<p>'. t('If you have not installed any of these modules, you really have no need for the devel_node_access module.  This module is intended for use during development, so that developers and admins can confirm that the node_access table is working as expected.  You probably do not want this module enabled on a production site.') ."</p>\n";
+      $output .= '<p>'. t('This module provides two blocks.  One called Devel Node Access by User is visible when a single node is shown on a page.  This block shows which users can view, update or delete the node shown.  Note that this block uses an inefficient algorithm to produce its output.  You should only enable this block on sites with very few user accounts.') ."</p>\n";
+      $output .= '<p>'. t('The second block provided by this module shows the entries in the node_access table for any nodes shown on the current page.  You can enable the debug mode on the !settings_page to display much more information, but this can cause considerable overhead.  Because the tables shown are wide, it is recommended to enable the blocks in the page footer rather than a sidebar.',
+                          array('!settings_page' => l(t('settings page'), 'admin/settings/devel', array(), NULL, 'edit-devel-node-access-debug-mode'))
+                          ) ."</p>\n";
+      $output .= '<p>'. t('This module also provides a !summary_page which shows general information about your node_access table.  If you have installed the Views module, you may browse node_access by realm.',
+                          array('!summary_page' => l(t('summary page'), 'devel/node_access/summary'))
                           ) ."</p>\n";
       $output .= '<p>'. t('') ."</p>\n";
       return $output;
@@ -152,7 +154,6 @@ function devel_node_access_block($op = 'list', $delta = 0) {
       $blocks[0]['info'] = t('Devel Node Access');
       $blocks[0]['status'] = 1;
       $blocks[0]['region'] = 'footer';
-
       $blocks[1]['info'] = t('Devel Node Access by User');
       $blocks[1]['status'] = 0;
       $blocks[1]['region'] = 'footer';
@@ -162,57 +163,60 @@ function devel_node_access_block($op = 'list', $delta = 0) {
       if (!user_access(DNA_ACCESS_VIEW)) {
         return;
       }
-      if ($delta == 0) {
-        if (!count(dna_visible_nodes())) {
-          return;
-        }
+      switch ($delta) {
+        case 0:
+          if (!count(dna_visible_nodes())) {
+            return;
+          }
 
-        // include rows where nid == 0
-        $nids = array_merge(array(0 => 0), dna_visible_nodes());
-        $result = db_query('SELECT na.*, n.title FROM {node_access} na LEFT JOIN {node} n ON n.nid = na.nid WHERE na.nid IN (%s) ORDER BY na.nid', implode(',', $nids));
-        $headers = array(t('node'), t('realm'), t('gid'), t('view'), t('update'), t('delete'), t('explained'));
-        $rows = array();
-        while ($row = db_fetch_object($result)) {
-          $explained = module_invoke_all('node_access_explain', $row);
-          $rows[] = array($row->title ? $row->title : $row->nid,
-                          $row->realm,
-                          $row->gid,
-                          $row->grant_view,
-                          $row->grant_update,
-                          $row->grant_delete,
-                          implode('; ', $explained));
-        }
-        $output = theme_table($headers, $rows);
-        $subject = t('node_access entries for nodes shown on this page');
-        return array('subject' => $subject, 'content' => $output);
-      }
-      else if ($delta == 1) {
-        // show which users can access this node
-        if (arg(0) == 'node' && is_numeric(arg(1))) {
-          $nid = arg(1);
-          $node = node_load($nid);
-          $headers = array(t('Username'), t('May View'), t('May Update'), t('May Delete'));
+          // include rows where nid == 0
+          $nids = array_merge(array(0 => 0), dna_visible_nodes());
+          $result = db_query('SELECT na.*, n.title FROM {node_access} na LEFT JOIN {node} n ON n.nid = na.nid WHERE na.nid IN (%s) ORDER BY na.nid', implode(',', $nids));
+          $headers = array(t('node'), t('realm'), t('gid'), t('view'), t('update'), t('delete'), t('explained'));
           $rows = array();
-          // Find all users. The following operations are very inefficient, so we
-          // limit the number of users returned.  It would be better to make a
-          // pager query, or at least make the number of users configurable.  If
-          // anyone is up for that please submit a patch.
-          $result = db_query_range('SELECT DISTINCT u.* FROM {users} u ORDER BY u.access DESC', 0, 10);
-          while ($data = db_fetch_object($result)) {
-            $account = user_load(array('uid' => $data->uid));
-            $rows[] = array(theme('username', $data),
-                            theme('dna_permission', node_access('view', $node, $account)),
-                            theme('dna_permission', node_access('update', $node, $account)),
-                            theme('dna_permission', node_access('delete', $node, $account)),
-            );
+          while ($row = db_fetch_object($result)) {
+            $explained = module_invoke_all('node_access_explain', $row);
+            $rows[] = array($row->title ? $row->title : $row->nid,
+                            $row->realm,
+                            $row->gid,
+                            $row->grant_view,
+                            $row->grant_update,
+                            $row->grant_delete,
+                            implode('; ', $explained));
           }
-          if (count($rows)) {
-            $output = theme('table', $headers, $rows);
-            return array('subject' => t('Access Permission by User'),
-                         'content' => $output);
+          $output = theme('table', $headers, $rows, array('style' => 'text-align: left'));
+          $subject = t('node_access entries for nodes shown on this page');
+          return array('subject' => $subject, 'content' => $output .'<br /><br />');
+
+        case 1:
+          // show which users can access this node
+          if (arg(0) == 'node' && is_numeric(arg(1))) {
+            $nid = arg(1);
+            $node = node_load($nid);
+            $headers = array(t('username'), t('view'), t('update'), t('delete'));
+            $rows = array();
+            // Find all users. The following operations are very inefficient, so we
+            // limit the number of users returned.  It would be better to make a
+            // pager query, or at least make the number of users configurable.  If
+            // anyone is up for that please submit a patch.
+            $result = db_query_range('SELECT DISTINCT u.* FROM {users} u ORDER BY u.access DESC', 0, 10);
+            while ($data = db_fetch_object($result)) {
+              $account = user_load(array('uid' => $data->uid));
+              $rows[] = array(theme('username', $data),
+                              theme('dna_permission', node_access('view', $node, $account)),
+                              theme('dna_permission', node_access('update', $node, $account)),
+                              theme('dna_permission', node_access('delete', $node, $account)),
+              );
+            }
+            if (count($rows)) {
+              $output = theme('table', $headers, $rows, array('style' => 'text-align: left'));
+              return array('subject' => t('Access permissions by user'),
+                           'content' => $output);
+            }
           }
-        }
+          break;
       }
+      break;
   }
 }
 
@@ -247,10 +251,12 @@ function devel_node_access_theme() {
  * TODO: use good looking images.
  */
 function theme_dna_permission($permission) {
-  if ($permission)
+  if ($permission) {
     return t('yes');
-  else
+  }
+  else {
     return t('no');
+  }
 }
 
 function devel_node_access_views_tables() {
@@ -321,10 +327,10 @@ function dna_handler_arg_realm($op, &$query, $argtype, $arg = '') {
 function devel_node_access_views_default_views() {
   $view = new stdClass();
   $view->name = 'devel_node_access';
-  $view->description = 'View nodes in node_access table';
+  $view->description = 'View nodes in the node_access table';
   $view->access = array();
   $view->page = TRUE;
-  $view->page_title = 'Nodes in node_access table';
+  $view->page_title = 'Nodes in the node_access table';
   $view->page_header = '';
   $view->page_header_format = '1';
   $view->page_type = 'table';
@@ -336,7 +342,7 @@ function devel_node_access_views_default_views() {
     array(
       'type' => 'realm',
       'argdefault' => '3',
-      'title' => 'Nodes in node_access table where realm is %1',
+      'title' => 'Nodes in the node_access table where realm is %1',
       'options' => '',
     ),
   );
