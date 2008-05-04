@@ -12,7 +12,7 @@
 define('DNA_ACCESS_VIEW', 'view devel_node_access information');
 
 function devel_node_access_perm() {
-  return array(DNA_ACCESS_VIEW);
+  return array( DNA_ACCESS_VIEW => t('View the node access summary page and information blocks on node pages.'));
 }
 
 /**
