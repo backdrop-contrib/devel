@@ -1454,7 +1454,7 @@ function dargs($always = TRUE) {
  */
 function dpm($input, $name = NULL) {
   if (user_access('access devel information')) {
-    $export = dprint_r($input, TRUE, $name);
+    $export = kprint_r($input, TRUE, $name);
     drupal_set_message($export);
   }
 }
@@ -1478,7 +1478,7 @@ function dsm($input, $name = NULL) {
  * An alias for dprint_r(). Saves carpal tunnel syndrome.
  */
 function dpr($input, $return = FALSE, $name = NULL) {
-  return dprint_r($input, $return, $name);
+  return kprint_r($input, $return, $name);
 }
 
 /**

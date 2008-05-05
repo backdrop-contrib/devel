@@ -56,7 +56,7 @@ function devel_create_nodes($records, $users, $title_length = 8, $add_upload = F
     // Insert new data:
     for ($i = 1; $i <= $records; $i++) {
       $node->type = $node_types[array_rand($node_types)];
-      require_once './modules/node/node.pages.inc';
+      module_load_include('inc', 'node', 'pages');
       node_object_prepare($node);
       $node->uid = $users[array_rand($users)];
 
