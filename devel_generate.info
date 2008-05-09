@@ -2,4 +2,6 @@
 name = Devel Generate
 description = Generate dummy users, nodes, and taxonomy terms.
 package = Development
-core = 6.x
+core = 7.x
+files[] = devel_generate.module
+files[] = devel_generate.inc

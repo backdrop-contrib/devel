@@ -57,7 +57,7 @@ function devel_create_nodes($records, $users, $title_length = 8, $add_upload = F
     for ($i = 1; $i <= $records; $i++) {
       $node->type = $node_types[array_rand($node_types)];
       module_load_include('inc', 'node', 'pages');
-      node_object_prepare($node);
+      module_invoke('node', 'node_object_prepare', $node);
       $node->uid = $users[array_rand($users)];
 
       $node->title = devel_create_greeking(rand(1, $title_length), TRUE);
