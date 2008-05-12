@@ -638,7 +638,7 @@ function devel_shutdown_real() {
     // Try not to break non html pages.
     if (function_exists('drupal_get_headers')) {
       $headers = drupal_get_headers();
-      if(strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain') || strstr($headers, 'image')) {
+      if(strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain') || strstr($headers, 'image') || strstr($headers, 'json')) {
         return;
       }
     }
