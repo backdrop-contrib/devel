@@ -29,7 +29,7 @@ function devel_node_access_help($path, $arg) {
       $output .= '<p>'. t('If you have not installed any of these modules, you really have no need for the devel_node_access module.  This module is intended for use during development, so that developers and admins can confirm that the node_access table is working as expected.  You probably do not want this module enabled on a production site.') ."</p>\n";
       $output .= '<p>'. t('This module provides two blocks.  One called Devel Node Access by User is visible when a single node is shown on a page.  This block shows which users can view, update or delete the node shown.  Note that this block uses an inefficient algorithm to produce its output.  You should only enable this block on sites with very few user accounts.') ."</p>\n";
       $output .= '<p>'. t('The second block provided by this module shows the entries in the node_access table for any nodes shown on the current page.  You can enable the debug mode on the !settings_page to display much more information, but this can cause considerable overhead.  Because the tables shown are wide, it is recommended to enable the blocks in the page footer rather than a sidebar.',
-                          array('!settings_page' => l(t('settings page'), 'admin/settings/devel', array(), NULL, 'edit-devel-node-access-debug-mode'))
+                          array('!settings_page' => l(t('settings page'), 'admin/settings/devel', array('fragment' => 'edit-devel-node-access-debug-mode')))
                           ) ."</p>\n";
       $output .= '<p>'. t('This module also provides a !summary_page which shows general information about your node_access table.  If you have installed the Views module, you may browse node_access by realm.',
                           array('!summary_page' => l(t('summary page'), 'devel/node_access/summary'))
@@ -363,7 +363,7 @@ function devel_node_access_block($op = 'list', $delta = 0) {
             }
             $output = theme_table($headers, $rows, array('class' => 'system-status-report', 'style' => 'text-align: left'));
 
-            $output .= theme_item(array('#value' =>'', '#description' => '(Some of the table elements provide additional information if you hover your mouse over them.)'));
+            $output .= theme_item(array('#value' => '', '#description' => '(Some of the table elements provide additional information if you hover your mouse over them.)'));
 
             // explain how access is granted (code from node_access())
             $t = 't';
@@ -453,7 +453,7 @@ function devel_node_access_node_access_explain($row) {
   if ($row->gid == 0 && $row->realm == 'all') {
     if ($row->nid == 0) {
       return 'All users may view all nodes.';
-    } 
+    }
     else {
       return 'All users may view this node.';
     }
