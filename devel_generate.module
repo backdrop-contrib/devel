@@ -74,7 +74,7 @@ function devel_generate_content_form() {
     foreach ($types as $type) {
       $warn = '';
       if (count($type['fields'])) {
-        $warn = t('. <strong>Warning</strong>. This type contains CCK fields which won\'t be populated. See !url', array('!url' => l(t('this CCK issue.'), 'http://drupal.org/node/187599')));
+        $warn = t('. This type contains CCK fields which will only be populated by fields that implement the content_generate hook.');
       }
       $options[$type['type']] = t($type['name']). $warn;
     }

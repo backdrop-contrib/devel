@@ -88,7 +88,7 @@ function devel_create_nodes($records, $users, $title_length = 8, $add_upload = F
       if (module_exists("content")) {
         devel_generate_fields($node);
       }
-      
+           
       // Save the node:
       node_save($node);
       
@@ -252,9 +252,9 @@ function devel_generate_word($length){
   return substr($word, 0, $length);
 }
 
-function devel_create_content() {
+function devel_create_content($type = NULL) {
   $nparas = rand(1,12);
-  $type = rand(0,3);
+  $type = empty($type) ? rand(0,3) : $type;
 
   $output = "";
   switch($type % 3) {
@@ -422,9 +422,9 @@ function devel_generate_fields(&$node) {
   $type = content_types($type_name);
   $field_types = _content_field_types();
 
-  $return = array();
   if (!empty($type['fields'])) {
     foreach ($type['fields'] as $field) {
+      $node_field = array();
       // If module handles own multiples, then only call its hook once.
       if (content_callback('field', 'multiple values', $field) != CONTENT_CALLBACK_DEFAULT) {
         $max = 1;
@@ -442,22 +442,22 @@ function devel_generate_fields(&$node) {
             break;
         }
       }
-
-      for ($i=0; $i <= $max; $i++) {
-         $module = $field_types[$field['type']]['module'];
+      for ($i = 0; $i <= $max; $i++) {
+        $module = $field_types[$field['type']]['module'];
         $function = $module .'_content_generate';
         if (function_exists($function)) {
-          $result = $function($op, $node, $field); // $items, $teaser, $page
-          if (is_array($result)) {
-            $return = array_merge($return, $result);
+          $result = $function($node, $field); // $items, $teaser, $page
+          if (content_callback('field', 'multiple values', $field) == CONTENT_CALLBACK_DEFAULT) {
+            // When multiples are handled by the content module, add a delta for each result.
+            $node_field[$i] = $result;
           }
-          else if (isset($result)) {
-            $return[] = $result;
+          else {
+            // Fields that handle their own multiples will add their own deltas.
+            $node_field = $result;
           }
         }
       }
-
-      $node->$field['field_name'] = $return;
+      $node->$field['field_name'] = $node_field;
     }
   }
 }
