@@ -418,46 +418,6 @@ function devel_generate_add_upload(&$node) {
  * @return void
  **/
 function devel_generate_fields(&$node) {
-  $type_name = $node->type;
-  $type = content_types($type_name);
-  $field_types = _content_field_types();
-
-  if (!empty($type['fields'])) {
-    foreach ($type['fields'] as $field) {
-      $node_field = array();
-      // If module handles own multiples, then only call its hook once.
-      if (content_callback('field', 'multiple values', $field) != CONTENT_CALLBACK_DEFAULT) {
-        $max = 1;
-      }
-      else {
-        switch ($field['multiple']) {
-          case 0:
-            $max = 0;
-            break;
-          case 1:
-            $max = 2; //just an arbitrary number for 'unlimited'
-            break;
-          default:
-            $max = $field['multiple'];
-            break;
-        }
-      }
-      for ($i = 0; $i <= $max; $i++) {
-        $module = $field_types[$field['type']]['module'];
-        $function = $module .'_content_generate';
-        if (function_exists($function)) {
-          $result = $function($node, $field); // $items, $teaser, $page
-          if (content_callback('field', 'multiple values', $field) == CONTENT_CALLBACK_DEFAULT) {
-            // When multiples are handled by the content module, add a delta for each result.
-            $node_field[$i] = $result;
-          }
-          else {
-            // Fields that handle their own multiples will add their own deltas.
-            $node_field = $result;
-          }
-        }
-      }
-      $node->$field['field_name'] = $node_field;
-    }
-  }
+  include_once('./'. drupal_get_path('module', 'content') .'/includes/content.devel.inc');
+  return content_generate_fields($node);
 }
