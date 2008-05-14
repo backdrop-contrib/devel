@@ -1288,6 +1288,12 @@ function devel_print_object($object, $prefix = NULL, $header = TRUE) {
  */
 function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FALSE) {
   static $root_type, $out_format;
+  
+  // TODO: support objects with references. See http://drupal.org/node/234581.
+  if (isset($obj->view)) {
+    return; 
+  }
+  
   if (!isset($root_type)) {
     $root_type = gettype($obj);
     if ($root_type == 'object') {
