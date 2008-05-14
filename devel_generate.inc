@@ -31,74 +31,21 @@ function devel_create_users($num, $kill) {
 }
 
 function devel_generate_content($num_nodes, $num_comments, $title_length, $kill, $add_upload = FALSE, $add_terms = FALSE, $add_alias = FALSE, $node_types) {
+  $results = compact('num_comments', 'title_length', 'add_upload', 'add_terms', 'add_alias', 'node_types');
+
   if ($kill) {
-    $sql = 'SELECT nid FROM {node} WHERE type IN ('. db_placeholders($node_types, 'text'). ')';
-    $result = db_query($sql, $node_types);
-    while ($row = db_fetch_object($result)) {
-      node_delete($row->nid);
-    }
+    devel_generate_content_kill($results);
   }
-
-  // Get user id.
-  $users = devel_get_users();
-
-  // Create $num_nodes pseudo-random nodes and comments (if specified)
-  devel_create_nodes($num_nodes, $users, $title_length, $add_upload, $add_terms, $num_comments, $add_alias, $node_types);
-  drupal_set_message(format_plural($num_nodes, '1 node created.', '@count nodes created'));
-}
-
-function devel_create_nodes($records, $users, $title_length = 8, $add_upload = FALSE, $add_terms = FALSE, $num_comments = 0, $add_alias = FALSE, $node_types = array()) {
-  
-  $users = array_merge($users, array('0'));
-  // $nids = array();
 
   if (count($node_types)) {
-    // Insert new data:
-    for ($i = 1; $i <= $records; $i++) {
-      $node->type = $node_types[array_rand($node_types)];
-      module_load_include('inc', 'node', 'pages');
-      module_invoke('node', 'node_object_prepare', $node);
-      $node->uid = $users[array_rand($users)];
-
-      $node->title = devel_create_greeking(rand(1, $title_length), TRUE);
-      $node->body = "node ($node->type) - ". devel_create_content();
-      $node->teaser = node_teaser($node->body);
-      $node->filter = variable_get('filter_default_format', 1);
-      $node->format = FILTER_FORMAT_DEFAULT;
-      $node->language = '';
-      $node->revision = rand(0,1);
-      $node->promote = rand(0, 1);
-      $node->created = time();
-      
-      // Add an url alias
-      // TODO: the nid is not known yet. move back to post creation.
-      // if ($add_alias) {
-      //   $node->path = "node-$node->nid-$node->type";
-      // }
-      
-      if ($add_upload) {
-        devel_generate_add_upload($node);
-      }
-      
-      if ($add_terms) {
-        devel_generate_add_terms($node);
-      }
-      
-      // Populate any CCK fields in the content type
-      if (module_exists("content")) {
-        devel_generate_fields($node);
-      }
-           
-      // Save the node:
-      node_save($node);
-      
-      if ($num_comments) {
-        devel_generate_add_comments($node, $users, $num_comments, $title_length);
-      }
-
-      unset($node);
+    // Generate nodes.
+    devel_generate_content_pre_node($results);
+    for ($i = 1; $i <= $num_nodes; $i ++) {
+      devel_generate_content_add_node($results);
     }
   }
+
+  drupal_set_message(format_plural($num_nodes, '1 node created.', '@count nodes created'));
 }
 
 function devel_generate_add_comments($node, $users, $num_comments, $title_length = 8) {
@@ -420,4 +367,86 @@ function devel_generate_add_upload(&$node) {
 function devel_generate_fields(&$node) {
   include_once('./'. drupal_get_path('module', 'content') .'/includes/content.devel.inc');
   return content_generate_fields($node);
+}
+
+/**
+ * Handle the devel_generate_content_form request to kill all of the content.
+ * This is used by both the batch and non-batch branches of the code.
+ *
+ * @param $num
+ *   array of options obtained from devel_generate_content_form.
+ */
+function devel_generate_content_kill(&$results) {
+  $sql = 'SELECT nid FROM {node} WHERE type IN ('. db_placeholders($results['node_types'], 'text'). ')';
+  $result = db_query($sql, $results['node_types']);
+  while ($row = db_fetch_object($result)) {
+    node_delete($row->nid);
+  }
+}
+
+/**
+ * Pre-process the devel_generate_content_form request.  This is needed so
+ * batch api can get the list of users once.  This is used by both the batch
+ * and non-batch branches of the code.
+ *
+ * @param $num
+ *   array of options obtained from devel_generate_content_form.
+ */
+function devel_generate_content_pre_node(&$results) {
+  // Get user id.
+  $users = devel_get_users();
+  $users = array_merge($users, array('0'));
+  $results['users'] = $users;
+}
+
+/**
+ * Create one node.  This is used by both the batch and non-batch branches of
+ * the code.
+ *
+ * @param $num
+ *   array of options obtained from devel_generate_content_form.
+ */
+function devel_generate_content_add_node(&$results) {
+  // Insert new data:
+  $node->type = array_rand($results['node_types']);
+  require_once './modules/node/node.pages.inc';
+  module_invoke('node', 'node_object_prepare', $node);
+  $users = $results['users'];
+  $node->uid = $users[array_rand($users)];
+
+  $node->title = devel_create_greeking(rand(1, $results['title_length']), TRUE);
+  $node->body = "node ($node->type) - ". devel_create_content();
+  $node->teaser = node_teaser($node->body);
+  $node->filter = variable_get('filter_default_format', 1);
+  $node->format = FILTER_FORMAT_DEFAULT;
+  $node->language = '';
+  $node->revision = rand(0,1);
+  $node->promote = rand(0, 1);
+  $node->created = time();
+    
+  // Add an url alias
+  // TODO: the nid is not known yet. move back to post creation.
+  // if ($add_alias) {
+  //   $node->path = "node-$node->nid-$node->type";
+  // }
+    
+  if ($results['add_upload']) {
+    devel_generate_add_upload($node);
+  }
+    
+  if ($results['add_terms']) {
+    devel_generate_add_terms($node);
+  }
+    
+  // Populate any CCK fields in the content type
+  if (module_exists("content")) {
+    devel_generate_fields($node);
+  }
+    
+  // Save the node:
+  node_save($node);
+    
+  if ($results['num_comments']) {
+    devel_generate_add_comments($node, $results['users'], $results['num_comments'], $results['title_length']);
+  }
 }

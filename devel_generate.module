@@ -1,6 +1,8 @@
 <?php
 // $Id$
 
+require_once('devel_generate_batch.inc');
+
 /**
  * Implementation of hook_menu().
  */
@@ -144,8 +146,13 @@ function devel_generate_content_form() {
 }
 
 function devel_generate_content_form_submit($form_id, &$form_state) {
-  require_once('devel_generate.inc');
-  devel_generate_content($form_state['values']['num_nodes'], $form_state['values']['num_comments'], $form_state['values']['title_length'], $form_state['values']['kill_content'], $form_state['values']['add_upload'], $form_state['values']['add_terms'], $form_state['values']['add_alias'], array_filter($form_state['values']['node_types']));
+  if ($form_state['values']['num_nodes'] <= 50 && $form_state['values']['num_comments'] <= 10) {
+    require_once('devel_generate.inc');
+    devel_generate_content($form_state['values']['num_nodes'], $form_state['values']['num_comments'], $form_state['values']['title_length'], $form_state['values']['kill_content'], $form_state['values']['add_upload'], $form_state['values']['add_terms'], $form_state['values']['add_alias'], array_filter($form_state['values']['node_types']));
+  }
+  else {
+    devel_batch_generate_content($form_state['values']['num_nodes'], $form_state['values']['num_comments'], $form_state['values']['title_length'], $form_state['values']['kill_content'], $form_state['values']['add_upload'], $form_state['values']['add_terms'], $form_state['values']['add_alias'], array_filter($form_state['values']['node_types']));
+  }
 }
 
 function devel_generate_taxonomy_form() {
