@@ -113,7 +113,7 @@ function devel_menu() {
   );
   $items['devel/theme/registry'] = array(
     'title' => 'Theme registry',
-    'description' => 'View a list of available theme functions acros the whole site.',
+    'description' => 'View a list of available theme functions across the whole site.',
     'page callback' => 'devel_theme_registry',
     'access arguments' => array('access devel information'),
     'menu_name' => 'devel',
@@ -663,7 +663,7 @@ function devel_shutdown_real() {
         // calling theme() during shutdown is very bad if registry gets rebuilt like when making a change on  admin/build/modules
         // so we check for presence of theme registry before calling theme('table'  )
         if (function_exists('theme_get_registry') && theme_get_registry()) {
-          $txt = t_safe(' Queries taking longer than %threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('%threshold' => variable_get('devel_execution', 5)));
+          $txt = t_safe(' Queries taking longer than @threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
           if (variable_get('dev_timer', 0)) {
             $txt .= devel_timer();
           }
@@ -680,8 +680,8 @@ function devel_shutdown_real() {
 
       if (variable_get('dev_mem', FALSE) && function_exists('memory_get_usage')) {
         $memory_shutdown = memory_get_usage();
-        $args = array('%memory_init' => round($memory_init / 1024 / 1024, 2), '%memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2));
-        $msg = '<div class="dev-memory-usage"><h3>Memory usage:</h3> Memory used at: devel_init()=<strong>%memory_init</strong> MB, devel_shutdown()=<strong>%memory_shutdown</strong> MB.</div>';
+        $args = array('@memory_init' => round($memory_init / 1024 / 1024, 2), '@memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2));
+        $msg = '<div class="dev-memory-usage"><h3>Memory usage:</h3> Memory used at: devel_init()=<strong>@memory_init</strong> MB, devel_shutdown()=<strong>@memory_shutdown</strong> MB.</div>';
         // theme() may not be available. not t() either.
         $output .= t_safe($msg, $args);
       }
@@ -739,7 +739,7 @@ function devel_query_summary() {
       $sum += $query[1];
     }
     $counts = array_count_values($text);
-    return array($counts, t_safe('Executed %queries queries in %time milliseconds.', array('%queries' => count($queries), '%time' => round($sum * 1000, 2))));
+    return array($counts, t_safe('Executed @queries queries in @time milliseconds.', array('@queries' => count($queries), '@time' => round($sum * 1000, 2))));
   }
 }
 
@@ -1440,7 +1440,7 @@ function _devel_table_sort($a, $b) {
  */
 function devel_timer() {
   $time = timer_read('page');
-  return t_safe(' Page execution time was %time ms.', array('%time' => $time));
+  return t_safe(' Page execution time was @time ms.', array('@time' => $time));
 }
 
 /**
