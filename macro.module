@@ -29,24 +29,22 @@ function macro_menu() {
   $items = array();
 
   $items['admin/build/macro'] = array(
-    'title' => t('Macro engine'),
-    'description' => t('Configure the Drupal macro engine. Export recorded macros or import previously recorded macros.'),
+    'title' => 'Macro engine',
+    'description' => 'Configure the Drupal macro engine. Export recorded macros or import previously recorded macros.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('macro_admin_settings'),
     'access callback' => 'user_access',
     'access arguments' => array('administer macro settings'),
   );
   $items['admin/build/macro/export'] = array(
-    'title' => t('Export'),
-    'access' => true,
+    'title' => 'Export',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('macro_export_macro'),
     'access arguments' => array('macro access'),
     'type' => MENU_LOCAL_TASK,
   );
   $items['admin/build/macro/import'] = array(
-    'title' => t('Import'),
-    'access' => true,
+    'title' => 'Import',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('macro_import_macro'),
     'access arguments' => array('macro access'),

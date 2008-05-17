@@ -49,13 +49,15 @@ function devel_menu() {
   $items['devel/queries'] = array(
     'title' => 'Database queries',
     'page callback' => 'devel_queries',
-    'access callback' => devel_menu_access_store_queries(),
+    'access callback' => 'devel_menu_access_store_queries',
+    'access arguments' => array(),
     'menu_name' => 'devel',
   );
   $items['devel/queries/empty'] = array(
     'title' => 'Empty database queries',
     'page callback' => 'devel_queries_empty',
-    'access callback' => devel_menu_access_store_queries(),
+    'access callback' => 'devel_menu_access_store_queries',
+    'access arguments' => array(),
     'menu_name' => 'devel',
   );
   $items['devel/reference'] = array(

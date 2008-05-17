@@ -12,7 +12,7 @@ function devel_generate_menu() {
   // Admin user pages
   $items['admin/generate'] = array(
     'title' => 'Generate items',
-    'description' => "Populate your database with dummy items.",
+    'description' => 'Populate your database with dummy items.',
     'position' => 'left',
     'page callback' => 'system_admin_menu_block_page',
     'access arguments' => array('administer site configuration'),
@@ -20,23 +20,23 @@ function devel_generate_menu() {
     'file path' => drupal_get_path('module', 'system'),
   );
   $items['admin/generate/user'] = array(
-    'title' => t('Generate users'),
-    'description' => t('Generate a given number of users. Optionally delete current users.'),
+    'title' => 'Generate users',
+    'description' => 'Generate a given number of users. Optionally delete current users.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_generate_users_form'),
-    'access arguments' => array('administer users')
+    'access arguments' => array('administer users'),
   );
   $items['admin/generate/content'] = array(
-    'title' => t('Generate content'),
-    'description' => t('Generate a given number of nodes and comments. Optionally delete current items.'),
+    'title' => 'Generate content',
+    'description' => 'Generate a given number of nodes and comments. Optionally delete current items.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_generate_content_form'),
-    'access arguments' => array('administer nodes')
+    'access arguments' => array('administer nodes'),
   );
   if (module_exists('taxonomy')) {
     $items['admin/generate/taxonomy'] = array(
-      'title' => t('Generate categories'),
-      'description' => t('Generate a given number of vocabularies and terms. Optionally delete current categories.'),
+      'title' => 'Generate categories',
+      'description' => 'Generate a given number of vocabularies and terms. Optionally delete current categories.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('devel_generate_taxonomy_form'),
       'access arguments' => array('administer nodes'),

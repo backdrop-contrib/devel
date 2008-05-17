@@ -8,11 +8,11 @@ function devel_themer_menu() {
 
   $items['admin/settings/devel_themer'] = array(
     'title' => 'Devel Themer',
-    'description' =>  t('Display or hide the textual template log'),
+    'description' => 'Display or hide the textual template log',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_themer_admin_settings'),
     'access arguments' => array('administer site configuration'),
-    'type' => MENU_NORMAL_ITEM
+    'type' => MENU_NORMAL_ITEM,
   );
   $items['devel_themer/enable'] = array(
     'title' => 'Devel Themer Enable',
