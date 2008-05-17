@@ -1,5 +1,5 @@
 ; $Id$
-name = Devel Generate
+name = Devel generate
 description = Generate dummy users, nodes, and taxonomy terms.
 package = Development
 core = 7.x
