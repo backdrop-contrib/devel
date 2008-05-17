@@ -46,6 +46,14 @@ function devel_install() {
     'module' => 'devel',
   );
   menu_link_save($item);
+  
+  $item = array(
+    'link_title' => 'Devel settings',
+    'link_path' => 'admin/settings/devel',
+    'menu_name' => 'devel',
+    'module' => 'devel',
+  );
+  menu_link_save($item);
   return array();
 }
 
