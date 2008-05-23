@@ -605,6 +605,7 @@ function devel_exit($destination = NULL) {
   if (isset($destination) && !devel_silent()) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
+    // We don't want to load user module here, so keep function_exists() call.
     if (isset($user) && function_exists('user_access') && user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
       $output = t_safe('<p>The user is being redirected to <a href="@destination">@destination</a>.</p>', array('@destination' => $destination));
       print theme('page', $output);

@@ -10,20 +10,19 @@
  * Functions called from FAPI:
  */
 
-function devel_batch_generate_content($num_nodes, $num_comments, $title_length, $kill_content, $add_upload, $add_terms, $add_alias, $node_types) {
+function devel_batch_generate_content($form_state) {
   $operations = array();
 
   // Setup the batch operations and save the variables.
-  $vars = compact('num_comments', 'title_length', 'add_upload', 'add_terms', 'add_alias', 'node_types');
-  $operations[] = array('devel_batch_generate_content_pre_node', array($vars));
+  $operations[] = array('devel_batch_generate_content_pre_node', array($form_state['values']));
 
   // add the kill operation
-  if ($kill_content) {
+  if ($form_state['values']['kill_content']) {
     $operations[] = array('devel_batch_generate_content_kill', array());
   }
 
   // add the operations to create the nodes
-  for ($num = 0; $num < $num_nodes; $num ++) {
+  for ($num = 0; $num < $form_state['values']['num_nodes']; $num ++) {
     $operations[] = array('devel_batch_generate_content_add_node', array());
   }
 

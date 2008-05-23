@@ -8,7 +8,7 @@ summary includes how many times each query was executed on a page, and how long 
  took.
  
  It also
- - a block for running custom PHP on a pge
+ - a block for running custom PHP on a page
  - a block for quickly accessing devel pages
  - a block for masquerading as other users (useful for testing)
  - reports memory usage at bottom of page

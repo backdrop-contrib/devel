@@ -30,22 +30,30 @@ function devel_create_users($num, $kill) {
   drupal_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
 }
 
-function devel_generate_content($num_nodes, $num_comments, $title_length, $kill, $add_upload = FALSE, $add_terms = FALSE, $add_alias = FALSE, $node_types) {
-  $results = compact('num_comments', 'title_length', 'add_upload', 'add_terms', 'add_alias', 'node_types');
 
-  if ($kill) {
-    devel_generate_content_kill($results);
+/**
+ * The main API function for creating content. 
+ * 
+ * See devel_generate_content_form() for the supported keys in $form_state['values'].
+ * Other modules may participate by form_alter() on that form and then handling their data during hook_nodeapi('pre_save') or in own submit handler for the form.
+ *
+ * @param string $form_state 
+ * @return void
+ */
+function devel_generate_content($form_state) {
+  if ($form_state['values']['kill_content']) {
+    devel_generate_content_kill($form_state['values']);
   }
 
-  if (count($node_types)) {
+  if (count($form_state['values']['node_types'])) {
     // Generate nodes.
-    devel_generate_content_pre_node($results);
-    for ($i = 1; $i <= $num_nodes; $i ++) {
-      devel_generate_content_add_node($results);
+    devel_generate_content_pre_node($form_state['values']);
+    for ($i = 1; $i <= $form_state['values']['num_nodes']; $i ++) {
+      devel_generate_content_add_node($form_state['values']);
     }
   }
 
-  drupal_set_message(format_plural($num_nodes, '1 node created.', '@count nodes created'));
+  drupal_set_message(format_plural($form_state['values']['num_nodes'], '1 node created.', '@count nodes created'));
 }
 
 function devel_generate_add_comments($node, $users, $num_comments, $title_length = 8) {
