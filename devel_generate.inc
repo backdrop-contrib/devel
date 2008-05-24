@@ -365,19 +365,6 @@ function devel_generate_add_upload(&$node) {
 }
 
 /**
- * Enrich the $node that is about to be saved with arbitrary information in each of its CCK fields.
- * Not yet implemented by CCK fields. See http://drupal.org/node/187599 for status.
- *
- * Borrows from _content_field_invoke() but calls fields multiple times if content.module handles multiples.
- * 
- * @return void
- **/
-function devel_generate_fields(&$node) {
-  include_once('./'. drupal_get_path('module', 'content') .'/includes/content.devel.inc');
-  return content_generate_fields($node);
-}
-
-/**
  * Handle the devel_generate_content_form request to kill all of the content.
  * This is used by both the batch and non-batch branches of the code.
  *
@@ -432,29 +419,39 @@ function devel_generate_content_add_node(&$results) {
   $node->promote = rand(0, 1);
   $node->created = time();
     
-  // Add an url alias
-  // TODO: the nid is not known yet. move back to post creation.
-  // if ($add_alias) {
-  //   $node->path = "node-$node->nid-$node->type";
-  // }
-    
-  if ($results['add_upload']) {
-    devel_generate_add_upload($node);
-  }
-    
-  if ($results['add_terms']) {
-    devel_generate_add_terms($node);
-  }
-    
-  // Populate any CCK fields in the content type
-  if (module_exists("content")) {
-    devel_generate_fields($node);
-  }
-    
-  // Save the node:
+  // A flag to let hook_nodeapi() implementations know that this is a generated node.
+  $node->devel_generate = $results;
+
+  // See devel_generate_nodeapi() for actions that happen before and after this save.
   node_save($node);
+}
+
+function devel_generate_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if (isset($node->devel_generate)) {
+    $results = $node->devel_generate;
     
-  if ($results['num_comments']) {
-    devel_generate_add_comments($node, $results['users'], $results['num_comments'], $results['title_length']);
+    switch ($op) {
+      // Modules that want to affect generated nodes may implement hook_nodeapi('presave'). See OG module or CCK.
+      // A few implementations live here because core doesn't do bulk node generation.
+      case 'presave':
+        if ($results['add_upload']) {
+          devel_generate_add_upload($node);
+        }
+
+        if ($results['add_terms']) {
+          devel_generate_add_terms($node);
+        }
+        break;
+    case 'insert':
+      if ($results['num_comments']) {
+        devel_generate_add_comments($node, $results['users'], $results['num_comments'], $results['title_length']);
+      }
+    
+      // Add an url alias. Cannot happen before save becasue we don't know the nid.
+      if ($results['add_alias']) {
+        path_set_alias("node/$node->nid", "node-$node->nid-$node->type");
+      }
+      break;  
+    }
   }
 }

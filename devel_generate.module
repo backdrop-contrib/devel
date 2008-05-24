@@ -121,19 +121,23 @@ function devel_generate_content_form() {
     '#size' => 10,
   );
   $form['add_upload'] = array(
-    '#type' => module_exists('upload') ? 'checkbox' : 'value',
-    '#title' => t('Add an upload to each generated node'),
+    '#type' =>  'checkbox',
+    '#disabled' => !module_exists('upload'),
+    '#description' => t('Requires upload.module'),
+    '#title' => t('Add an upload to each node'),
     '#default_value' => FALSE,
   );
   $form['add_terms'] = array(
-    '#type' => module_exists('taxonomy') ? 'checkbox' : 'value',
+    '#disabled' => !module_exists('taxonomy'),
+    '#description' => t('Requires taxonomy.module'),
+    '#type' => 'checkbox',
     '#title' => t('Add taxonomy terms to each node.'),
     '#default_value' => FALSE,
-    '#access' => module_exists('taxonomy'),
   );
-  // TODO: restore this. see devel_create_content()
   $form['add_alias'] = array(
-    '#type' => 'value',
+    '#type' => 'checkbox',
+    '#disabled' => !module_exists('path'),
+    '#description' => t('Requires path.module'),
     '#title' => t('Add an url alias for each node.'),
     '#default_value' => FALSE,
   );
@@ -141,6 +145,7 @@ function devel_generate_content_form() {
     '#type' => 'submit',
     '#value' => t('Do it!'),
   );
+  $form['#redirect'] = FALSE;
 
   return $form;
 }
