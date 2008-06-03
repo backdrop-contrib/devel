@@ -907,6 +907,15 @@ function devel_admin_settings() {
   if (has_krumo()) {
     $form['devel_error_handler']['#options'][DEVEL_ERROR_HANDLER_BACKTRACE] = t('Backtrace');
   }
+  
+  $options = drupal_map_assoc(array('blue', 'default', 'green', 'orange', 'schablon.com'));
+  $form['devel_krumo_skin'] = array(
+    '#type' => 'radios',
+    '#title' => t('Krumo skin'),
+    '#description' => t('Select a skin for your debug messages'),
+    '#options' => $options,
+    '#default_value' => variable_get('devel_krumo_skin', 'default'),
+  );
 
   // Save any old SMTP library
   if (variable_get('smtp_library', '') != '' && variable_get('smtp_library', '') != drupal_get_filename('module', 'devel')) {
