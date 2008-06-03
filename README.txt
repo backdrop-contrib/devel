@@ -20,10 +20,6 @@ summary includes how many times each query was executed on a page, and how long 
 Also a dpr() function is provided, which pretty prints arrays and strings. Useful during
 development. Many other nice functions like dpm(), dvm().
 
-You might also download Krumo from http://krumo.sourceforge.net/. Unpack it into a subdirectory 
-called krumo. Devel will automatically start using it. You may also call krumo($variable) to get 
-a pretty print of any variable.
-
 - You should grab fb.php from http://www.firephp.org/ and put it in the devel directory. Then you can log 
 php variables to the firebug console. Is quite useful. See http://www.firephp.org/ for usage information.
 
