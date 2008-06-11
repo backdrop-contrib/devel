@@ -340,6 +340,16 @@ function has_krumo() {
 }
 
 /**
+ * Decide whether or not to print a debug variable using krumo().
+ *
+ * @param $input 
+ * @return boolean
+ */
+function merits_krumo($input) {
+  return (is_object($input) || is_array($input)) && has_krumo();
+}
+
+/**
  * Calls the http://www.firephp.org/ fb() function if it is found.
  *
  * @return void
@@ -1075,7 +1085,7 @@ function devel_variable_form() {
   while ($row = db_fetch_object($result)) {
     $variables[$row->name] = '';
     $form['name'][$row->name] = array('#value' => check_plain($row->name));
-    if (has_krumo()) {
+    if (merits_krumo($row->value)) {
       $value = krumo_ob(variable_get($row->name, NULL));
     }
     else {
@@ -1507,7 +1517,8 @@ function dvr($input, $return = FALSE, $name = NULL) {
 }
 
 function kprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') {
-  if (has_krumo()) {
+  // We do not want to krumo() strings and integers and such
+  if (merits_krumo($input)) {
     if (user_access('access devel information')) {
       return $return ? krumo_ob($input) : krumo($input);
     }
@@ -1516,7 +1527,6 @@ function kprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') 
     return dprint_r($input, $return, $name, $function);
   }
 }
-
 
 /**
  * Pretty-print a variable to the browser.
@@ -1535,7 +1545,7 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', 
       $output = check_plain($output);
     }
     if (count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
-      if (has_krumo()) {
+      if (merits_krumo($input)) {
         $printed_value = krumo_ob($input);
       }
       else {
