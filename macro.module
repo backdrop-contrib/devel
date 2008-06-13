@@ -97,6 +97,27 @@ function macro_record_macro($form, &$form_state) {
 
 
 /**
+ * This recursively runs thru an object and converts it into an array.
+ * This is to be called for form entries as we do not want varexport to treat any element
+ * as an object. If varexport sees an object, it will output stdClass::__set_state, which is
+ * not defined and we cannot define it either. So we recursively cast all objects to arrays.
+ */
+
+function _recursively_convert_objects_to_arrays($entity) {
+  $converted = array ( );
+
+  foreach (((array) $entity) as $key => $value) {
+  	if (is_array($value) || is_object($value)) {
+  		$converted[$key] = _recursively_convert_objects_to_arrays($value);
+  	}
+  	else {
+  		$converted[$key] = $value;
+  	}
+  }
+  
+  return($converted);
+}
+/**
  * A form callback that displays the macro exported.
  *
  * The output of this callback should be saved to the profiles/$profile/macros.inc file, to be
@@ -125,7 +146,7 @@ function macro_get_macro() {
   foreach ($subs as $key => $form) {
     $string .= "\$macro[$key]['form_id'] = " . var_export($form['form_id'], TRUE) . ";\n";
     $string .= "\$macro[$key]['path'] = " . var_export($form['path'], TRUE) . ";\n";
-    $string .= "\$macro[$key]['values']  = " . var_export((array) $form['values'], TRUE) . ";\n";
+    $string .= "\$macro[$key]['values']  = " . var_export(_recursively_convert_objects_to_arrays((array) $form['values']), TRUE) . ";\n";
 
     // the form parameters are being used here.
     array_shift($form['parameters']);
