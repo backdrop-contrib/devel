@@ -322,7 +322,7 @@ function devel_init() {
       // We want to include the class early so that anyone may call krumo() as needed. See http://krumo.sourceforge.net/
       has_krumo();
       // See http://www.firephp.org/
-      $path = drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/fb.php';
+      $path = './'. drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/fb.php';
       if (file_exists($path)) {
         include_once $path;
       }
