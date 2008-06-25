@@ -355,7 +355,8 @@ function devel_generate_add_upload(&$node) {
   $file->list = variable_get('upload_list_default', TRUE);
   $file->description = 'b log.png was here';
   $file->filesize = $size;
-
+  $file->weight = rand(0,10);
+  
   // If we made it this far it's safe to record this file in the database.
   db_query("INSERT INTO {files} (uid, filename, filepath, filemime, filesize, status, timestamp) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $node->uid, $file->filename, $file->filepath, $file->filemime, $file->filesize, FILE_STATUS_TEMPORARY, time());
   $file->fid = db_last_insert_id('files', 'fid');
