@@ -4,3 +4,4 @@ description = Various blocks, pages, and functions for developers.
 package = Development
 dependencies[] = menu
 core = 7.x
+files[] = devel.module

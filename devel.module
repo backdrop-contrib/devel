@@ -405,7 +405,7 @@ function devel_start() {
   }
 
   // we need user_access() in the shutdown function. make sure it gets loaded
-  drupal_load('module', 'user');
+  drupal_function_exists('user_access');
   register_shutdown_function('devel_shutdown');
 }
 
