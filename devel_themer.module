@@ -28,7 +28,43 @@ function devel_themer_menu() {
     'access arguments' => array('access devel information'),
     'type' => MENU_CALLBACK,
   );
+  $items['devel_themer/variables'] = array(
+    'title' => 'Theme Development AJAX variables',
+    'page callback' => 'devel_themer_ajax_variables',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK,
+  );
   return $items;
+}
+
+/**
+ * A menu callback used by popup to retrieve variables from cache for a recent page.
+ * 
+ * @param $request_id
+ *   A unique key that is sent to the browser in Drupal.Settings.devel_themer_request_id
+ * @param $call
+ *   The theme call for which you wish to retrieve variables.
+ * @return string
+ * A chunk of HTML with the devel_print_object() rendering of the variables.
+ */
+function devel_themer_ajax_variables($request_id, $call) {
+  if ($data = cache_get('devel_themer_'. $request_id)) {
+    $variables = $data->data[$call]['variables'];
+    if (has_krumo()) { 	 
+      print krumo_ob($variables); 	 
+    } 
+    elseif ($data->data[$call]['type'] == 'func') { 	 
+      print devel_print_object($variables, NULL, FALSE); 	 
+    }
+    else {
+      print devel_print_object($variables, '$', FALSE);
+    }
+  }
+  else {
+    print 'Request ID not found.';
+  }
+  $GLOBALS['devel_shutdown'] = FALSE;
+  return;
 }
 
 /**
@@ -200,12 +236,6 @@ function devel_themer_catch_function() {
         if (empty($meta['variables'])) {
           $variables = array();
         }
-        elseif (has_krumo()) {
-          $variables = krumo_ob($meta['variables']);
-        }
-        else {
-          $variables = devel_print_object($meta['variables'], NULL, FALSE);
-        }
       }
       else {
         $name = $meta['used']. devel_themer_get_extension();
@@ -214,21 +244,22 @@ function devel_themer_catch_function() {
         }
         $candidates = array_reverse(array_map('devel_themer_append_extension', $meta['suggestions']));
         $used = $meta['template_file'];
-        if (has_krumo()) {
-          $variables = krumo_ob($meta['variables']);
-        }
-        else {
-          $variables = devel_print_object($meta['variables'], '$', FALSE);
-        }
       }
 
-      $GLOBALS['devel_theme_calls']["thmr_$counter"] = array(
+      $key = "thmr_$counter";
+      // This variable gets sent to the browser in Drupal.settings.
+      $GLOBALS['devel_theme_calls'][$key] = array(
         'name' => $name,
         'type' => $meta['type'],
         'duration' => $time['time'],
         'used' => $used,
         'candidates' => $candidates,
-        'args' => $variables,
+      );
+      
+      // This variable gets serialized and cached on the server.
+      $GLOBALS['devel_themer_server'][$key] = array(
+        'variables' => $meta['variables'],
+        'type' => $meta['type'],
       );
     }
     else {
@@ -423,8 +454,15 @@ function devel_themer_theme_twin() {
 
 // we emit the huge js array here instead of hook_footer so we can catch theme('page')
 function devel_themer_exit() {
+  // A random string that is sent to the browser. It enables the popup to retrieve params/variables from this request.
+  $request_id = uniqid();
   if (!empty($GLOBALS['devel_theme_calls']) && $_SERVER['REQUEST_METHOD'] != 'POST') {
+    $GLOBALS['devel_theme_calls']['request_id'] = $request_id;
+    $GLOBALS['devel_theme_calls']['devel_themer_uri'] = url("devel_themer/variables/$request_id");
     print '<script type="text/javascript">jQuery.extend(Drupal.settings, '.  drupal_to_js($GLOBALS['devel_theme_calls']) .");</script>\n";
+    
+    // Write the variables information to the cache table. It will be retrieved on demand via AJAX.
+    cache_set('devel_themer_'. $request_id, $GLOBALS['devel_themer_server'], 'cache', time()+3600);
   }
 }
 
