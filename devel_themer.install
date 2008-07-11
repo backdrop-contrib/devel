@@ -31,7 +31,7 @@ function devel_themer_schema() {
 /**
  * Implementation of hook_uninstall().
  */
-function content_uninstall() {
+function devel_themer_uninstall() {
   drupal_uninstall_schema('devel_themer');
 }
 

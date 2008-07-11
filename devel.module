@@ -818,7 +818,7 @@ function devel_is_compatible_optimizer() {
    $info = ob_get_contents();
    ob_end_clean();
 
-   // Match the Zend Optimezer version in the phpinfo information
+   // Match the Zend Optimizer version in the phpinfo information
    $found = preg_match('/Zend&nbsp;Optimizer&nbsp;v([0-9])\.([0-9])\.([0-9])/', $info, $matches);
 
    if ($matches) {
