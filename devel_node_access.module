@@ -244,12 +244,13 @@ function devel_node_access_block($op = 'list', $delta = 0) {
               $acquired_grants_nid = array();
               if ($node = node_load(array('nid' => $nid))) {
                 // check node_access_acquire_grants()
-                if ($grants = _devel_node_access_module_invoke_all('node_access_records', $node)) {
-                  $top_priority = $grants[0]['priority'];
+                $grants = _devel_node_access_module_invoke_all('node_access_records', $node);
+                if (!empty($grants)) {
+                  $top_priority = intval($grants[0]['priority']);
                   foreach ($grants as $grant) {
-                    $priority = $grant['priority'];
+                    $priority = intval($grant['priority']);
                     $top_priority = max($top_priority, $priority);
-                    $grant['priority'] = (isset($priority) ? $priority : '&ndash;');
+                    $grant['priority'] = (isset($grant['priority']) ? $priority : '&ndash;&nbsp;');
                     $acquired_grants_nid[$priority][$grant['realm']][$grant['gid']] = $grant + array(
                       '#title' => ($node->title ? $node->title : $node->nid),
                       '#module' => (isset($grant['#module']) ? $grant['#module'] : ''),
