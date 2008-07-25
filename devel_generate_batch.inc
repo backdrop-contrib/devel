@@ -3,14 +3,13 @@
 
 /**
  * Devel Generate batch handling functions using the BatchAPI
- * included by devel_generate.module
  */
 
 /**
  * Functions called from FAPI:
  */
 
-function devel_batch_generate_content($form_state) {
+function devel_generate_batch_content($form_state) {
   $operations = array();
 
   // Setup the batch operations and save the variables.
@@ -39,20 +38,20 @@ function devel_batch_generate_content($form_state) {
  * Create Content Batch Functions:
  */
 
-function devel_batch_generate_content_kill(&$context) {
-  require_once('devel_generate.inc');
+function devel_generate_batch_content_kill(&$context) {
+  drupal_function_exists('devel_generate_content_kill');
   devel_generate_content_kill($context['results']);
 }
 
 function devel_batch_generate_content_pre_node($vars, &$context) {
   $context['results'] = $vars;
   $context['results']['num_nids'] = 0;
-  require_once('devel_generate.inc');
+  drupal_function_exists('devel_generate_content_pre_node');
   devel_generate_content_pre_node($context['results']);
 }
 
-function devel_batch_generate_content_add_node(&$context) {
-  require_once('devel_generate.inc');
+function devel_generate_batch_content_add_node(&$context) {
+  drupal_function_exists('devel_generate_content_add_node');
   devel_generate_content_add_node($context['results']);
   $context['results']['num_nids'] ++;
 }

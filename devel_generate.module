@@ -1,8 +1,6 @@
 <?php
 // $Id$
 
-require_once('devel_generate_batch.inc');
-
 /**
  * Implementation of hook_menu().
  */
@@ -66,7 +64,7 @@ function devel_generate_users_form() {
 }
 
 function devel_generate_users_form_submit($form_id, &$form_state) {
-  require_once('devel_generate.inc');
+  drupal_function_exists('devel_create_users');
   devel_create_users($form_state['values']['num'], $form_state['values']['kill_users']);
 }
 
@@ -153,11 +151,10 @@ function devel_generate_content_form() {
 function devel_generate_content_form_submit($form_id, &$form_state) {
   $form_state['values']['node_types'] = array_filter($form_state['values']['node_types']);
   if ($form_state['values']['num_nodes'] <= 50 && $form_state['values']['num_comments'] <= 10) {
-    require_once('devel_generate.inc');
-    devel_generate_content($form_state);
+    module_invoke('devel_generate', 'content', $form_state);
   }
   else {
-    devel_batch_generate_content($form_state);
+    module_invoke('devel_generate', 'batch_content', $form_state);
   }
 }
 
@@ -193,6 +190,36 @@ function devel_generate_taxonomy_form() {
 }
 
 function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
-  require_once('devel_generate.inc');
+  drupal_function_exists('devel_generate_taxonomy_data');
   devel_generate_taxonomy_data($form_state['values']['num_vocab'], $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
+}
+
+function devel_generate_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  if (isset($node->devel_generate)) {
+    $results = $node->devel_generate;
+    
+    switch ($op) {
+      // Modules that want to affect generated nodes may implement hook_nodeapi('presave'). See OG module or CCK.
+      // A few implementations live here because core doesn't do bulk node generation.
+      case 'presave':
+        if ($results['add_upload']) {
+          devel_generate_add_upload($node);
+        }
+
+        if ($results['add_terms']) {
+          devel_generate_add_terms($node);
+        }
+        break;
+    case 'insert':
+      if ($results['num_comments']) {
+        devel_generate_add_comments($node, $results['users'], $results['num_comments'], $results['title_length']);
+      }
+    
+      // Add an url alias. Cannot happen before save becasue we don't know the nid.
+      if ($results['add_alias']) {
+        path_set_alias("node/$node->nid", "node-$node->nid-$node->type");
+      }
+      break;  
+    }
+  }
 }
