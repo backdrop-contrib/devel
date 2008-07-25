@@ -381,7 +381,6 @@ function devel_set_handler($handler) {
   }
 }
 
-
 function devel_silent() {
   // isset($_GET['q']) is needed on IIS when calling the front page. q is not set.
   // Don't interfere with private files/images.
@@ -397,11 +396,15 @@ function devel_boot() {
   }
 }
 
-// kickoff all our tricks. put here all code which must run for ached pages too. called from both hook_boot and hook_init.
+// Kickoff our tricks. Put here all code which must run for cached pages too. Called from both devel_boot() and devel_init().
 function devel_start() {
   if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
     global $memory_init;
     $memory_init = memory_get_usage();
+  }
+  
+  if (devel_code_coverage_enabled()) {
+    xdebug_start_code_coverage();
   }
 
   // we need user_access() in the shutdown function. make sure it gets loaded
@@ -699,19 +702,35 @@ function devel_shutdown_real() {
 
       if (variable_get('dev_mem', FALSE) && function_exists('memory_get_usage')) {
         $memory_shutdown = memory_get_usage();
-        $args = array('@memory_init' => round($memory_init / 1024 / 1024, 2), '@memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2));
-        $msg = '<div class="dev-memory-usage"><h3>Memory usage:</h3> Memory used at: devel_init()=<strong>@memory_init</strong> MB, devel_shutdown()=<strong>@memory_shutdown</strong> MB.</div>';
+        $args = array('@memory_boot' => round($memory_init / 1024 / 1024, 2), '@memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2));
+        $msg = '<div class="dev-memory-usage"><h3>Memory usage:</h3> Memory used at: devel_boot()=<strong>@memory_boot</strong> MB, devel_shutdown()=<strong>@memory_shutdown</strong> MB.</div>';
         // theme() may not be available. not t() either.
         $output .= t_safe($msg, $args);
       }
-      // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
+      
+      // Code coverage reporting.
+      if (devel_code_coverage_enabled()) {
+        $mode = variable_get('devel_code_coverage', 1);
+        $coverage = xdebug_get_code_coverage();
+        if ($mode == 1) {
+          dpr(array_keys($coverage));
+        }
+        else {
+          dpr($coverage);
+        }
+      }
     }
 
     if ($output) {
+      // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
       print $output;
     }
   }
   devel_store_queries();
+}
+
+function devel_code_coverage_enabled() {
+  return function_exists(xdebug_get_code_coverage) && variable_get('devel_code_coverage', 1);
 }
 
 function devel_store_queries() {
@@ -903,6 +922,14 @@ function devel_admin_settings() {
     '#title' => t('Display memory usage'),
     '#default_value' => variable_get('dev_mem', 0),
     '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called. PHP must have been compiled with the <em>--enable-memory-limit</em> configuration option for this feature to work.'),
+  );
+  $form['devel_code_coverage'] = array(
+    '#type' => 'radios',
+    '#title' => t('Code Coverage'),
+    '#disabled' => !function_exists('xdebug_start_code_coverage'),
+    '#default_value' => variable_get('devel_code_coverage', 1),
+    '#options' => array(t('Disabled'), t('Files only'), 'Files and lines'),
+    '#description' => t('Show the files (and optionally the lines in those files) which were loaded by PHP to fulfill this request. In general, fewer files is better since parsing files costs significant performance. Requires <a href="http://xdebug.org">xdebug</a>.'),
   );
   $form['devel_redirect_page'] = array('#type' => 'checkbox',
     '#title' => t('Display redirection page'),
