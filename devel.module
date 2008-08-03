@@ -654,14 +654,19 @@ function devel_shutdown_real() {
   global $queries, $memory_init, $user;
   $output = $txt = '';
 
-  // set $GLOBALS['devel_shutdown'] = FALSE in order to supress the devel footer for a page. not necessary if your page
-  // outputs a text/javascript or text/xml Content-type http header. Thats advised where applicable.
+  // Set $GLOBALS['devel_shutdown'] = FALSE in order to supress the
+  // devel footer for a page.  Not necessary if your page outputs any
+  // of the Content-type http headers tested below (e.g. text/xml,
+  // text/javascript, etc).  This is is advised where applicable.
   if (!isset($GLOBALS['devel_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
     // Try not to break non html pages.
     if (function_exists('drupal_get_headers')) {
       $headers = drupal_get_headers();
-      if(strstr($headers, 'xml') || strstr($headers, 'javascript') || strstr($headers, 'plain') || strstr($headers, 'image') || strstr($headers, 'json')) {
-        return;
+      $formats = array('xml', 'javascript', 'json', 'plain', 'image', 'application', 'x-comma-separated-values');
+      foreach ($formats as $format) {
+        if (strstr($headers, $format)) {
+          return;
+        }
       }
     }
 
