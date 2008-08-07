@@ -5,6 +5,7 @@ if (Drupal.jsEnabled) {
     lastObj = false;
     thmrSpanified = false;
     strs = Drupal.settings.thmrStrings;
+    $('body').wrap('<span class="thmr_call" id="thmr_'+Drupal.settings.page_id+'"></span>');
     $('span.thmr_call')
     .hover(
       function () {

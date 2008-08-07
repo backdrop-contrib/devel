@@ -229,7 +229,12 @@ function devel_themer_catch_function() {
     $start_prefix = substr($prefix, 0, 31);
 
     if ($start_return != $start_prefix && !in_array($hook, $skip)) {
-      $output = $prefix. "\n  ". $return. $suffix. "\n";
+      if ($hook == 'page') {
+        $GLOBALS['devel_theme_calls']['page_id'] = $counter;
+      }
+      else {
+        $output = $prefix. "\n  ". $return. $suffix. "\n";
+      }
 
       if ($meta['type'] == 'func') {
         $name = $meta['used'];
