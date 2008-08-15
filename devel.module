@@ -735,7 +735,7 @@ function devel_shutdown_real() {
 }
 
 function devel_code_coverage_enabled() {
-  return function_exists(xdebug_get_code_coverage) && variable_get('devel_code_coverage', 1);
+  return function_exists('xdebug_get_code_coverage') && variable_get('devel_code_coverage', 1);
 }
 
 function devel_store_queries() {
