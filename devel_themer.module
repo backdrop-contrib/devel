@@ -68,11 +68,6 @@ function devel_themer_ajax_variables($request_id, $call) {
   return;
 }
 
-// An implementation of hook_flush_caches()
-function devel_themer_flush_caches() {
-  cache_clear_all('*', 'cache_devel_themer', TRUE);
-}
-
 /**
  * A menu callback. Usually called from the devel block. 
  * 
