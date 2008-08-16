@@ -48,12 +48,13 @@ function devel_themer_menu() {
  * A chunk of HTML with the devel_print_object() rendering of the variables.
  */
 function devel_themer_ajax_variables($request_id, $call) {
-  if ($data = cache_get('devel_themer_'. $request_id, 'cache_devel_themer')) {
-    $variables = $data->data[$call]['variables'];
+  $file = file_directory_temp(). "/devel_themer_$request_id";
+  if ($data = unserialize(file_get_contents($file))) {
+    $variables = $data[$call]['variables'];
     if (has_krumo()) { 	 
       print krumo_ob($variables); 	 
     } 
-    elseif ($data->data[$call]['type'] == 'func') { 	 
+    elseif ($data[$call]['type'] == 'func') { 	 
       print devel_print_object($variables, NULL, FALSE); 	 
     }
     else {
@@ -61,7 +62,7 @@ function devel_themer_ajax_variables($request_id, $call) {
     }
   }
   else {
-    print 'Request ID not found.';
+    print 'Ajax variables file not found. -'. check_plain($file);
   }
   $GLOBALS['devel_shutdown'] = FALSE;
   return;
@@ -465,17 +466,19 @@ function devel_themer_theme_twin() {
   return array($output, $meta);
 }
 
-// we emit the huge js array here instead of hook_footer so we can catch theme('page')
+// We save the huge js array here instead of hook_footer so we can catch theme('page')
 function devel_themer_exit() {
-  // A random string that is sent to the browser. It enables the popup to retrieve params/variables from this request.
-  $request_id = uniqid();
   if (!empty($GLOBALS['devel_theme_calls']) && $_SERVER['REQUEST_METHOD'] != 'POST') {
+    // A random string that is sent to the browser. It enables the popup to retrieve params/variables from this request.
+    $request_id = uniqid();
+    // Write the variables information to the a file. It will be retrieved on demand via AJAX.
+    // We used to write this to DB but was getting 'Warning: Got a packet bigger than 'max_allowed_packet' bytes'
+    // Writing to temp dir means we don't worry about folder existence/perms and cleanup is free.
+    file_put_contents(file_directory_temp(). "/devel_themer_$request_id", serialize($GLOBALS['devel_themer_server']));
+
     $GLOBALS['devel_theme_calls']['request_id'] = $request_id;
     $GLOBALS['devel_theme_calls']['devel_themer_uri'] = url("devel_themer/variables/$request_id");
     print '<script type="text/javascript">jQuery.extend(Drupal.settings, '.  drupal_to_js($GLOBALS['devel_theme_calls']) .");</script>\n";
-    
-    // Write the variables information to the cache table. It will be retrieved on demand via AJAX.
-    cache_set('devel_themer_'. $request_id, $GLOBALS['devel_themer_server'], 'cache_devel_themer', time()+3600);
   }
 }
 

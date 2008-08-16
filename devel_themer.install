@@ -19,24 +19,15 @@ function devel_themer_requirements($phase) {
   return isset($requirements) ? $requirements : array();
 }
 
-function devel_themer_install() {
-  drupal_install_schema('devel_themer');
-}
-
-function devel_themer_schema() {
-  $schema['cache_devel_themer'] = drupal_get_schema_unprocessed('system', 'cache');
-  return $schema;
-}
-
-/**
- * Implementation of hook_uninstall().
- */
-function devel_themer_uninstall() {
-  drupal_uninstall_schema('devel_themer');
-}
-
 function devel_themer_update_6000() {
   $ret = array();
   drupal_install_schema('devel_themer');
+  return $ret;
+}
+
+// We are now using a file based cache to avoid max_packet_size warning.
+function devel_themer_update_6001() {
+  $ret = array();
+  db_drop_table($ret, 'cache_devel_themer');
   return $ret;
 }
