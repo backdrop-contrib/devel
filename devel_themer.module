@@ -222,15 +222,18 @@ function devel_themer_catch_function() {
   list($return, $meta) = call_user_func_array('devel_themer_theme_twin', $args);
   $time = timer_stop($timer_name);
 
-  $skip = array('hidden', 'form_element', 'placeholder');
+  $skip_calls = array('hidden', 'form_element', 'placeholder');
   if (!empty($return) && !is_array($return) && !is_object($return) && user_access('access devel information')) {
     list($prefix, $suffix) = devel_theme_call_marker($hook, $counter, 'func');
     $start_return = substr($return, 0, 31);
     $start_prefix = substr($prefix, 0, 31);
 
-    if ($start_return != $start_prefix && !in_array($hook, $skip)) {
+    if ($start_return != $start_prefix && !in_array($hook, $skip_calls) && empty($GLOBALS['devel_themer_stop'])) {
       if ($hook == 'page') {
         $GLOBALS['devel_theme_calls']['page_id'] = $counter;
+        // Stop logging theme calls after we see theme('page'). This prevents
+        // needless logging of devel module's query log, for example. Other modules may set this global as needed.
+        $GLOBALS['devel_themer_stop'] = TRUE;
       }
       else {
         $output = $prefix. "\n  ". $return. $suffix. "\n";
