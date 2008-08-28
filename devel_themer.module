@@ -465,7 +465,7 @@ function devel_themer_theme_twin() {
 function devel_themer_exit() {
   if (!empty($GLOBALS['devel_theme_calls']) && $_SERVER['REQUEST_METHOD'] != 'POST') {
     // A random string that is sent to the browser. It enables the popup to retrieve params/variables from this request.
-    $request_id = uniqid();
+    $request_id = uniqid(rand());
     // Write the variables information to the a file. It will be retrieved on demand via AJAX.
     // We used to write this to DB but was getting 'Warning: Got a packet bigger than 'max_allowed_packet' bytes'
     // Writing to temp dir means we don't worry about folder existence/perms and cleanup is free.
