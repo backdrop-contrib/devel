@@ -2,6 +2,8 @@
 // $Id$
 
 function devel_node_access_install() {
-  // force drupal to auto-enable the block
-  _block_rehash();
+}
+
+function devel_node_access_uninstall() {
+  variable_delete('devel_node_access_debug_mode');
 }
