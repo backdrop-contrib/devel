@@ -1,37 +1,10 @@
 <?php
 // $Id$
-/**
- * Implementation of hook_schema().
- */
-function devel_schema() {
-  $schema['devel_queries'] = array(
-    'fields' => array(
-      'qid' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '10'),
-      'function' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => ''),
-      'query' => array('type' => 'text', 'not null' => TRUE),
-      'hash' => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => '')),
-    'primary key' => array('hash'),
-    'indexes' => array(
-      'qid' => array('qid'))
-  );
-  $schema['devel_times'] = array(
-    'fields' => array(
-      'tid' => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '10'),
-      'qid' => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '10'),
-      'time' => array('type' => 'float', 'not null' => FALSE)),
-    'primary key' => array('tid'),
-    'indexes' => array(
-      'qid' => array('qid'))
-  );
-  return $schema;
-}
  
- /**
+/**
  * Implementation of hook_install()
  */
 function devel_install() {
-  drupal_install_schema('devel');
-     
   // New module weights in core: put devel as the very last in the chain.
   db_query("UPDATE {system} SET weight = 88 WHERE name = 'devel'");
   
@@ -61,11 +34,9 @@ function devel_install() {
  * Implementation of hook_install()
  */
 function devel_uninstall() {
-  drupal_uninstall_schema('devel');
   variable_del('dev_query');
   variable_del('devel_old_smtp_library');
   variable_del('devel_form_weights');
-  variable_del('devel_store_random');
   variable_del('devel_execution');
   variable_del('dev_timer');
   variable_del('devel_query_display');
@@ -73,7 +44,6 @@ function devel_uninstall() {
   variable_del('devel_api_url');
   variable_del('dev_mem');
   variable_del('devel_error_handler');
-  variable_del('devel_store_queries');
   
   db_query("DELETE FROM {menu_custom} WHERE menu_name = 'devel'");
   db_query("DELETE FROM {menu_links} WHERE module = 'devel'");
@@ -92,9 +62,6 @@ function devel_disable() {
   // The SMTP server should also be restored.
   variable_set('smtp_library', variable_get('devel_old_smtp_library', ''));
   variable_del('devel_old_smtp_library');
-  
-  // Same for storing queries
-  variable_del('devel_store_queries');
 }
 
 /**
@@ -170,5 +137,13 @@ function devel_update_6003() {
   // Another try. update_sql() does not support printf args. See http://drupal.org/node/36324
   $ret[] = update_sql("DELETE FROM {menu_custom} WHERE menu_name = 'devel' OR menu_name = ''");
   $ret[] = update_sql("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('devel', 'Development', 'Development links')");
+  return $ret;
+}
+
+// Remove feature for storing queries. Cleanup deprecated tables and variables.
+function devel_update_7000() {
+  $ret = array();
+  db_drop_table($ret, 'devel_queries');
+  db_drop_table($ret, 'devel_times');
   return $ret;
 }
