@@ -16,16 +16,22 @@ if (!ini_get('safe_mode')) {
 function devel_create_users($num, $kill) {
   $url = parse_url($GLOBALS['base_url']);
   if ($kill) {
-    db_query('DELETE FROM {users} WHERE uid > 1');
+    $fields = array('nid' => 1, 'title' => 'my title', 'body' => 'my body');
+    db_delete('users')->condition('uid', 1, '>')->execute();
     drupal_set_message(t('Users deleted.'));
   }
   for ($i = 0; $i < $num; $i++) {
     $length = rand(6, 12);
     $name = devel_generate_word($length);
-    $pass = md5(user_password());
-    $mail = $name .'@'. $url['host'];
-    $now = time();
-    db_query("INSERT INTO {users} (name, pass, mail, status, created, access) VALUES ('%s', '%s', '%s', %d, %d, %d)", $name, $pass, $mail, 1, $now, $now);
+    $fields = array(
+      'name' => $name,
+      'pass' => md5(user_password()),
+      'mail' => $name .'@'. $url['host'],
+      'status' => 1,
+      'created' => $_SERVER['REQUEST_TIME'],
+      'access' => $_SERVER['REQUEST_TIME'],
+    );
+    db_insert('users')->fields($fields)->execute();
   }
   drupal_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
 }
@@ -67,10 +73,10 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
 
     switch ($i % 3) {
       case 1:
-        $comment->pid = db_result(db_query_range("SELECT cid FROM {comments} WHERE pid = 0 AND nid = %d ORDER BY RAND()", $comment->nid, 0, 1));
+        $comment->pid = db_result(db_query_range("SELECT cid FROM {comments} WHERE pid = 0 AND nid = :nid ORDER BY RAND()", array(':nid' => $comment->nid), 0, 1));
         break;
       case 2:
-        $comment->pid = db_result(db_query("SELECT cid FROM {comments} WHERE pid > 0 AND nid = %d ORDER BY RAND()", $comment->nid, 0, 1));
+        $comment->pid = db_result(db_query("SELECT cid FROM {comments} WHERE pid > 0 AND nid = :nid ORDER BY RAND()", array(':nid' => $comment->nid), 0, 1));
         break;
       default:
         $comment->pid = 0;
@@ -80,7 +86,7 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
     $comment->comment = devel_create_content();
     $comment->uid = $users[array_rand($users)];
 
-    // this is slow but gets the threading right.
+    // This is slow but gets the threading right.
     comment_save((array)$comment);
 
   }
@@ -94,10 +100,12 @@ function devel_generate_vocabs($records, $maxlength = 12, $types = array('story'
     $voc = array();
     $voc['name'] = devel_generate_word(rand(2, $maxlength));
     $voc['description'] = "description of ". $voc['name'];
+    // TODO: not working
     $voc['nodes'] = array_flip(array($types[array_rand($types)]));
     foreach ($voc['nodes'] as $key => $value) {
       $voc['nodes'][$key] = $key;
     }
+    
     $voc['multiple'] = 1;
     $voc['required'] = 0;
     $voc['relations'] = 1;
@@ -132,7 +140,6 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
     $term['name'] = devel_generate_word(rand(2, $maxlength));
     $term['description'] = "description of ". $term['name'];
     $term['weight'] = rand(0,10);
-
     $status = taxonomy_save_term($term);
     $output = NULL;
 
@@ -164,18 +171,7 @@ function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $ki
     db_query("DELETE FROM {term_synonym}");
     db_query("DELETE FROM {vocabulary}");
     db_query("DELETE FROM {vocabulary_node_types}");
-    switch ($GLOBALS['db_type']) {
-      case 'mysql':
-      case 'mysqli':
-        db_query("ALTER TABLE {vocabulary} AUTO_INCREMENT = 1");
-        db_query("ALTER TABLE {term_data} AUTO_INCREMENT = 1");
-        break;
-      case 'pgsql':
-        db_query("SELECT setval('{vocabulary}_vid_seq', 1, false)");
-        db_query("SELECT setval('{term_data}_tid_seq', 1, false)");
-        break;
-    }
-    drupal_set_message(t('Deleted taxonomy.'));
+    drupal_set_message(t('Deleted existing vocabularies and terms.'));
   }
 
   $new_vocs = devel_generate_vocabs($num_vocab, $title_length);
@@ -317,8 +313,8 @@ function devel_create_greeking($words, $title = FALSE) {
 function devel_generate_add_terms(&$node) {
   $vocabs = taxonomy_get_vocabularies($node->type);
   foreach ($vocabs as $vocab) {
-    $sql = "SELECT tid FROM {term_data} WHERE vid = %d ORDER BY RAND()";
-    $result = db_query_range($sql, $vocab->vid, 0, 5);
+    $sql = "SELECT tid FROM {term_data} WHERE vid = :vid ORDER BY RAND()";
+    $result = db_query_range($sql, array(':vid' => $vocab->vid), 0, 5);
     while ($row = db_fetch_object($result)) {
       if ($vocab->tags) {
         $node->taxonomy['tags'][] = $row->tid;
@@ -356,10 +352,12 @@ function devel_generate_add_upload(&$node) {
   $file->description = 'b log.png was here';
   $file->filesize = $size;
   $file->weight = rand(0,10);
+  $file->uid = $node->uid;
+  $file->status = FILE_STATUS_TEMPORARY;
+  $file->timestamp = $_SERVER['REQUEST_TIME'];
   
   // If we made it this far it's safe to record this file in the database.
-  db_query("INSERT INTO {files} (uid, filename, filepath, filemime, filesize, status, timestamp) VALUES (%d, '%s', '%s', '%s', %d, %d, %d)", $node->uid, $file->filename, $file->filepath, $file->filemime, $file->filesize, FILE_STATUS_TEMPORARY, time());
-  $file->fid = db_last_insert_id('files', 'fid');
+  drupal_write_record('files', $file);
   
   $_SESSION['upload_files'][$file->fid] = $file;
   $node->files[$file->fid] = $file;
