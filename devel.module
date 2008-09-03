@@ -159,7 +159,7 @@ function devel_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['user/%user/load'] = array(
-    'title' => 'Devel load',
+    'title' => 'Dev load',
     'page callback' => 'devel_load_object',
     'page arguments' => array(1, 'user'),
     'access callback' => 'user_access',
