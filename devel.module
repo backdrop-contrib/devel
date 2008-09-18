@@ -386,7 +386,7 @@ function devel_boot() {
 
 // Kickoff our tricks. Put here all code which must run for cached pages too. Called from both devel_boot() and devel_init().
 function devel_start() {
-  if (variable_get('dev_mem', 0) && function_exists('memory_get_usage')) {
+  if (variable_get('dev_mem', 0)) {
     global $memory_init;
     $memory_init = memory_get_usage();
   }
@@ -693,10 +693,10 @@ function devel_shutdown_real() {
         $output .= '</div>';
       }
 
-      if (variable_get('dev_mem', FALSE) && function_exists('memory_get_usage')) {
+      if (variable_get('dev_mem', FALSE)) {
         $memory_shutdown = memory_get_usage();
-        $args = array('@memory_boot' => round($memory_init / 1024 / 1024, 2), '@memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2));
-        $msg = '<div class="dev-memory-usage"><h3>Memory usage:</h3> Memory used at: devel_boot()=<strong>@memory_boot</strong> MB, devel_shutdown()=<strong>@memory_shutdown</strong> MB.</div>';
+        $args = array('@memory_boot' => round($memory_init / 1024 / 1024, 2), '@memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2), '@memory_peak' => round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2));
+        $msg = '<div class="dev-memory-usage"><h3>Memory usage:</h3> Memory used at: devel_boot()=<strong>@memory_boot</strong> MB, devel_shutdown()=<strong>@memory_shutdown</strong> MB, PHP peak usage=<strong>@memory_peak</strong> MB.</div>';
         // theme() may not be available. not t() either.
         $output .= t_safe($msg, $args);
       }
@@ -855,7 +855,7 @@ function devel_admin_settings() {
   $form['dev_mem'] = array('#type' => 'checkbox',
     '#title' => t('Display memory usage'),
     '#default_value' => variable_get('dev_mem', 0),
-    '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called. PHP must have been compiled with the <em>--enable-memory-limit</em> configuration option for this feature to work.'),
+    '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called.'),
   );
   $form['devel_code_coverage'] = array(
     '#type' => 'radios',
