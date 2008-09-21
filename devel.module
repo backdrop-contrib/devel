@@ -31,7 +31,7 @@ function devel_help($section) {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implementationation of hook_menu().
  */
 function devel_menu() {
   $items = array();
@@ -391,6 +391,12 @@ function devel_start() {
     $memory_init = memory_get_usage();
   }
   
+  if (devel_query_enabled()) {
+    //TODO: How best to include this?
+    @include_once DRUPAL_ROOT . '/includes/database/log.inc';
+    Database::startLog('devel');;
+  }
+  
   if (devel_code_coverage_enabled()) {
     xdebug_start_code_coverage();
   }
@@ -639,7 +645,7 @@ function devel_shutdown() {
  * See devel_shutdown() which registers this function as a shutdown function. Displays developer information in the footer.
  */
 function devel_shutdown_real() {
-  global $queries, $memory_init, $user;
+  global $memory_init, $user;
   $output = $txt = '';
 
   // Set $GLOBALS['devel_shutdown'] = FALSE in order to supress the
@@ -657,42 +663,15 @@ function devel_shutdown_real() {
         }
       }
     }
-
     // don't append gunk to CLI scripts
     if (empty($_SERVER['REQUEST_METHOD'])) {
       return;
     }
 
     if (isset($user) && user_access('access devel information')) {
-      list($counts, $query_summary) = devel_query_summary();
-      // Query log off, timer on.
-      if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
-        $output .= '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
+      if (devel_query_enabled()) {
+        $output .= devel_shutdown_query();
       }
-
-      // Query log on.
-      $sum = 0;
-      if (variable_get('devel_query_display', FALSE)) {
-        $output .= '<div class="dev-query">';
-        $output .= $query_summary;
-        // calling theme() during shutdown is very bad if registry gets rebuilt like when making a change on  admin/build/modules
-        // so we check for presence of theme registry before calling theme('table'  )
-        if (function_exists('theme_get_registry') && theme_get_registry()) {
-          $txt = t_safe(' Queries taking longer than @threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
-          if (variable_get('dev_timer', 0)) {
-            $txt .= devel_timer();
-          }
-          $output .= $txt. devel_query_table($queries, $counts);
-        }
-        else {
-          $output .= $txt;
-          ob_start();
-          dprint_r($queries);
-          $output .= ob_get_clean();
-        }
-        $output .= '</div>';
-      }
-
       if (variable_get('dev_mem', FALSE)) {
         $memory_shutdown = memory_get_usage();
         $args = array('@memory_boot' => round($memory_init / 1024 / 1024, 2), '@memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2), '@memory_peak' => round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2));
@@ -721,17 +700,54 @@ function devel_shutdown_real() {
   }
 }
 
+function devel_shutdown_query() {
+  $queries = Database::getLog('devel', 'default');
+  list($counts, $query_summary) = devel_query_summary($queries);
+  // Query log off, timer on.
+  if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
+    $output .= '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
+  }
+
+  // Query log on.
+  $sum = 0;
+  if (variable_get('devel_query_display', FALSE)) {
+    $output .= '<div class="dev-query">';
+    $output .= $query_summary;
+    // calling theme() during shutdown is very bad if registry gets rebuilt like when making a change on  admin/build/modules
+    // so we check for presence of theme registry before calling theme('table'  )
+    if (function_exists('theme_get_registry') && theme_get_registry()) {
+      $txt = t_safe(' Queries taking longer than @threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
+      if (variable_get('dev_timer', 0)) {
+        $txt .= devel_timer();
+      }
+      $output .= $txt. devel_query_table($queries, $counts);
+    }
+    else {
+      $output .= $txt;
+      ob_start();
+      dprint_r($queries);
+      $output .= ob_get_clean();
+    }
+    $output .= '</div>';
+  }
+  
+  return $output;
+}
+
+function devel_query_enabled() {
+  return method_exists('Database', 'getLog') && variable_get('dev_query', FALSE);
+}
+
 function devel_code_coverage_enabled() {
   return function_exists('xdebug_get_code_coverage') && variable_get('devel_code_coverage', FALSE);
 }
 
-function devel_query_summary() {
-  global $queries;
+function devel_query_summary($queries) {
   if (variable_get('dev_query', FALSE) && is_array($queries)) {
     $sum = 0;
     foreach ($queries as $query) {
-      $text[] = $query[0];
-      $sum += $query[1];
+      $text[] = $query['query'];
+      $sum += $query['time'];
     }
     $counts = array_count_values($text);
     return array($counts, t_safe('Executed @queries queries in @time milliseconds.', array('@queries' => count($queries), '@time' => round($sum * 1000, 2))));
@@ -1365,13 +1381,10 @@ function devel_query_table($queries, $counts) {
   $i = 0;
   $api = variable_get('devel_api_url', 'api.drupal.org');
   foreach ($queries as $query) {
-    // dprint_r($query);
-    $ar = explode("\n", $query[0]);
-    $function=array_shift($ar);
-    $count = isset($counts[$query[0]]) ? $counts[$query[0]] : 0;
-    $query[0]=join(' ',$ar);
+    $function = $query['caller']['function'];
+    $count = isset($counts[$query['query']]) ? $counts[$query['query']] : 0;
 
-    $diff = round($query[1] * 1000, 2);
+    $diff = round($query['time'] * 1000, 2);
     if ($diff > variable_get('devel_execution', 5)) {
       $cell[$i][] = array ('data' => $diff, 'class' => 'marker');
     }
@@ -1385,8 +1398,7 @@ function devel_query_table($queries, $counts) {
       $cell[$i][] = $count;
     }
     $cell[$i][] = l($function, "http://$api/api/$version/function/$function");
-    $pos = strpos($query[0], '*/') + 3;
-    $cell[$i][] = check_plain(substr($query[0], $pos));
+    $cell[$i][] = check_plain($query['query']);
     $i++;
     unset($diff, $count);
   }
