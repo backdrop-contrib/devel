@@ -641,6 +641,16 @@ function devel_shutdown() {
   register_shutdown_function('devel_shutdown_real');
 }
 
+// Borrowed from drush module.
+function devel_verify_cli() {
+  if (php_sapi_name() == 'cgi') {
+    return (is_numeric($_SERVER['argc']) && $_SERVER['argc'] > 0);
+  }
+  
+  return (php_sapi_name() == 'cli');
+}
+
+
 /**
  * See devel_shutdown() which registers this function as a shutdown function. Displays developer information in the footer.
  */
@@ -664,7 +674,7 @@ function devel_shutdown_real() {
       }
     }
     // don't append gunk to CLI scripts
-    if (empty($_SERVER['REQUEST_METHOD'])) {
+    if (devel_verify_cli()) {
       return;
     }
 
