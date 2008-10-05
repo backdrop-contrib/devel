@@ -218,7 +218,14 @@ function devel_devel_themer_toggle() {
     module_disable(array('devel_themer'));
   }
   else {
-    module_enable(array('devel_themer'));
+    // Sanity check in case the devel_themer schema is not installed.
+    include_once('./includes/install.inc');
+    if (drupal_get_schema_versions('devel_themer') == FALSE) {
+      drupal_install_modules(array('devel_themer'));
+    } 
+    else {
+      module_enable(array('devel_themer'));
+    }
   }
   drupal_rebuild_theme_registry();
   drupal_goto();
