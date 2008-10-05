@@ -142,7 +142,7 @@ function devel_menu() {
     'access arguments' => array('administer site configuration'),
     'menu_name' => 'devel',
   );
-  $items['node/%node/load'] = array(
+  $items['node/%node/devel/load'] = array(
     'title' => 'Dev load',
     'page callback' => 'devel_load_object',
     'page arguments' => array(1, 'node'),
@@ -150,7 +150,7 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
   );
-  $items['node/%node/render'] = array(
+  $items['node/%node/devel/render'] = array(
     'title' => 'Dev render',
     'page callback' => 'devel_render_object',
     'page arguments' => array('node', 1),
@@ -158,7 +158,7 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
   );
-  $items['user/%user/load'] = array(
+  $items['user/%user/devel/load'] = array(
     'title' => 'Dev load',
     'page callback' => 'devel_load_object',
     'page arguments' => array(1, 'user'),
@@ -166,7 +166,7 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
   );
-  $items['user/%user/render'] = array(
+  $items['user/%user/devel/render'] = array(
     'title' => 'Dev render',
     'page callback' => 'devel_render_object',
     'page arguments' => array('user', 1),
