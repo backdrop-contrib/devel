@@ -51,7 +51,39 @@ function devel_node_access_menu() {
     'menu_name' => 'devel',
   );
 
+  if (!module_exists('devel')) {
+    $items['admin/settings/devel'] = array(
+      'title' => 'Devel node access',
+      'description' =>  'Helper pages and blocks to assist Drupal developers and admins with node_access. The devel blocks can be managed via the Blocks (admin/build/block) page.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('devel_node_access_admin_settings'),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_NORMAL_ITEM
+    );
+  }
+
   return $items;
+}
+
+function devel_node_access_admin_settings() {
+  $form = array();
+  return system_settings_form($form);
+}
+
+function devel_node_access_form_alter(&$form, $form_state, $form_id) {
+  $t = 't';
+  if ($form_id == 'devel_admin_settings' || $form_id == 'devel_node_access_admin_settings') {
+    $form['devel_node_access_debug_mode'] = array(
+      '#type'          => 'checkbox',
+      '#title'         => t('Devel Node Access debug mode'),
+      '#default_value' => variable_get('devel_node_access_debug_mode', FALSE),
+      '#description'   => t('Debug mode verifies the grants in the node_access table against those that would be set by running !Rebuild_permissions, and displays them all; this can cause considerable overhead.', array('!Rebuild_permissions' => l('['. $t('Rebuild permissions') .']', 'admin/content/node-settings'))),
+    );
+    // push these down:
+    $form['devel_error_handler']['#weight'] = 1;
+    $form['smtp_library']['#weight'] = 1;
+    $form['buttons']['#weight'] = 2;
+  }
 }
 
 function dna_summary() {
@@ -119,7 +151,9 @@ function dna_summary() {
   $result = db_query('SELECT DISTINCT realm, COUNT(DISTINCT nid) as node_count FROM {node_access} WHERE gid <> 0 AND nid > 0 GROUP BY realm');
   $rows = array();
   while ($row = db_fetch_object($result)) {
-    $rows[] = array(l($row->realm, "devel/node_access/view/$row->realm"),
+    // no Views yet:
+    //$rows[] = array(l($row->realm, "devel/node_access/view/$row->realm"),
+    $rows[] = array($row->realm,
                     array('data' => $row->node_count,
                           'align' => 'center'));
   }
@@ -145,22 +179,6 @@ function devel_node_access_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
   if ($op == 'view') {
     // remember this node, for display in our block
     dna_visible_nodes($node->nid);
-  }
-}
-
-function devel_node_access_form_alter(&$form, $form_state, $form_id) {
-  $t = 't';
-  if ($form_id == 'devel_admin_settings' && module_exists('devel_node_access')) {
-    $form['devel_node_access_debug_mode'] = array(
-      '#type'          => 'checkbox',
-      '#title'         => t('Devel Node Access debug mode'),
-      '#default_value' => variable_get('devel_node_access_debug_mode', FALSE),
-      '#description'   => t('Debug mode verifies the grants in the node_access table against those that would be set by running !Rebuild_permissions, and displays them all; this can cause considerable overhead.', array('!Rebuild_permissions' => l('['. $t('Rebuild permissions') .']', 'admin/content/node-settings'))),
-    );
-    // push these down:
-    $form['devel_error_handler']['#weight'] = 1;
-    $form['smtp_library']['#weight'] = 1;
-    $form['buttons']['#weight'] = 2;
   }
 }
 
