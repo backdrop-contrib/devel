@@ -133,7 +133,7 @@ function dna_summary() {
   return $output;
 }
 
-function dna_visible_nodes($nid = null) {
+function dna_visible_nodes($nid = NULL) {
   static $nids = array();
   if ($nid) {
     $nids[$nid] = $nid;
@@ -330,7 +330,7 @@ function devel_node_access_block($op = 'list', $delta = 0) {
             // fill in the table rows
             $rows = array();
             foreach ($all_grants as $grant) {
-              $row = NULL;
+              $row = new stdClass();
               $row->nid = $grant['nid'];
               $row->title = $grant['#title'];
               $row->priority = $grant['priority'];
@@ -448,7 +448,7 @@ function devel_node_access_block($op = 'list', $delta = 0) {
 }
 
 /**
- * Implementation of hook_node_access_explain
+ * Implementation of hook_node_access_explain().
  */
 function devel_node_access_node_access_explain($row) {
   if ($row->gid == 0 && $row->realm == 'all') {
@@ -462,12 +462,12 @@ function devel_node_access_node_access_explain($row) {
 }
 
 /**
- * Implementation of hook_theme.
+ * Implementation of hook_theme().
  */
 function devel_node_access_theme() {
   return array(
     'dna_permission' => array(
-      'arguments' => array('permission'),
+      'arguments' => array('permission' => NULL),
     ),
   );
 }
