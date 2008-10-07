@@ -5,5 +5,5 @@ function devel_node_access_install() {
 }
 
 function devel_node_access_uninstall() {
-  variable_delete('devel_node_access_debug_mode');
+  variable_del('devel_node_access_debug_mode');
 }
