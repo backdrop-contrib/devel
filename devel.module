@@ -1394,7 +1394,7 @@ function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FA
  */
 function devel_query_table($queries, $counts) {
   $version = devel_get_core_version(VERSION);
-  $header = array ('ms', '#', 'where', 'query');
+  $header = array ('ms', '#', 'where', 'query', 'target');
   $i = 0;
   $api = variable_get('devel_api_url', 'api.drupal.org');
   foreach ($queries as $query) {
@@ -1416,6 +1416,7 @@ function devel_query_table($queries, $counts) {
     }
     $cell[$i][] = l($function, "http://$api/api/$version/function/$function");
     $cell[$i][] = check_plain($query['query']);
+    $cell[$i][] = $query['target'];
     $i++;
     unset($diff, $count);
   }
