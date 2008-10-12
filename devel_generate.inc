@@ -28,8 +28,8 @@ function devel_create_users($num, $kill) {
       'pass' => md5(user_password()),
       'mail' => $name .'@'. $url['host'],
       'status' => 1,
-      'created' => $_SERVER['REQUEST_TIME'],
-      'access' => $_SERVER['REQUEST_TIME'],
+      'created' => REQUEST_TIME,
+      'access' => REQUEST_TIME,
     );
     db_insert('users')->fields($fields)->execute();
   }
@@ -354,7 +354,7 @@ function devel_generate_add_upload(&$node) {
   $file->weight = rand(0,10);
   $file->uid = $node->uid;
   $file->status = FILE_STATUS_TEMPORARY;
-  $file->timestamp = $_SERVER['REQUEST_TIME'];
+  $file->timestamp = REQUEST_TIME;
   
   // If we made it this far it's safe to record this file in the database.
   drupal_write_record('files', $file);
