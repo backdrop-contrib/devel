@@ -115,7 +115,7 @@ function devel_generate_content_form() {
   $form['title_length'] = array(
     '#type' => 'textfield',
     '#title' => t('Max word length of titles'),
-    '#default_value' => 8,
+    '#default_value' => 4,
     '#size' => 10,
   );
   $form['add_upload'] = array(

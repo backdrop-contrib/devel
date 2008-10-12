@@ -16,7 +16,6 @@ if (!ini_get('safe_mode')) {
 function devel_create_users($num, $kill) {
   $url = parse_url($GLOBALS['base_url']);
   if ($kill) {
-    $fields = array('nid' => 1, 'title' => 'my title', 'body' => 'my body');
     db_delete('users')->condition('uid', 1, '>')->execute();
     drupal_set_message(t('Users deleted.'));
   }
@@ -67,7 +66,7 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
   for ($i = 1; $i <= $num_comments; $i++) {
     $comment->nid = $node->nid;
     $comment->cid = NULL;
-    $comment->format = FILTER_FORMAT_DEFAULT;
+    $comment->comment_format = FILTER_FORMAT_DEFAULT;
     $comment->name = 'devel generate';
     $comment->mail = 'devel_generate@example.com';
 
@@ -339,11 +338,11 @@ function devel_get_users() {
 }
 
 function devel_generate_add_upload(&$node) {
-  $source = 'misc/blog.png';
+  $source = DRUPAL_ROOT. '/misc/blog.png';
   $size = filesize($source);
   
   // $after this call, $source contains the new path.
-  file_copy($source);
+  $file->source = file_unmanaged_copy($source);
   $file = new stdClass();
   $file->filename = 'blog.png';
   $file->filepath = $source;
@@ -408,11 +407,12 @@ function devel_generate_content_add_node(&$results) {
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
 
-  $node->title = devel_create_greeking(rand(1, $results['title_length']), TRUE);
-  $node->body = "node ($node->type) - ". devel_create_content();
+  $type = node_get_types('type', $node);
+  $node->title = $type->has_title ? devel_create_greeking(rand(1, $results['title_length']), TRUE) : '';
+  $node->body = $type->has_body ? "node ($node->type) - ". devel_create_content() : '';
   $node->teaser = node_teaser($node->body);
   $node->filter = variable_get('filter_default_format', 1);
-  $node->format = FILTER_FORMAT_DEFAULT;
+  $node->node_format = FILTER_FORMAT_DEFAULT;
   $node->language = '';
   $node->revision = rand(0,1);
   $node->promote = rand(0, 1);
