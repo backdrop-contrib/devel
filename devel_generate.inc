@@ -12,8 +12,10 @@ if (!ini_get('safe_mode')) {
  *  Number of users to generate.
  * @param $kill
  *  Boolean that indicates if existing users should be removed first.
+ * @param $age
+ *  The max age of each randomly-generated user, in seconds.
  */
-function devel_create_users($num, $kill) {
+function devel_create_users($num, $kill, $age = 0) {
   $url = parse_url($GLOBALS['base_url']);
   if ($kill) {
     db_delete('users')->condition('uid', 1, '>')->execute();
@@ -22,12 +24,13 @@ function devel_create_users($num, $kill) {
   for ($i = 0; $i < $num; $i++) {
     $length = rand(6, 12);
     $name = devel_generate_word($length);
+    $now = REQUEST_TIME - rand(0, $age);
     $fields = array(
       'name' => $name,
       'pass' => md5(user_password()),
       'mail' => $name .'@'. $url['host'],
       'status' => 1,
-      'created' => REQUEST_TIME,
+      'created' => $now,
       'access' => REQUEST_TIME,
     );
     db_insert('users')->fields($fields)->execute();
@@ -69,6 +72,7 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
     $comment->comment_format = FILTER_FORMAT_DEFAULT;
     $comment->name = 'devel generate';
     $comment->mail = 'devel_generate@example.com';
+    $comment->timestamp = rand($node->created, REQUEST_TIME);
 
     switch ($i % 3) {
       case 1:
@@ -416,7 +420,7 @@ function devel_generate_content_add_node(&$results) {
   $node->language = '';
   $node->revision = rand(0,1);
   $node->promote = rand(0, 1);
-  $node->created = time();
+  $node->created = REQUEST_TIME - rand(0, $results['time_range']);
     
   // A flag to let hook_nodeapi() implementations know that this is a generated node.
   $node->devel_generate = $results;

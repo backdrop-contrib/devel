@@ -56,6 +56,19 @@ function devel_generate_users_form() {
     '#title' => t('Delete all users (except user id 1) before generating new users.'),
     '#default_value' => FALSE,
   );
+
+  $options = array(1 => t('Now'));
+  foreach (array(3600, 86400, 604800, 2592000, 31536000) as $interval) {
+    $options[$interval] = format_interval($interval, 1) . ' ' . t('ago');
+  }
+  $form['time_range'] = array(
+    '#type' => 'select',
+    '#title' => t('How old should user accounts be?'),
+    '#description' => t('User ages will be distributed randomly from the current time, back to the selected time.'),
+    '#options' => $options,
+    '#default_value' => 604800,
+  );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Do it!'),
@@ -65,7 +78,7 @@ function devel_generate_users_form() {
 
 function devel_generate_users_form_submit($form_id, &$form_state) {
   drupal_function_exists('devel_create_users');
-  devel_create_users($form_state['values']['num'], $form_state['values']['kill_users']);
+  devel_create_users($form_state['values']['num'], $form_state['values']['kill_users'], $form_state['values']['time_range']);
 }
 
 function devel_generate_content_form() {
@@ -104,6 +117,19 @@ function devel_generate_content_form() {
     '#default_value' => 50,
     '#size' => 10,
   );
+
+  $options = array(1 => t('Now'));
+  foreach (array(3600, 86400, 604800, 2592000, 31536000) as $interval) {
+    $options[$interval] = format_interval($interval, 1) . ' ' . t('ago');
+  }
+  $form['time_range'] = array(
+    '#type' => 'select',
+    '#title' => t('How far back in time should the nodes be dated?'),
+    '#description' => t('Node creation dates will be distributed randomly from the current time, back to the selected time.'),
+    '#options' => $options,
+    '#default_value' => 604800,
+  );
+
   $form['num_comments'] = array(
     '#type' => module_exists('comment') ? 'textfield' : 'value',
     '#title' => t('How many comments per node would you like to generate?'),
