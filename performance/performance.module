@@ -185,6 +185,7 @@ function performance_shutdown() {
   // Query time and count
   $query_count = 0;
   $query_timer = 0;
+  $sum = 0;
   if (variable_get('dev_query', 0) && is_array($queries)) {
     foreach ($queries as $query) {
       $sum += $query[1];
@@ -250,8 +251,9 @@ function performance_log_summary_apc($params = array()) {
 }
 
 function performance_log_summary_db($params = array()) {
-  $result = db_query("SELECT * FROM {performance_summary} WHERE path = '%s'", $params['path']);
-  if (db_num_rows($result)) {
+  $num_rows = db_result(db_query("SELECT COUNT(*) FROM {performance_summary} WHERE path = '%s'", $params['path']));
+  if ($num_rows) {
+    $result = db_query("SELECT * FROM {performance_summary} WHERE path = '%s'", $params['path']);
     $row = db_fetch_object($result);
     db_query("UPDATE {performance_summary} 
       SET last_access = %d,
@@ -337,19 +339,22 @@ function performance_view_summary() {
     return t('Summary performance log is not enabled. Go to the !link to enable it.', array('!link' => l(t('settings page'), 'admin/settings/performance_logging')));
   }
 
-  $header = array(
-    array('data' => t('Path'),                  'field' => 'path'),
-    array('data' => t('Last access'),           'field' => 'last_access'),
-    array('data' => t('# accesses'),            'field' => 'num_accesses'),
-    array('data' => t('Max Memory (MB)'),       'field' => 'bytes_max'),
-    array('data' => t('Avg Memory (MB)'),       'field' => 'bytes_avg'),
-    array('data' => t('Milliseconds (Max)'),    'field' => 'millisecs_max'),
-    array('data' => t('Milliseconds (Avg)'),    'field' => 'millisecs_avg'),
-    array('data' => t('Query Millisecs (Max)'), 'field' => 'query_timer_max'),
-    array('data' => t('Query Millisecs (Avg)'), 'field' => 'query_timer_avg'),
-    array('data' => t('Query Count (Max)'),     'field' => 'query_count_max'),
-    array('data' => t('Query Count (Avg)'),     'field' => 'query_count_avg'),
-  );
+  $header = array();
+
+  $header[] =  array('data' => t('Path'),               'field' => 'path');
+  $header[] =  array('data' => t('Last access'),        'field' => 'last_access');
+  $header[] =  array('data' => t('# accesses'),         'field' => 'num_accesses');
+  $header[] =  array('data' => t('Max Memory (MB)'),    'field' => 'bytes_max');
+  $header[] =  array('data' => t('Avg Memory (MB)'),    'field' => 'bytes_avg');
+  $header[] =  array('data' => t('Milliseconds (Max)'), 'field' => 'millisecs_max');
+  $header[] =  array('data' => t('Milliseconds (Avg)'), 'field' => 'millisecs_avg');
+
+  if (variable_get('dev_query', 0)) {
+    $header[] = array('data' => t('Query Millisecs (Max)'), 'field' => 'query_timer_max');
+    $header[] = array('data' => t('Query Millisecs (Avg)'), 'field' => 'query_timer_avg');
+    $header[] = array('data' => t('Query Count (Max)'),     'field' => 'query_count_max');
+    $header[] = array('data' => t('Query Count (Avg)'),     'field' => 'query_count_avg');
+  }
 
   $total_rows = $shown = $last_max = $total_bytes = $total_millisecs = $total_accesses = 0;
   $last_min = time();
@@ -382,24 +387,25 @@ function performance_view_summary() {
     $total_millisecs += $data['millisecs_avg'];
     $total_accesses += $data['num_accesses'];
 
+    $row_data = array();
+
     if ($data['num_accesses'] > $threshold) {
       $shown++;
-      $rows[] = array('data' =>
-        array(
-          performance_url($data['path'], $data['title']),
-          format_date($data['last_access'], 'small'),
-          $data['num_accesses'],
-          number_format($data['bytes_max']/1024/1024, 2),
-          number_format($data['bytes_avg']/1024/1024, 2),
-          number_format($data['millisecs_max'], 1),
-          number_format($data['millisecs_avg'], 1),
-          number_format($data['query_timer_max'], 1),
-          number_format($data['query_timer_avg'], 1),
-          $data['query_count_max'],
-          $data['query_count_avg'],
-        ),
-      );
+      $row_data[] = performance_url($data['path'], $data['title']);
+      $row_data[] = format_date($data['last_access'], 'small');
+      $row_data[] = $data['num_accesses'];
+      $row_data[] = number_format($data['bytes_max']/1024/1024, 2);
+      $row_data[] = number_format($data['bytes_avg']/1024/1024, 2);
+      $row_data[] = number_format($data['millisecs_max'], 1);
+      $row_data[] = number_format($data['millisecs_avg'], 1);
+      if (variable_get('dev_query', 0)) {
+        $row_data[] = number_format($data['query_timer_max'], 1);
+        $row_data[] = number_format($data['query_timer_avg'], 1);
+        $row_data[] = $data['query_count_max'];
+        $row_data[] = $data['query_count_avg'];
+      }
     }
+    $rows[] = array('data' => $row_data);
   }
 
   if (!$rows) {
@@ -449,27 +455,33 @@ function performance_view_details() {
     array('data' => t('Memory (MB)'),          'field' => 'bytes'),
     array('data' => t('Milliseconds (Total)'), 'field' => 'millisecs'),
     array('data' => t('Anonymous?'),           'field' => 'anon'),
-    array('data' => t('# Queries'),            'field' => 'query_count'),
-    array('data' => t('Query Milliseconds'),   'field' => 'query_timer'),
   );
+
+  if (variable_get('dev_query', 0)) {
+    $header[] = array('data' => t('# Queries'),          'field' => 'query_count');
+    $header[] = array('data' => t('Query Milliseconds'), 'field' => 'query_timer');
+  }
 
   $sql = "SELECT * FROM {performance_detail}";
   $tablesort = tablesort_sql($header);
   $result = pager_query($sql . $tablesort, 50);
 
   while ($data = db_fetch_array($result)) {
-    $rows[] = array('data' =>
-      array(
-        $data['pid'],
-        format_date($data['timestamp'], 'small'),
-        performance_url($data['path'], $data['title']),
-        number_format($data['bytes']/1024/1024, 2),
-        $data['millisecs'],
-        ($data['anon']) ? t('Yes') : t('No'),
-        $data['query_count'],
-        $data['query_timer'],
-      ),
-    );
+    $row_data = array();
+
+    $row_data[] = $data['pid'];
+    $row_data[] = format_date($data['timestamp'], 'small');
+    $row_data[] = performance_url($data['path'], $data['title']);
+    $row_data[] = number_format($data['bytes']/1024/1024, 2);
+    $row_data[] = $data['millisecs'];
+    $row_data[] = ($data['anon']) ? t('Yes') : t('No');
+
+    if (variable_get('dev_query', 0)) {
+      $row_data[] = $data['query_count'];
+      $row_data[] = $data['query_timer'];
+    }
+
+    $rows[] = array('data' => $row_data);
   }
 
   if (!$rows) {

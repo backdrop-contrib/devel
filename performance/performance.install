@@ -3,75 +3,49 @@
 
 // Copyright Khalid Baheyeldin 2008 of http://2bits.com
 
+function performance_schema() {
+  $schema = array();
+
+  $schema['performance_summary'] = array(
+    'fields' => array(
+      'path'            => array('type' => 'varchar', 'length' => '255', 'not null' => TRUE, 'default' => ''),
+      'last_access'     => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'bytes_max'       => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'bytes_avg'       => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'millisecs_max'   => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'millisecs_avg'   => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'query_count_max' => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'query_count_avg' => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'query_timer_max' => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'query_timer_avg' => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'num_accesses'    => array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11'),
+      'title'             => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE)),
+    'primary key' => array('path'),
+    'indexes' => array(
+      'last_access' => array('last_access')),
+  );
+
+  $schema['performance_detail'] = array(
+    'fields' => array(
+      'pid'         => array('type' => 'serial', 'not null' => TRUE, 'disp-width' => '11'),
+      'timestamp'   => array('type' => 'int', 'not null' => TRUE,  'default' => 0, 'disp-width' => '11'),
+      'bytes'       => array('type' => 'int', 'not null' => TRUE,  'default' => 0, 'disp-width' => '11'),
+      'millisecs'   => array('type' => 'int', 'not null' => TRUE,  'default' => 0, 'disp-width' => '11'),
+      'query_count' => array('type' => 'int', 'not null' => TRUE,  'default' => 0, 'disp-width' => '11'),
+      'query_timer' => array('type' => 'int', 'not null' => TRUE,  'default' => 0, 'disp-width' => '11'),
+      'anon'        => array('type' => 'int', 'not null' => FALSE, 'default' => 1, 'disp-width' => '1'),
+      'title'       => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE),
+      'path'        => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE)),
+    'primary key' => array('pid'),
+    'indexes' => array(
+      'timestamp' => array('timestamp')),
+  );
+
+  return $schema;
+}
+
 function performance_install() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      db_query("CREATE TABLE {performance_detail} (
-        pid         INT          NOT NULL AUTO_INCREMENT,
-        timestamp   INT          NOT NULL DEFAULT '0',
-        bytes       INT          NOT NULL DEFAULT '0',
-        millisecs   INT          NOT NULL DEFAULT '0',
-        query_count INT          NOT NULL DEFAULT '0',
-        query_timer INT          NOT NULL DEFAULT '0',
-        anon        INT(1)       DEFAULT '1',
-        title       VARCHAR(255) DEFAULT NULL,
-        path        VARCHAR(255) DEFAULT NULL,
-        PRIMARY KEY (pid),
-        KEY (timestamp)
-        ) /*!40100 DEFAULT CHARACTER SET UTF8 */ ");
-
-      db_query("CREATE TABLE {performance_summary} (
-        path            VARCHAR(255) NOT NULL DEFAULT '',
-        last_access     INT          NOT NULL DEFAULT '0',
-        bytes_max       INT          NOT NULL DEFAULT '0',
-        bytes_avg       INT          NOT NULL DEFAULT '0',
-        millisecs_max   INT          NOT NULL DEFAULT '0',
-        millisecs_avg   INT          NOT NULL DEFAULT '0',
-        query_count_max INT          NOT NULL DEFAULT '0',
-        query_count_avg INT          NOT NULL DEFAULT '0',
-        query_timer_max INT          NOT NULL DEFAULT '0',
-        query_timer_avg INT          NOT NULL DEFAULT '0',
-        num_accesses    INT          NOT NULL DEFAULT '0',
-        title           VARCHAR(255) DEFAULT NULL,
-        PRIMARY KEY (path),
-        KEY  (last_access)
-        ) /*!40100 DEFAULT CHARACTER SET UTF8 */ ");
-      break;
-
-    case 'pgsql':
-      db_query("CREATE TABLE {performance_detail} (
-        pid          SERIAL,
-        timestamp    INT          NOT NULL DEFAULT '0',
-        bytes        INT          NOT NULL DEFAULT '0',
-        millisecs    INT          NOT NULL DEFAULT '0',
-        query_count  INT          NOT NULL DEFAULT '0',
-        query_timer  INT          NOT NULL DEFAULT '0',
-        anon         SMALLINT     DEFAULT '1',
-        title        VARCHAR(255) DEFAULT NULL,
-        path         VARCHAR(255) DEFAULT NULL,
-        PRIMARY KEY (pid)
-      )");
-      db_query("CREATE INDEX {performance_detail}_timestamp_idx ON {peformance_detail} (timestamp)");
-
-      db_query("CREATE TABLE {performance_summary} (
-        path            VARCHAR(255) NOT NULL DEFAULT '',
-        last_access     INT          NOT NULL DEFAULT '0',
-        bytes_max       INT          NOT NULL DEFAULT '0',
-        bytes_avg       INT          NOT NULL DEFAULT '0',
-        millisecs_max   INT          NOT NULL DEFAULT '0',
-        millisecs_avg   INT          NOT NULL DEFAULT '0',
-        query_count_max INT          NOT NULL DEFAULT '0',
-        query_count_avg INT          NOT NULL DEFAULT '0',
-        query_timer_max INT          NOT NULL DEFAULT '0',
-        query_timer_avg INT          NOT NULL DEFAULT '0',
-        num_accesses    INT          NOT NULL DEFAULT '0',
-        title           VARCHAR(255) DEFAULT NULL,
-        PRIMARY KEY (path)
-      )");
-      db_query("CREATE INDEX {performance_summary}_last_access_idx ON {performance_summary} (last_access)");
-      break;
-  }
+  drupal_install_schema('performance');
 
   // Set the weight so this module runs last
   db_query("UPDATE {system} SET weight = 3000 WHERE name = 'performance'");
