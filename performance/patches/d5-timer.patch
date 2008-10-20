@@ -1,0 +1,28 @@
+Index: includes/bootstrap.inc
+===================================================================
+RCS file: /cvs/drupal/drupal/includes/bootstrap.inc,v
+retrieving revision 1.145.2.9
+diff -u -F^f -r1.145.2.9 bootstrap.inc
+--- includes/bootstrap.inc	24 Aug 2008 09:00:25 -0000	1.145.2.9
++++ includes/bootstrap.inc	25 Sep 2008 20:32:19 -0000
+@@ -879,6 +879,10 @@ function _drupal_bootstrap($phase) {
+ 
+     case DRUPAL_BOOTSTRAP_CONFIGURATION:
+       drupal_unset_globals();
++
++      // Start a page timer:
++      timer_start('page');
++
+       // Initialize the configuration
+       conf_init();
+       break;
+@@ -914,9 +918,6 @@ function _drupal_bootstrap($phase) {
+ 
+       _drupal_cache_init($phase);
+ 
+-      // Start a page timer:
+-      timer_start('page');
+-
+       drupal_page_header();
+       break;
+ 
