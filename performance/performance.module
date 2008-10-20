@@ -5,49 +5,38 @@
 
 define('PERFORMANCE_KEY', 'dru-perf:' . $_SERVER['HTTP_HOST'] . ':');
 
-function performance_menu($may_cache) {
+function performance_menu() {
+  $access = array('access administration pages');
+
   $items = array();
-  if ($may_cache) {
-    $access = user_access('access administration pages');
-    $items[] = array(
-      'path'               => 'admin/settings/performance_logging',
-      'title'              => t('Performance Logging'),
-      'description'        => t('Logs performance data: page generation times and memory usage.'),
-      'access'             => $access,
-      'callback'           => 'drupal_get_form',
-      'callback arguments' => array('performance_settings'),
-    );
+  $items['admin/settings/performance_logging'] = array(
+    'title'            => t('Performance Logging'),
+    'description'      => t('Logs performance data: page generation times and memory usage.'),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('performance_settings'),
+    'access arguments' => $access,
+  );
 
-    $items[] = array(
-      'path'               => 'admin/settings/performance_logging/apc_clear',
-      'title'              => t('Clear APC'),
-      'description'        => t('Clears performance statistics collected in APC.'),
-      'access'             => $access,
-      'callback'           => 'drupal_get_form',
-      'callback arguments' => array('performance_clear_apc_confirm'),
-    );
+  $items['admin/settings/performance_logging/apc_clear'] = array(
+    'title'            => t('Clear APC'),
+    'description'      => t('Clears performance statistics collected in APC.'),
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('performance_clear_apc_confirm'),
+    'access arguments' => $access,
+  );
 
-    $items[] = array(
-      'path'               => 'admin/logs/performance_logging',
-      'title'              => t('Performance Logs'),
-      'description'        => t('View performance logs: summary and details.'),
-      'access'             => $access,
-    );
-    $items[] = array(
-      'path'               => 'admin/logs/performance_logging/summary',
-      'title'              => t('Performance Logs: Summary'),
-      'description'        => t('View summary performance logs: page generation times and memory usage.'),
-      'access'             => $access,
-      'callback'           => 'performance_view_summary',
-    );
-    $items[] = array(
-      'path'               => 'admin/logs/performance_logging/details',
-      'title'              => t('Performance Logs: Details'),
-      'description'        => t('View detailed, per page, performance logs: page generation times and memory usage.'),
-      'access'             => $access,
-      'callback'           => 'performance_view_details',
-    );
-  }
+  $items['admin/reports/performance_logging/summary'] = array(
+    'title'            => t('Performance Logs: Summary'),
+    'description'      => t('View summary performance logs: page generation times and memory usage.'),
+    'page callback'    => 'performance_view_summary',
+    'access arguments' => $access,
+  );
+  $items['admin/reports/performance_logging/details'] = array(
+    'title'            => t('Performance Logs: Details'),
+    'description'      => t('View detailed, per page, performance logs: page generation times and memory usage.'),
+    'page callback'    => 'performance_view_details',
+    'access arguments' => $access,
+  );
   return $items;
 }
 
@@ -119,10 +108,11 @@ function performance_settings() {
 
   $form['other']['dev_query'] = array(
     '#type'          => 'select',
+    '#disabled'      => TRUE,
     '#title'         => t('Database Query timing and count'),
     '#default_value' => variable_get('dev_query', 0),
     '#options'       => $options,
-    '#description'   => t('Log database timing and count for each page. This is useful to know if the bottleneck is in excessive database query counts, or the time required to execute those queries is high. Please note that this will automatically be enabled and disabled in the settings of the devel module. Also note that enabling this will incurr some memory overhead as query times and the actual query strings are cached in memory as arrays.'),
+    '#description'   => t('Log database query timing and query count for each page. This is useful to know if the bottleneck is in excessive database query counts, or the time required to execute those queries is high. Enabling this will incurr some memory overhead as query times and the actual query strings are cached in memory as arrays for each page, hence skewing the overall page memory reported. Please note that this settings is enabled or disabled in the settings of the devel module.'),
   );
 
   $form['other']['performance_threshold_accesses'] = array(
@@ -232,10 +222,10 @@ function performance_log_summary_apc($params = array()) {
       'bytes_avg'       => ($data['bytes_avg'] + $params['mem']) / 2,
       'millisecs_max'   => max($params['timer'], $data['millisecs_max']),
       'millisecs_avg'   => ($data['millisecs_avg'] + $params['timer']) / 2,
-      'query_timer_max' => max($params['query_timer'], $row->query_timer_max),
-      'query_timer_avg' => ($row->query_timer_avg + $params['query_timer']) / 2,
-      'query_count_max' => max($params['query_count'], $row->query_count_max),
-      'query_count_avg' => ($row->query_count_avg + $params['query_count']) / 2,
+      'query_timer_max' => max($params['query_timer'], $data['query_timer_max']),
+      'query_timer_avg' => ($data['query_timer_avg'] + $params['query_timer']) / 2,
+      'query_count_max' => max($params['query_count'], $data['query_count_max']),
+      'query_count_avg' => ($data['query_count_avg'] + $params['query_count']) / 2,
       'num_accesses'    => $data['num_accesses'] + 1,
       'title'           => $data['title'],
     );
@@ -416,6 +406,7 @@ function performance_view_summary() {
     $rows[] = array(array('data' => t('No statistics available yet.'), 'colspan' => count($header)));
   }
 
+  $output = '';
   if ($threshold) {
     $output .= t('Showing !shown paths with more than !threshold accesses, out of !total total paths.',
       array('!threshold' => $threshold, '!shown' => $shown, '!total' => $total_rows)) . '<br/>';
@@ -485,7 +476,7 @@ function performance_view_details() {
     $rows[] = array(array('data' => t('No log messages available.'), 'colspan' => count($header)));
   }
 
-  $output .= theme('table', $header, $rows);
+  $output  = theme('table', $header, $rows);
   $output .= theme('pager', NULL, 50, 0);
 
   return $output;
