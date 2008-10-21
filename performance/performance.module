@@ -218,7 +218,7 @@ function performance_log_summary_apc($params = array()) {
   if ($data = apc_fetch($key)) {
     $data = array(
       'path'            => $data['path'],
-      'last_access'     => time(),
+      'last_access'     => REQUEST_TIME,
       'bytes_max'       => max($params['mem'], $data['bytes_max']),
       'bytes_avg'       => ($data['bytes_avg'] + $params['mem']) / 2,
       'millisecs_max'   => max($params['timer'], $data['millisecs_max']),
@@ -244,77 +244,70 @@ function performance_log_summary_apc($params = array()) {
       'query_count_max' => $params['query_count'],
       'query_count_avg' => $params['query_count'],
       'num_accesses'    => 1,
-      'last_access'     => time(),
+      'last_access'     => REQUEST_TIME,
     );
   }
   apc_store($key, $data);
 }
 
 function performance_log_summary_db($params = array()) {
-  $num_rows = db_result(db_query("SELECT COUNT(*) FROM {performance_summary} WHERE path = '%s'", $params['path']));
-  if ($num_rows) {
-    $result = db_query("SELECT * FROM {performance_summary} WHERE path = '%s'", $params['path']);
-    $row = db_fetch_object($result);
-    db_query("UPDATE {performance_summary} 
-      SET last_access = %d,
-      num_accesses = num_accesses + 1,
-      bytes_max = %d,
-      bytes_avg = %d,
-      millisecs_max = %d,
-      millisecs_avg = %d,
-      query_timer_max = %d,
-      query_timer_avg = %d,
-      query_count_max = %d,
-      query_count_avg = %d
-      WHERE path = '%s'",
-      time(),
-      max($params['mem'], $row->bytes_max),
-      ($row->bytes_avg + $params['mem']) / 2,
-      max($params['timer'], $row->millisecs_max),
-      ($row->millisecs_avg + $params['timer']) / 2,
-      max($params['query_timer'], $row->query_timer_max),
-      ($row->query_timer_avg + $params['query_timer']) / 2,
-      max($params['query_count'], $row->query_count_max),
-      ($row->query_count_avg + $params['query_count']) / 2,
-      $params['path']);
+  $row = db_fetch_object(db_query("SELECT * FROM {performance_summary} WHERE path = '%s'", $params['path']));
+  if (!empty($row)) {
+    db_update('performance_summary')
+      ->condition('path', $params['path'])
+      ->fields(array(
+        'last_access'     => REQUEST_TIME,
+        'num_accesses'    => $row->num_accesses + 1,
+        'bytes_max'       => max($params['mem'], $row->bytes_max),
+        'bytes_avg'       => ($row->bytes_avg + $params['mem']) / 2,
+        'millisecs_max'   => max($params['timer'], $row->millisecs_max),
+        'millisecs_avg'   => ($row->millisecs_avg + $params['timer']) / 2,
+        'query_timer_max' => max($params['query_timer'], $row->query_timer_max),
+        'query_timer_avg' => ($row->query_timer_avg + $params['query_timer']) / 2,
+        'query_count_max' => max($params['query_count'], $row->query_count_max),
+        'query_count_avg' => ($row->query_count_avg + $params['query_count']) / 2,
+      ))
+      ->execute();
   }
   else {
     // First time we log this path, write fresh values
-    db_query("INSERT INTO {performance_summary}
-      (title, path, last_access, num_accesses,
-      bytes_max, bytes_avg, millisecs_max, millisecs_avg,
-      query_count_max, query_count_avg, query_timer_max, query_timer_avg)
-      VALUES 
-      ('%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
-      strip_tags(drupal_get_title()),
-      $params['path'],
-      time(),
-      1,
-      $params['mem'], 
-      $params['mem'],
-      $params['timer'],
-      $params['timer'],
-      $params['query_count'],
-      $params['query_count'],
-      $params['query_timer'],
-      $params['query_timer']
+    $fields = array(
+      'title'           => strip_tags(drupal_get_title()),
+      'last_access'     => REQUEST_TIME,
+      'num_accesses'    => 1,
+      'bytes_max'       => $params['mem'], 
+      'bytes_avg'       => $params['mem'],
+      'millisecs_max'   => $params['timer'],
+      'millisecs_avg'   => $params['timer'],
+      'query_timer_max' => $params['query_count'],
+      'query_timer_avg' => $params['query_count'],
+      'query_count_max' => $params['query_timer'],
+      'query_count_avg' => $params['query_timer'],
+      'path'            => $params['path'],
     );
+    db_insert('performance_summary')
+      ->fields($fields)
+      ->execute();
   }
 }
 
 function performance_log_details($params = array()) {
   global $user;
-  $anon = ($user->uid) ? FALSE : TRUE;
-  db_query("INSERT INTO {performance_detail} (title, path, anon, bytes, millisecs, timestamp, query_timer, query_count) VALUES ('%s', '%s', %d, %d, %d, %d, %d, %d)",
-    strip_tags(drupal_get_title()),
-    $params['path'],
-    $anon,
-    $params['mem'],
-    $params['timer'],
-    time(),
-    $params['query_timer'],
-    $params['query_count']
+
+  $fields = array(
+   'timestamp'   => REQUEST_TIME,
+   'bytes'       => $params['mem'],
+   'millisecs'   => $params['timer'],
+   'query_count' => $params['query_count'],
+   'query_timer' => $params['query_timer'],
+   'anon'        => ($user->uid) ? 0 : 1,
+   'title'       => strip_tags(drupal_get_title()),
+   'path'        => $params['path'],
   );
+
+  db_insert('performance_detail')
+    ->fields($fields)
+    ->execute();
 }
 
 function performance_apc_list_all() {
@@ -357,7 +350,7 @@ function performance_view_summary() {
   }
 
   $total_rows = $shown = $last_max = $total_bytes = $total_millisecs = $total_accesses = 0;
-  $last_min = time();
+  $last_min = REQUEST_TIME;
 
   $threshold = variable_get('performance_threshold_accesses', 0);
 
