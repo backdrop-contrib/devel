@@ -106,13 +106,12 @@ function performance_settings() {
     '#description'   => t('In the reports, show path titles hyperlinked to the URLs, or just the path URLs.'),
   );
 
-  $form['other']['dev_query'] = array(
+  $form['other']['performance_query'] = array(
     '#type'          => 'select',
-    '#disabled'      => TRUE,
     '#title'         => t('Database Query timing and count'),
-    '#default_value' => variable_get('dev_query', 0),
+    '#default_value' => variable_get('performance_query', 0),
     '#options'       => $options,
-    '#description'   => t('Log database query timing and query count for each page. This is useful to know if the bottleneck is in excessive database query counts, or the time required to execute those queries is high. Enabling this will incurr some memory overhead as query times and the actual query strings are cached in memory as arrays for each page, hence skewing the overall page memory reported. Please note that this settings is enabled or disabled in the settings of the devel module.'),
+    '#description'   => t('Log database query timing and query count for each page. This is useful to know if the bottleneck is in excessive database query counts, or the time required to execute those queries is high. Enabling this will incurr some memory overhead as query times and the actual query strings are cached in memory as arrays for each page, hence skewing the overall page memory reported.'),
   );
 
   $form['other']['performance_threshold_accesses'] = array(
@@ -124,6 +123,14 @@ function performance_settings() {
   );
 
   return system_settings_form($form);
+}
+
+function performance_boot() {
+  if (variable_get('performance_query', 0)) {
+    //TODO: See if devel.module has changed this ...
+    @include_once DRUPAL_ROOT . '/includes/database/log.inc';
+    Database::startLog('performance', 'default');
+  }
 }
 
 function performance_init() {
@@ -141,7 +148,7 @@ function performance_init() {
       drupal_set_message(t('Performance detailed logging is !link. This can cause severe issues on live sites.', array('!link' => l(t('enabled'), 'admin/settings/performance_logging'))), 'error');
     }
 
-    if (variable_get('dev_query', 0)) {
+    if (variable_get('performance_query', 0)) {
       if (variable_get('performance_detail', 0) ||
           variable_get('performance_summary_db', 0) ||
           variable_get('performance_summary_apc', 0)) {
@@ -167,7 +174,7 @@ function performance_exit() {
 }
 
 function performance_shutdown() {
-  global $queries;
+  $queries = Database::getLog('performance', 'default');
 
   $params = array(
     'timer' => timer_read('page'),
@@ -186,11 +193,12 @@ function performance_shutdown() {
   $query_count = 0;
   $query_timer = 0;
   $sum = 0;
-  if (variable_get('dev_query', 0) && is_array($queries)) {
+
+  if (variable_get('performance_query', 0) && is_array($queries)) {
     foreach ($queries as $query) {
-      $sum += $query[1];
+      $sum += $query['time'];
+      $query_count++;
     }
-    $query_count = count($queries);
     $query_timer = round($sum * 1000, 2);
   }
 
@@ -342,7 +350,7 @@ function performance_view_summary() {
   $header[] =  array('data' => t('Milliseconds (Max)'), 'field' => 'millisecs_max');
   $header[] =  array('data' => t('Milliseconds (Avg)'), 'field' => 'millisecs_avg');
 
-  if (variable_get('dev_query', 0)) {
+  if (variable_get('performance_query', 0)) {
     $header[] = array('data' => t('Query Millisecs (Max)'), 'field' => 'query_timer_max');
     $header[] = array('data' => t('Query Millisecs (Avg)'), 'field' => 'query_timer_avg');
     $header[] = array('data' => t('Query Count (Max)'),     'field' => 'query_count_max');
@@ -353,6 +361,8 @@ function performance_view_summary() {
   $last_min = REQUEST_TIME;
 
   $threshold = variable_get('performance_threshold_accesses', 0);
+
+  $data_list = array();
 
   if (variable_get('performance_summary_apc', 0) && function_exists('apc_cache_info')) {
     // Get the data from the APC cache
@@ -391,7 +401,7 @@ function performance_view_summary() {
       $row_data[] = number_format($data['bytes_avg']/1024/1024, 2);
       $row_data[] = number_format($data['millisecs_max'], 1);
       $row_data[] = number_format($data['millisecs_avg'], 1);
-      if (variable_get('dev_query', 0)) {
+      if (variable_get('performance_query', 0)) {
         $row_data[] = number_format($data['query_timer_max'], 1);
         $row_data[] = number_format($data['query_timer_avg'], 1);
         $row_data[] = $data['query_count_max'];
@@ -450,7 +460,7 @@ function performance_view_details() {
     array('data' => t('Anonymous?'),           'field' => 'anon'),
   );
 
-  if (variable_get('dev_query', 0)) {
+  if (variable_get('performance_query', 0)) {
     $header[] = array('data' => t('# Queries'),          'field' => 'query_count');
     $header[] = array('data' => t('Query Milliseconds'), 'field' => 'query_timer');
   }
@@ -469,7 +479,7 @@ function performance_view_details() {
     $row_data[] = $data['millisecs'];
     $row_data[] = ($data['anon']) ? t('Yes') : t('No');
 
-    if (variable_get('dev_query', 0)) {
+    if (variable_get('performance_query', 0)) {
       $row_data[] = $data['query_count'];
       $row_data[] = $data['query_timer'];
     }
