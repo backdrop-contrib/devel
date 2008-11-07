@@ -228,6 +228,7 @@ function devel_devel_themer_toggle() {
     }
   }
   drupal_rebuild_theme_registry();
+  menu_rebuild();
   drupal_goto();
 }
 
