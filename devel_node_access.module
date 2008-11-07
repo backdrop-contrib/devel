@@ -231,7 +231,7 @@ function devel_node_access_block($op = 'list', $delta = 0) {
             $rows = array();
             while ($row = db_fetch_object($result)) {
               $explained = module_invoke_all('node_access_explain', $row);
-              $rows[] = array($row->title ? $row->title : $row->nid,
+              $rows[] = array(!empty($row->title) ? check_plain($row->title) : $row->nid,
                               $row->realm,
                               $row->gid,
                               $row->grant_view,
@@ -270,7 +270,7 @@ function devel_node_access_block($op = 'list', $delta = 0) {
                     $top_priority = max($top_priority, $priority);
                     $grant['priority'] = (isset($grant['priority']) ? $priority : '&ndash;&nbsp;');
                     $acquired_grants_nid[$priority][$grant['realm']][$grant['gid']] = $grant + array(
-                      '#title' => ($node->title ? $node->title : $node->nid),
+                      '#title' => ($node->title ? check_plain($node->title) : $node->nid),
                       '#module' => (isset($grant['#module']) ? $grant['#module'] : ''),
                     );
                   }
@@ -302,7 +302,7 @@ function devel_node_access_block($op = 'list', $delta = 0) {
                         'priority' => '&ndash;',
                         'state'    => 'ok',
                         'nid'      => $nid,
-                        '#title'   => ($node->title ? $node->title : $node->nid),
+                        '#title'   => ($node->title ? check_plain($node->title) : $node->nid),
                       );
                     }
                     elseif (!$found) {
