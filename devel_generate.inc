@@ -358,6 +358,7 @@ function devel_generate_add_upload(&$node) {
   $file->uid = $node->uid;
   $file->status = FILE_STATUS_TEMPORARY;
   $file->timestamp = REQUEST_TIME;
+  $file->new = TRUE;
   
   // If we made it this far it's safe to record this file in the database.
   drupal_write_record('files', $file);
