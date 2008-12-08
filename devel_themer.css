@@ -84,7 +84,7 @@
   margin: 0 0 0 15px;
   display:block;
 }
-#themer-popup dd.candidates .delimiter {
+#themer-popup dd.candidates .delimiter, #themer-popup dd.preprocessors .delimiter {
   color: #999;
 }
 

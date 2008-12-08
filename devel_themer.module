@@ -264,6 +264,7 @@ function devel_themer_catch_function() {
         'duration' => $time['time'],
         'used' => $used,
         'candidates' => $candidates,
+        'preprocessors' => isset($meta['preprocessors']) ? $meta['preprocessors'] : array(),
       );
       
       // This variable gets serialized and cached on the server.
@@ -469,6 +470,7 @@ function devel_themer_theme_twin() {
     $meta['suggestions'] = $suggestions;
     $meta['template_file'] = $template_file;
     $meta['variables'] = $variables;
+    $meta['preprocessors'] = $info['preprocess functions'];
   }
 
   return array($output, $meta);
@@ -520,6 +522,7 @@ function devel_themer_popup() {
       'function_called' => t('Function called: '),
       'template_called' => t('Template called: '),
       'candidate_files' => t('Candidate template files: '),
+      'preprocessors' => t('Preprocess functions: '),
       'candidate_functions' => t('Candidate function names: '),
       'drupal_api_docs' => t('link to Drupal API documentation'),
       'source_link_title' => t('link to source code'),
@@ -563,6 +566,14 @@ function devel_themer_popup() {
           <dd class="candidates">
 
           </dd>
+          
+          <dt class="preprocessors-type">
+
+          </dt>
+          <dd class="preprocessors">
+
+          </dd>
+          
           <div class="duration"></div>
         </dl>
       </div><!-- /info -->
