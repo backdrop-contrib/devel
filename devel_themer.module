@@ -144,14 +144,15 @@ function devel_themer_theme_registry_alter($theme_registry) {
 function devel_themer_log() {
   if (isset($GLOBALS['devel_theme_calls'])) {
     foreach ($GLOBALS['devel_theme_calls'] as $counter => $call) {
-      $id = "devel_theme_log_link_$counter";
-      $marker = "<div id=\"$id\" class=\"devel_theme_log_link\"></div>\n";
+      // Sometimes $call is a string.  Not sure why.
+      if (is_array($call)) {
+        $id = "devel_theme_log_link_$counter";
+        $marker = "<div id=\"$id\" class=\"devel_theme_log_link\"></div>\n";
 
-      $used = $call['used'];
-      if ($call['type'] == 'func') {
-        $name = $call['name']. '()';
-        foreach ($call['candidates'] as $candidate) {
-          foreach ($candidate as $item) {
+        $used = $call['used'];
+        if ($call['type'] == 'func') {
+          $name = $call['name']. '()';
+          foreach ($call['candidates'] as $item) {
             if ($item == $used) {
               $items[] = "<strong>$used</strong>";
             }
@@ -160,20 +161,20 @@ function devel_themer_log() {
             }
           }
         }
-      }
-      else {
-        $name = $call['name'];
-        foreach ($call['candidates'] as $item) {
-          if ($item == basename($used)) {
-            $items[] = "<strong>$used</strong>";
-          }
-          else {
-            $items[] = $item;
+        else {
+          $name = $call['name'];
+          foreach ($call['candidates'] as $item) {
+            if ($item == basename($used)) {
+              $items[] = "<strong>$used</strong>";
+            }
+            else {
+              $items[] = $item;
+            }
           }
         }
+        $rows[] = array($call['duration'], $marker. $name, implode(', ', $items));
+        unset($items);
       }
-      $rows[] = array($call['duration'], $marker. $name, implode(', ', $items));
-      unset($items);
     }
     $header = array('Duration (ms)', 'Template/Function', "Candidate template files or function names");
     $output = theme('table', $header, $rows);
