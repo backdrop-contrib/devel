@@ -29,6 +29,10 @@ Included in this package is also:
 - macro.module which records form submissions and can pay them back later or on another site. More
 information available at http://drupal.org/node/79900.
 
+COMPATIBILITY NOTES
+==================
+- Modules that use AHAH may have incompatibility with the query log and other footer info. Consider setting $GLOBALS['devel_shutdown'] = FALSE in order to avoid issues.
+-  Modules that use AJAX should idenify their response as Content-type: text/javascript. The easiest way to do that is run your reply through drupal_json(). 
 
 AUTHOR/MAINTAINER
 ======================
