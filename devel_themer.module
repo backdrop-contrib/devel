@@ -377,7 +377,19 @@ function devel_themer_theme_twin() {
       $reflect = new ReflectionFunction($info['devel_function_intercept']);
       $params = $reflect->getParameters();
       for ($i=0; $i < count($args); $i++) {
-        $meta['variables'][$params[$i]->getName()] = $args[$i];
+        // The implementation of the theme function may recieve less parameters than were passed to it.
+        if ($i < count($params)) {
+          $meta['variables'][$params[$i]->getName()] = $args[$i];
+        }
+        else {
+          // @TODO:  Consider informing theme developers of theme functions were passed more arguments than 
+          //         were declared in the functio signature.
+          //         This could be disabled by default, with an option to 
+          //         enable at admin/settings/devel_themer.  Given this is a theme developer module 
+          //         used by implementors of theme override functions, it would probably be a useful
+          //         default feature.
+          $meta['variables'][] = $args[$i];
+        }
       }
     }
     else {
