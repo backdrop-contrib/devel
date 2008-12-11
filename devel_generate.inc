@@ -100,23 +100,25 @@ function devel_generate_vocabs($records, $maxlength = 12, $types = array('story'
 
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
-    $voc = array();
-    $voc['name'] = devel_generate_word(rand(2, $maxlength));
-    $voc['description'] = "description of ". $voc['name'];
+    $voc = new stdClass();
+    $voc->name = devel_generate_word(rand(2, $maxlength));
+    $voc->description = "description of ". $voc->name;
     // TODO: not working
-    $voc['nodes'] = array_flip(array($types[array_rand($types)]));
-    foreach ($voc['nodes'] as $key => $value) {
-      $voc['nodes'][$key] = $key;
+    $voc->nodes = array_flip(array($types[array_rand($types)]));
+    foreach ($voc->nodes as $key => $value) {
+      $voc->nodes[$key] = $key;
     }
     
-    $voc['multiple'] = 1;
-    $voc['required'] = 0;
-    $voc['relations'] = 1;
-    $voc['hierarchy'] = 1;
-    $voc['weight'] = rand(0,10);
+    $voc->multiple = 1;
+    $voc->required = 0;
+    $voc->relations = 1;
+    $voc->hierarchy = 1;
+    $voc->weight = rand(0,10);
 
-    taxonomy_save_vocabulary($voc);
-    $vocs[] = $voc['name'];
+    taxonomy_vocabulary_save($voc);
+    $vocs[] = $voc->name;
+
+    unset($voc);
   }
   return $vocs;
 }
@@ -126,28 +128,29 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
 
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
+  	$term = new stdClass();
     switch ($i % 2) {
       case 1:
-        $term['vid'] = $vocs[array_rand($vocs)];
+        $term->vid = $vocs[array_rand($vocs)];
         // dont set a parent. handled by taxonomy_save_term()
         // $term->parent = 0;
         break;
       case 2:
       default:
         $parent = db_fetch_object(db_query_range("SELECT t.tid, v.vid FROM {term_data} t INNER JOIN {vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1));
-        $term['parent'] = array($parent->tid);
-        $term['vid'] = $parent->vid;
+        $term->parent = array($parent->tid);
+        $term->vid = $parent->vid;
         break;
     }
 
-    $term['name'] = devel_generate_word(rand(2, $maxlength));
-    $term['description'] = "description of ". $term['name'];
-    $term['weight'] = rand(0,10);
-    $status = taxonomy_save_term($term);
+    $term->name = devel_generate_word(rand(2, $maxlength));
+    $term->description = "description of ". $term->name;
+    $term->weight = rand(0,10);
+    $status = taxonomy_term_save($term);
     $output = NULL;
 
     if ($status) {
-      $terms[] = $term['name'];
+      $terms[] = $term->name;
     }
 
     unset($term);
@@ -173,7 +176,7 @@ function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $ki
     db_query("DELETE FROM {term_relation}");
     db_query("DELETE FROM {term_synonym}");
     db_query("DELETE FROM {vocabulary}");
-    db_query("DELETE FROM {vocabulary_node_types}");
+    db_query("DELETE FROM {vocabulary_node_type}");
     drupal_set_message(t('Deleted existing vocabularies and terms.'));
   }
 
