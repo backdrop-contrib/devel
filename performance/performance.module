@@ -139,31 +139,6 @@ function performance_init() {
     // we register a function that runs as late as possible.
     register_shutdown_function('performance_shutdown');
   }
-
-  global $user;
-  // Give a message on all admin pages, so they are warned.
-  if ( $user->uid && arg(0) == 'admin') {
-
-    if (variable_get('performance_detail', 0)) {
-      drupal_set_message(t('Performance detailed logging is !link. This can cause severe issues on live sites.', array('!link' => l(t('enabled'), 'admin/settings/performance_logging'))), 'error');
-    }
-
-    if (variable_get('performance_query', 0)) {
-      if (variable_get('performance_detail', 0) ||
-          variable_get('performance_summary_db', 0) ||
-          variable_get('performance_summary_apc', 0)) {
-        drupal_set_message(t('Query timing and count logging is !link. This can cause memory size per page to be larger than normal.', array('!link' => l(t('enabled'), 'admin/settings/performance_logging'))), 'error');
-      }
-    }
-
-    if (variable_get('performance_summary_apc', 0)) {
-      $shm_size = ini_get('apc.shm_size');
-      if ($shm_size < 48) {
-        drupal_set_message(t('APC has been configured for !size, which is less than the recommended 48 MB of memory. If you encounter errors when viewing the summary report, then try to increase that limit for APC.', array('!size' => $shm_size)), 'warning');
-      }
-    }
-
-  }
 }
 
 function performance_exit() {
