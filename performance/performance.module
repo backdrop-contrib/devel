@@ -10,30 +10,30 @@ function performance_menu() {
 
   $items = array();
   $items['admin/settings/performance_logging'] = array(
-    'title'            => t('Performance Logging'),
-    'description'      => t('Logs performance data: page generation times and memory usage.'),
+    'title'            => 'Performance Logging',
+    'description'      => 'Logs performance data: page generation times and memory usage.',
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('performance_settings'),
     'access arguments' => $access,
   );
 
   $items['admin/settings/performance_logging/apc_clear'] = array(
-    'title'            => t('Clear APC'),
-    'description'      => t('Clears performance statistics collected in APC.'),
+    'title'            => 'Clear APC',
+    'description'      => 'Clears performance statistics collected in APC.',
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('performance_clear_apc_confirm'),
     'access arguments' => $access,
   );
 
   $items['admin/reports/performance_logging/summary'] = array(
-    'title'            => t('Performance Logs: Summary'),
-    'description'      => t('View summary performance logs: page generation times and memory usage.'),
+    'title'            => 'Performance Logs: Summary',
+    'description'      => 'View summary performance logs: page generation times and memory usage.',
     'page callback'    => 'performance_view_summary',
     'access arguments' => $access,
   );
   $items['admin/reports/performance_logging/details'] = array(
-    'title'            => t('Performance Logs: Details'),
-    'description'      => t('View detailed, per page, performance logs: page generation times and memory usage.'),
+    'title'            => 'Performance Logs: Details',
+    'description'      => 'View detailed, per page, performance logs: page generation times and memory usage.',
     'page callback'    => 'performance_view_details',
     'access arguments' => $access,
   );

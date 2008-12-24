@@ -51,7 +51,7 @@ function macro_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['admin/build/macro/settings'] = array(
-    'title' => t('Configure'),
+    'title' => 'Configure',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
