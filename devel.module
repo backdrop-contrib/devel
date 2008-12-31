@@ -252,6 +252,12 @@ function devel_theme() { // &$cache, $type, $theme, $path
     'devel_variable_form' => array(
         'arguments' => array('form' => NULL)
     ),
+    'devel_querylog' => array(
+      'arguments' => array('header' => array(), 'rows' => array()),
+    ),
+    'devel_querylog_row' => array(
+      'arguments' => array('row' => array()),
+    ),
   );
 }
 
@@ -326,6 +332,10 @@ function devel_init() {
       $path = './'. drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/fb.php';
       if (file_exists($path)) {
         include_once $path;
+      }
+      // Add CSS for query log if should be displayed.
+      if (variable_get('devel_query_display', 0)) {
+        drupal_add_css(drupal_get_path('module', 'devel'). '/devel.css');
       }
     }
   }
@@ -644,6 +654,7 @@ function devel_form_alter(&$form, $form_state, $form_id, $key_in = NULL) {
   }
 }
 
+// An implementation of hook_exit().
 function devel_exit($destination = NULL) {
   global $user;
 
@@ -673,7 +684,7 @@ function devel_shutdown() {
   register_shutdown_function('devel_shutdown_real');
 }
 
-// Borrowed from drush module.
+// Borrowed from drush.
 function devel_verify_cli() {
   if (php_sapi_name() == 'cgi') {
     return (is_numeric($_SERVER['argc']) && $_SERVER['argc'] > 0);
@@ -756,21 +767,23 @@ function devel_shutdown_query() {
     $output .= '<div class="dev-query">';
     $output .= $query_summary;
     // calling theme() during shutdown is very bad if registry gets rebuilt like when making a change on  admin/build/modules
-    // so we check for presence of theme registry before calling theme('table'  )
+    // so we check for presence of theme registry before calling theme()
     if (function_exists('theme_get_registry') && theme_get_registry()) {
       $txt = t_safe(' Queries taking longer than @threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
       if (variable_get('dev_timer', 0)) {
         $txt .= devel_timer();
       }
-      $output .= $txt. devel_query_table($queries, $counts);
+      $output .= $txt;
+      $output .= '</div>';
+      $output .= devel_query_table($queries, $counts);
     }
     else {
       $output .= $txt;
+      $output .= '</div>';
       ob_start();
       dprint_r($queries);
       $output .= ob_get_clean();
     }
-    $output .= '</div>';
   }
   
   return $output;
@@ -1448,7 +1461,56 @@ function devel_query_table($queries, $counts) {
   if (variable_get('devel_query_sort', DEVEL_QUERY_SORT_BY_SOURCE)) {
     usort($cell, '_devel_table_sort');
   }
-  return theme('table', $header, $cell);
+  return theme('devel_querylog', $header, $cell);
+}
+
+function theme_devel_querylog_row($row) {
+  $i = 0;
+  $output = '';
+  foreach ($row as $cell) {
+    $i++;
+
+    if (is_array($cell)) {
+      $data = !empty($cell['data']) ? $cell['data'] : '';
+      unset($cell['data']);
+      $attr = $cell;
+    }
+    else {
+      $data = $cell;
+      $attr = array();
+    }
+
+    if (!empty($attr['class'])) {
+      $attr['class'] .= " cell cell-$i";
+    }
+    else {
+      $attr['class'] = "cell cell-$i";
+    }
+    $attr = drupal_attributes($attr);
+
+    $output .= "<div $attr>$data</div>";
+  }
+  return $output;
+}
+
+function theme_devel_querylog($header = array(), $rows = array()) {
+  $output = '';
+  if (!empty($header)) {
+    $output .= "<div class='devel-querylog devel-querylog-header clear-block'>";
+    $output .= theme('devel_querylog_row', $header);
+    $output .= "</div>";
+  }
+  if (!empty($rows)) {
+    $i = 0;
+    foreach ($rows as $row) {
+      $i++;
+      $zebra = ($i % 2) == 0 ? 'even' : 'odd';
+      $output .= "<div class='devel-querylog devel-querylog-$zebra clear-block'>";
+      $output .= theme('devel_querylog_row', $row);
+      $output .= "</div>";
+    }
+  }
+  return $output;
 }
 
 function _devel_table_sort($a, $b) {
