@@ -76,10 +76,10 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
 
     switch ($i % 3) {
       case 1:
-        $comment->pid = db_result(db_query_range("SELECT cid FROM {comments} WHERE pid = 0 AND nid = :nid ORDER BY RAND()", array(':nid' => $comment->nid), 0, 1));
+        $comment->pid = db_result(db_query_range("SELECT cid FROM {comment} WHERE pid = 0 AND nid = :nid ORDER BY RAND()", array(':nid' => $comment->nid), 0, 1));
         break;
       case 2:
-        $comment->pid = db_result(db_query("SELECT cid FROM {comments} WHERE pid > 0 AND nid = :nid ORDER BY RAND()", array(':nid' => $comment->nid), 0, 1));
+        $comment->pid = db_result(db_query("SELECT cid FROM {comment} WHERE pid > 0 AND nid = :nid ORDER BY RAND()", array(':nid' => $comment->nid), 0, 1));
         break;
       default:
         $comment->pid = 0;
@@ -362,7 +362,6 @@ function devel_generate_add_upload(&$node) {
   $file->status = FILE_STATUS_TEMPORARY;
   $file->timestamp = REQUEST_TIME;
   $file->new = TRUE;
-  
   // If we made it this far it's safe to record this file in the database.
   drupal_write_record('files', $file);
   
