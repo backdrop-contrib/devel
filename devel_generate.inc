@@ -346,25 +346,20 @@ function devel_get_users() {
 
 function devel_generate_add_upload(&$node) {
   $source = DRUPAL_ROOT. '/misc/blog.png';
-  $size = filesize($source);
-  
+
   // $after this call, $source contains the new path.
-  $file->source = file_unmanaged_copy($source);
   $file = new stdClass();
+  $file->filepath = file_unmanaged_copy($source);
   $file->filename = 'blog.png';
-  $file->filepath = $source;
   $file->filemime = 'image/png';
   $file->list = variable_get('upload_list_default', TRUE);
   $file->description = 'b log.png was here';
-  $file->filesize = $size;
   $file->weight = rand(0,10);
   $file->uid = $node->uid;
-  $file->status = FILE_STATUS_TEMPORARY;
-  $file->timestamp = REQUEST_TIME;
+  $file->status = 0;
   $file->new = TRUE;
-  // If we made it this far it's safe to record this file in the database.
-  drupal_write_record('files', $file);
-  
+  $file = file_save($file);
+
   $_SESSION['upload_files'][$file->fid] = $file;
   $node->files[$file->fid] = $file;
 }
