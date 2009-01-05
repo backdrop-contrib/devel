@@ -225,10 +225,10 @@ function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
 function devel_generate_nodeapi_presave(&$node) {
   if (isset($node->devel_generate)) {
     $results = $node->devel_generate; 
-    if ($results['add_upload']) {
+    if (!empty($results['add_upload'])) {
       devel_generate_add_upload($node);
     }
-    if ($results['add_terms']) {
+    if (!empty($results['add_terms'])) {
       devel_generate_add_terms($node);
     }
   }
@@ -238,12 +238,12 @@ function devel_generate_nodeapi_insert(&$node) {
   if (isset($node->devel_generate)) {
     $results = $node->devel_generate;
     
-    if ($results['num_comments']) {
+    if (!empty($results['num_comments'])) {
       devel_generate_add_comments($node, $results['users'], $results['num_comments'], $results['title_length']);
     }
 
     // Add an url alias. Cannot happen before save because we don't know the nid.
-    if ($results['add_alias']) {
+    if (!empty($results['add_alias'])) {
       path_set_alias("node/$node->nid", "node-$node->nid-$node->type");
     }
   }

@@ -418,6 +418,10 @@ function devel_generate_content_add_node(&$results) {
   $node->language = '';
   $node->revision = rand(0,1);
   $node->promote = rand(0, 1);
+  // Avoid NOTICE.
+  if (!isset($results['time_range'])) {
+    $results['time_range'] = 0;
+  }
   $node->created = REQUEST_TIME - rand(0, $results['time_range']);
     
   // A flag to let hook_nodeapi() implementations know that this is a generated node.
