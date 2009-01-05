@@ -103,7 +103,8 @@ function drush_generate_nodescontent($num_nodes = NULL, $num_comments = NULL, $k
 function drush_generate_is_number($number) {
   if ($number == NULL) return FALSE;
   if (!is_numeric($number)) return FALSE;
-  if ($number <= 0) return FALSE;
+  // We allow 0 because 0 0 kill is sometimes useful.
+  if ($number < 0) return FALSE;
   return TRUE;
 }
 
