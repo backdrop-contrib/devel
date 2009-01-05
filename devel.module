@@ -754,6 +754,7 @@ function devel_shutdown_real() {
 }
 
 function devel_shutdown_query() {
+  $output = '';
   $queries = Database::getLog('devel', 'default');
   list($counts, $query_summary) = devel_query_summary($queries);
   // Query log off, timer on.
