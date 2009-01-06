@@ -6,7 +6,6 @@
 define('PERFORMANCE_KEY', 'dru-perf:' . $_SERVER['HTTP_HOST'] . ':');
 
 function performance_menu() {
-  $access = array('access administration pages');
 
   $items = array();
   $items['admin/settings/performance_logging'] = array(
@@ -14,7 +13,7 @@ function performance_menu() {
     'description'      => 'Logs performance data: page generation times and memory usage.',
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('performance_settings'),
-    'access arguments' => $access,
+    'access arguments' => array('access administration pages'),
   );
 
   $items['admin/settings/performance_logging/apc_clear'] = array(
@@ -22,20 +21,20 @@ function performance_menu() {
     'description'      => 'Clears performance statistics collected in APC.',
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('performance_clear_apc_confirm'),
-    'access arguments' => $access,
+    'access arguments' => array('access administration pages'),
   );
 
-  $items['admin/reports/performance_logging/summary'] = array(
+  $items['admin/reports/performance_logging_summary'] = array(
     'title'            => 'Performance Logs: Summary',
     'description'      => 'View summary performance logs: page generation times and memory usage.',
     'page callback'    => 'performance_view_summary',
-    'access arguments' => $access,
+    'access arguments' => array('access site reports'),
   );
-  $items['admin/reports/performance_logging/details'] = array(
+  $items['admin/reports/performance_logging_details'] = array(
     'title'            => 'Performance Logs: Details',
     'description'      => 'View detailed, per page, performance logs: page generation times and memory usage.',
     'page callback'    => 'performance_view_details',
-    'access arguments' => $access,
+    'access arguments' => array('access site reports'),
   );
   return $items;
 }
@@ -355,6 +354,8 @@ function performance_view_summary() {
     }
   }
 
+  $rows = array();
+
   foreach($data_list as $data) {
     $total_rows++;
     $last_max = max($last_max, $data['last_access']);
@@ -443,6 +444,8 @@ function performance_view_details() {
   $sql = "SELECT * FROM {performance_detail}";
   $tablesort = tablesort_sql($header);
   $result = pager_query($sql . $tablesort, 50);
+
+  $rows = array();
 
   while ($data = db_fetch_array($result)) {
     $row_data = array();
