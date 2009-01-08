@@ -239,7 +239,7 @@ function devel_devel_themer_toggle() {
       module_enable(array('devel_themer'));
     }
   }
-  drupal_rebuild_theme_registry();
+  drupal_theme_rebuild();
   menu_rebuild();
   drupal_goto();
 }
