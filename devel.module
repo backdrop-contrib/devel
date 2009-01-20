@@ -1083,7 +1083,7 @@ function devel_theme_registry() {
 /**
  * Menu callback; display all variables.
  */
-function  devel_variable_page() {
+function devel_variable_page() {
   // we print our own page so as to avoid blocks
   $output = drupal_get_form('devel_variable_form');
   print theme('page', $output, FALSE);
