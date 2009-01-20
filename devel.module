@@ -709,7 +709,7 @@ function devel_shutdown_real() {
     // Try not to break non html pages.
     if (function_exists('drupal_get_headers')) {
       $headers = drupal_get_headers();
-      $formats = array('xml', 'javascript', 'json', 'plain', 'image', 'application', 'x-comma-separated-values');
+      $formats = array('xml', 'javascript', 'json', 'plain', 'image', 'application', 'csv', 'x-comma-separated-values');
       foreach ($formats as $format) {
         if (strstr($headers, $format)) {
           return;
