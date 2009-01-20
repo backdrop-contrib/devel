@@ -137,7 +137,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
         break;
       case 2:
       default:
-        $parent = db_fetch_object(db_query_range("SELECT t.tid, v.vid FROM {term_data} t INNER JOIN {vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1));
+        $parent = db_fetch_object(db_query_range("SELECT t.tid, v.vid FROM {taxonomy_term_data} t INNER JOIN {taxonomy_vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1));
         $term->parent = array($parent->tid);
         $term->vid = $parent->vid;
         break;
@@ -160,7 +160,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
 
 function devel_generate_get_vocabs() {
   $vocs = array();
-  $result = db_query("SELECT vid FROM {vocabulary}");
+  $result = db_query("SELECT vid FROM {taxonomy_vocabulary}");
   while($voc = db_fetch_object($result)){
     $vocs[] = $voc->vid;
   }
@@ -170,13 +170,13 @@ function devel_generate_get_vocabs() {
 function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $kill) {
 
   if ($kill) {
-    db_query("DELETE FROM {term_data}");
-    db_query("DELETE FROM {term_node}");
-    db_query("DELETE FROM {term_hierarchy}");
-    db_query("DELETE FROM {term_relation}");
-    db_query("DELETE FROM {term_synonym}");
-    db_query("DELETE FROM {vocabulary}");
-    db_query("DELETE FROM {vocabulary_node_type}");
+    db_query("DELETE FROM {taxonomy_term_data}");
+    db_query("DELETE FROM {taxonomy_term_node}");
+    db_query("DELETE FROM {taxonomy_term_hierarchy}");
+    db_query("DELETE FROM {taxonomy_term_relation}");
+    db_query("DELETE FROM {taxonomy_term_synonym}");
+    db_query("DELETE FROM {taxonomy_vocabulary}");
+    db_query("DELETE FROM {taxonomy_vocabulary_node_type}");
     drupal_set_message(t('Deleted existing vocabularies and terms.'));
   }
 
@@ -319,7 +319,7 @@ function devel_create_greeking($words, $title = FALSE) {
 function devel_generate_add_terms(&$node) {
   $vocabs = taxonomy_get_vocabularies($node->type);
   foreach ($vocabs as $vocab) {
-    $sql = "SELECT tid FROM {term_data} WHERE vid = :vid ORDER BY RAND()";
+    $sql = "SELECT tid FROM {taxonomy_term_data} WHERE vid = :vid ORDER BY RAND()";
     $result = db_query_range($sql, array(':vid' => $vocab->vid), 0, 5);
     while ($row = db_fetch_object($result)) {
       if ($vocab->tags) {
