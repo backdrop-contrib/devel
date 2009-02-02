@@ -15,7 +15,8 @@ already been created.
 
 Provides a block which shows all node_access entries for the nodes
 shown on a given page.  This gives developers a quick check to see
-that grants are provided as they should be.  This block auto-enables to the footer region. You may move it as desired.
+that grants are provided as they should be.  This block auto-enables
+to the footer region. You may move it as desired.
 
 If Views module is installed, allows browsing of nodes by realm,
 including those nodes not in the node_access table (NULL realm).
