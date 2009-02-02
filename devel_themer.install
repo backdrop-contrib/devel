@@ -3,11 +3,11 @@
 function devel_themer_requirements($phase) {
   // Ensure translations don't break at install time
    $t = get_t();
-   
+
    if ($phase == 'install' || $phase == 'runtime') {
      // we need the Optimizer check function
      drupal_load('module', 'devel');
-     
+
      if (!devel_is_compatible_optimizer()) {
        $requirements['optimizer'] = array(
          'title' => $t('Zend Optimizer'),

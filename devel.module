@@ -43,7 +43,7 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'menu_name' => 'devel',
   );
-  
+
   $items['devel/reference'] = array(
     'title' => 'Function reference',
     'description' => 'View a list of currently defined user functions with documentation links.',
@@ -234,7 +234,7 @@ function devel_devel_themer_toggle() {
     include_once('./includes/install.inc');
     if (drupal_get_schema_versions('devel_themer') == FALSE) {
       drupal_install_modules(array('devel_themer'));
-    } 
+    }
     else {
       module_enable(array('devel_themer'));
     }
@@ -420,13 +420,13 @@ function devel_start() {
     global $memory_init;
     $memory_init = memory_get_usage();
   }
-  
+
   if (devel_query_enabled()) {
     //TODO: How best to include this?
     @include_once DRUPAL_ROOT . '/includes/database/log.inc';
     Database::startLog('devel');;
   }
-  
+
   if (devel_code_coverage_enabled()) {
     xdebug_start_code_coverage();
   }
@@ -462,7 +462,7 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
 function devel_perm() {
   return array(
     'access devel information' => array(
-      'description' => t('View developer output like variable printouts, query log, etc.'), 
+      'description' => t('View developer output like variable printouts, query log, etc.'),
       'title' => t('Access developer information'),
     ),
     'execute php code' => array(
@@ -689,7 +689,7 @@ function devel_verify_cli() {
   if (php_sapi_name() == 'cgi') {
     return (is_numeric($_SERVER['argc']) && $_SERVER['argc'] > 0);
   }
-  
+
   return (php_sapi_name() == 'cli');
 }
 
@@ -732,7 +732,7 @@ function devel_shutdown_real() {
         // theme() may not be available. not t() either.
         $output .= t_safe($msg, $args);
       }
-      
+
       // Code coverage reporting.
       if (devel_code_coverage_enabled()) {
         $mode = variable_get('devel_code_coverage', FALSE);
@@ -786,7 +786,7 @@ function devel_shutdown_query() {
       $output .= ob_get_clean();
     }
   }
-  
+
   return $output;
 }
 
@@ -1173,7 +1173,7 @@ function devel_variable_edit($form_state, $name) {
   );
   $form['value'] = array(
     '#type' => 'item',
-    '#title' => t('Old value'), 
+    '#title' => t('Old value'),
     '#markup' => dpr($value, TRUE),
   );
   if (is_string($value) || is_numeric($value)) {
@@ -1329,12 +1329,12 @@ function devel_print_object($object, $prefix = NULL, $header = TRUE) {
  */
 function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FALSE) {
   static $root_type, $out_format;
-  
+
   // TODO: support objects with references. See http://drupal.org/node/234581.
   if (isset($obj->view)) {
     return;
   }
-  
+
   if (!isset($root_type)) {
     $root_type = gettype($obj);
     if ($root_type == 'object') {
@@ -1734,7 +1734,7 @@ function devel_rebuild_node_comment_statistics_page() {
 function devel_rebuild_node_comment_statistics() {
   // Empty table
   db_delete('node_comment_statistics');
-  
+
   $sql = "INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (SELECT nid, c.timestamp, name, uid, comment_count FROM {comments} c INNER JOIN (SELECT MAX(timestamp) AS timestamp, COUNT(*) AS comment_count FROM {comments} WHERE status=%d GROUP BY nid) AS c2 ON c.timestamp=c2.timestamp)";
   db_query($sql, COMMENT_PUBLISHED);
 

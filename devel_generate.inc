@@ -40,12 +40,12 @@ function devel_create_users($num, $kill, $age = 0) {
 
 
 /**
- * The main API function for creating content. 
- * 
+ * The main API function for creating content.
+ *
  * See devel_generate_content_form() for the supported keys in $form_state['values'].
  * Other modules may participate by form_alter() on that form and then handling their data during hook_nodeapi('pre_save') or in own submit handler for the form.
  *
- * @param string $form_state 
+ * @param string $form_state
  * @return void
  */
 function devel_generate_content($form_state) {
@@ -108,7 +108,7 @@ function devel_generate_vocabs($records, $maxlength = 12, $types = array('story'
     foreach ($voc->nodes as $key => $value) {
       $voc->nodes[$key] = $key;
     }
-    
+
     $voc->multiple = 1;
     $voc->required = 0;
     $voc->relations = 1;
@@ -423,7 +423,7 @@ function devel_generate_content_add_node(&$results) {
     $results['time_range'] = 0;
   }
   $node->created = REQUEST_TIME - rand(0, $results['time_range']);
-    
+
   // A flag to let hook_nodeapi() implementations know that this is a generated node.
   $node->devel_generate = $results;
 

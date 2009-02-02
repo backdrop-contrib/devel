@@ -85,7 +85,7 @@ function drush_generate_nodescontent($num_nodes = NULL, $num_comments = NULL, $k
   $user_one = user_load(array('uid' => '1'));
   $user = $user_one;
   drupal_save_session(FALSE);
-  
+
   if ($kill == 'kill') $values['values']['kill_content'] = 1;
   $values['values']['title_length'] = '8';
   $values['values']['num_nodes'] = $num_nodes;

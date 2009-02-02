@@ -1,17 +1,17 @@
 <?php
 // $Id$
- 
+
 /**
  * Implementation of hook_install()
  */
 function devel_install() {
   // New module weights in core: put devel as the very last in the chain.
   db_query("UPDATE {system} SET weight = 88 WHERE name = 'devel'");
-  
+
   // Create our menu. See menu.install for an example.
   // update_sql() does not support printf args. See http://drupal.org/node/36324
   db_query("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('devel', 'Development', 'Development links')");
-  
+
   $item = array(
     'link_title' => 'Run cron',
     'link_path' => 'admin/reports/status/run-cron',
@@ -19,7 +19,7 @@ function devel_install() {
     'module' => 'devel',
   );
   menu_link_save($item);
-  
+
   $item = array(
     'link_title' => 'Devel settings',
     'link_path' => 'admin/settings/devel',
@@ -44,7 +44,7 @@ function devel_uninstall() {
   variable_del('devel_api_url');
   variable_del('dev_mem');
   variable_del('devel_error_handler');
-  
+
   db_query("DELETE FROM {menu_custom} WHERE menu_name = 'devel'");
   db_query("DELETE FROM {menu_links} WHERE module = 'devel'");
 }
@@ -58,7 +58,7 @@ function devel_disable() {
     variable_set('dev_query',0);
     drupal_set_message(t('Disabled query logging since devel module is disabled.'));
   }
-  
+
   // The SMTP server should also be restored.
   variable_set('smtp_library', variable_get('devel_old_smtp_library', ''));
   variable_del('devel_old_smtp_library');
@@ -102,17 +102,17 @@ function devel_update_3() {
 
 function devel_update_4() {
   $ret = array();
-  
+
   db_add_field($ret, 'devel_queries', 'function', array('type' => 'varchar', 'length' => 255, 'not null' => true, 'default' => ''));
-  
+
   return $ret;
 }
 
 function devel_update_5() {
   $ret = array();
-  
+
   db_change_field($ret, 'devel_queries', 'query', 'query text', array('type' => 'varchar', 'length' => 255, 'not null' => true, 'default' => ''));
-  
+
   return $ret;
 }
 

@@ -114,7 +114,7 @@ function _recursively_convert_objects_to_arrays($entity) {
   		$converted[$key] = $value;
   	}
   }
-  
+
   return($converted);
 }
 /**
@@ -226,7 +226,7 @@ function drupal_execute_macro($macro) {
       }
     }
   }
-  
+
   foreach ($macro as $key => $data) {
     $param = unserialize($data['parameters']);
     $args = array($data['form_id'], array('values' => $data['values']));

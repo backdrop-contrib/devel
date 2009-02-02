@@ -39,7 +39,7 @@ function devel_themer_menu() {
 
 /**
  * A menu callback used by popup to retrieve variables from cache for a recent page.
- * 
+ *
  * @param $request_id
  *   A unique key that is sent to the browser in Drupal.Settings.devel_themer_request_id
  * @param $call
@@ -51,11 +51,11 @@ function devel_themer_ajax_variables($request_id, $call) {
   $file = file_directory_temp(). "/devel_themer_$request_id";
   if ($data = unserialize(file_get_contents($file))) {
     $variables = $data[$call]['variables'];
-    if (has_krumo()) { 	 
-      print krumo_ob($variables); 	 
-    } 
-    elseif ($data[$call]['type'] == 'func') { 	 
-      print devel_print_object($variables, NULL, FALSE); 	 
+    if (has_krumo()) {
+      print krumo_ob($variables);
+    }
+    elseif ($data[$call]['type'] == 'func') {
+      print devel_print_object($variables, NULL, FALSE);
     }
     else {
       print devel_print_object($variables, '$', FALSE);
@@ -69,8 +69,8 @@ function devel_themer_ajax_variables($request_id, $call) {
 }
 
 /**
- * A menu callback. Usually called from the devel block. 
- * 
+ * A menu callback. Usually called from the devel block.
+ *
  * @return void
  */
 function devel_themer_toggle($action) {
@@ -241,7 +241,7 @@ function devel_themer_catch_function() {
         $used = $meta['used'];
         if (empty($meta['wildcards'])) {
           $meta['wildcards'][$hook] = '';
-        }  
+        }
         $candidates = devel_themer_ancestry(array_reverse(array_keys($meta['wildcards'])));
         if (empty($meta['variables'])) {
           $variables = array();
@@ -266,7 +266,7 @@ function devel_themer_catch_function() {
         'candidates' => $candidates,
         'preprocessors' => isset($meta['preprocessors']) ? $meta['preprocessors'] : array(),
       );
-      
+
       // This variable gets serialized and cached on the server.
       $GLOBALS['devel_themer_server'][$key] = array(
         'variables' => $meta['variables'],
@@ -324,8 +324,8 @@ function devel_themer_ancestry($calls) {
  * which template was finally called and how long it took.
  *
  * @return array
- *   A two element array. First element contains the HTML from the theme call. The second contains 
- *   a metadata array about the call. 
+ *   A two element array. First element contains the HTML from the theme call. The second contains
+ *   a metadata array about the call.
  *
  **/
 function devel_themer_theme_twin() {
@@ -383,10 +383,10 @@ function devel_themer_theme_twin() {
           $meta['variables'][$params[$i]->getName()] = $args[$i];
         }
         else {
-          // @TODO:  Consider informing theme developers of theme functions were passed more arguments than 
+          // @TODO:  Consider informing theme developers of theme functions were passed more arguments than
           //         were declared in the functio signature.
-          //         This could be disabled by default, with an option to 
-          //         enable at admin/settings/devel_themer.  Given this is a theme developer module 
+          //         This could be disabled by default, with an option to
+          //         enable at admin/settings/devel_themer.  Given this is a theme developer module
           //         used by implementors of theme override functions, it would probably be a useful
           //         default feature.
           $meta['variables'][] = $args[$i];
@@ -566,14 +566,14 @@ function devel_themer_popup() {
           <dd class="candidates">
 
           </dd>
-          
+
           <dt class="preprocessors-type">
 
           </dt>
           <dd class="preprocessors">
 
           </dd>
-          
+
           <div class="duration"></div>
         </dl>
       </div><!-- /info -->
