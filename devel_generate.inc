@@ -21,19 +21,54 @@ function devel_create_users($num, $kill, $age = 0) {
     db_delete('users')->condition('uid', 1, '>')->execute();
     drupal_set_message(t('Users deleted.'));
   }
+  // Determine if we should create user pictures.
+  $pic_config = FALSE;
+  module_load_include('inc', 'system', 'image.gd');
+  if (variable_get('user_pictures', 0) && drupal_function_exists('image_gd_check_settings') && image_gd_check_settings()) {
+    $pic_config['path'] = variable_get('user_picture_path', 'pictures');
+    list($pic_config['width'], $pic_config['height']) = explode('x', variable_get('user_picture_dimensions', '85x85'));
+  }
+
   for ($i = 0; $i < $num; $i++) {
-    $length = rand(6, 12);
-    $name = devel_generate_word($length);
-    $now = REQUEST_TIME - rand(0, $age);
-    $fields = array(
+    $name = devel_generate_word(rand(6, 12));
+    $edit = array(
       'name' => $name,
-      'pass' => md5(user_password()),
+      'pass' => user_password(),
       'mail' => $name .'@'. $url['host'],
       'status' => 1,
-      'created' => $now,
-      'access' => REQUEST_TIME,
+      'created' => REQUEST_TIME - rand(0, $age),
     );
-    db_insert('users')->fields($fields)->execute();
+    $account = user_save(NULL, $edit);
+
+    if ($pic_config) {
+     $im = imagecreatetruecolor($pic_config['width'], $pic_config['height']);
+
+      // Randomize the foreground using the md5 of the user id, then invert it
+      // for the background color so there's enough contrast to read the text.
+      $parts = array_map('hexdec', str_split(md5($account->uid), 2));
+      $fg = imagecolorallocate($im, $parts[1], $parts[3], $parts[5]);
+      $bg = imagecolorallocate($im, 255 - $parts[0], 255 - $parts[1], 255 - $parts[2]);
+
+      // Fill the background then print their user info.
+      imagefill($im, 0, 0, $bg);
+      imagestring($im, 5, 5, 5, "#" . $account->uid, $fg);
+      imagestring($im, 5, 5, 25, $account->name, $fg);
+
+      // Create an empty managed file then write the image to it.
+      $file = file_save_data('', file_create_path($pic_config['path'] . '/picture-' . $account->uid . '.png'));
+      imagepng($im, $file->filepath);
+      imagedestroy($im);
+
+      // Clear the cached filesize the set the owner and resave the file.
+      clearstatcache();
+      $file->uid = $account->uid;
+      $file = file_save($file);
+
+      // Save the user record with the new picture.
+      $edit = (array) $account;
+      $edit['picture'] = $file;
+      user_save($account, $edit);
+    }
   }
   drupal_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
 }
