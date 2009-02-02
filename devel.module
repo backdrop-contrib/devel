@@ -664,7 +664,9 @@ function devel_exit($destination = NULL) {
     // We don't want to load user module here, so keep function_exists() call.
     if (isset($user) && function_exists('user_access') && user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
       $output = t_safe('<p>The user is being redirected to <a href="@destination">@destination</a>.</p>', array('@destination' => $destination));
-      print theme('page', $output);
+      $page = drupal_get_page($output);
+      $page['#show_blocks'] = FALSE;
+      print drupal_render_page($page);
 
       // Don't allow the automatic redirect to happen.
       drupal_page_footer();
@@ -1086,7 +1088,9 @@ function devel_theme_registry() {
 function devel_variable_page() {
   // we print our own page so as to avoid blocks
   $output = drupal_get_form('devel_variable_form');
-  print theme('page', $output, FALSE);
+  $page = drupal_get_page($output);
+  $page['#show_blocks'] = FALSE;
+  return drupal_render_page($page);
 }
 
 function devel_variable_form() {
