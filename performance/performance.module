@@ -94,17 +94,6 @@ function performance_settings() {
     '#collapsible' => TRUE,
   );
 
-  $form['other']['performance_titles'] = array(
-    '#type'          => 'select',
-    '#title'         => t('Show titles instead of URLs'),
-    '#default_value' => variable_get('performance_titles', 0),
-    '#options'       => array(
-      0 => t('URLs only'),
-      1 => t('URLs and Titles as hyperlinks'),
-    ),
-    '#description'   => t('In the reports, show path titles hyperlinked to the URLs, or just the path URLs.'),
-  );
-
   $form['other']['performance_query'] = array(
     '#type'          => 'select',
     '#title'         => t('Database Query timing and count'),
@@ -125,6 +114,7 @@ function performance_settings() {
 }
 
 function performance_boot() {
+  register_shutdown_function('performance_shutdown');
   if (variable_get('performance_query', 0)) {
     //TODO: See if devel.module has changed this ...
     @include_once DRUPAL_ROOT . '/includes/database/log.inc';
@@ -132,27 +122,21 @@ function performance_boot() {
   }
 }
 
-function performance_init() {
-  if (!variable_get('cache', 0)) {
-    // When page caching is off, we don't hook_exit(), instead
-    // we register a function that runs as late as possible.
-    register_shutdown_function('performance_shutdown');
-  }
-}
-
-function performance_exit() {
-  if (variable_get('cache', 0)) {
-    // Page caching is on, so we run the shutdown function directly
-    performance_shutdown();
-  }
-}
-
 function performance_shutdown() {
   $queries = Database::getLog('performance', 'default');
 
+  if ($_GET['q']) {
+    // q= has a value, use that for the path
+    $path = $_GET['q'];
+  }
+  else {
+    // q= is empty, use whatever the site_frontpage is set to
+    $path = variable_get('site_frontpage', 'node');
+  }
+
   $params = array(
     'timer' => timer_read('page'),
-    'path'  => $_GET['q'],
+    'path'  => $path,
   );
 
   // Memory
@@ -210,12 +194,10 @@ function performance_log_summary_apc($params = array()) {
       'query_count_max' => max($params['query_count'], $data['query_count_max']),
       'query_count_avg' => ($data['query_count_avg'] + $params['query_count']) / 2,
       'num_accesses'    => $data['num_accesses'] + 1,
-      'title'           => $data['title'],
     );
   }
   else {
     $data = array(
-      'title'           => strip_tags(drupal_get_title()),
       'path'            => $params['path'],
       'bytes_max'       => $params['mem'], 
       'bytes_avg'       => $params['mem'],
@@ -254,7 +236,6 @@ function performance_log_summary_db($params = array()) {
   else {
     // First time we log this path, write fresh values
     $fields = array(
-      'title'           => strip_tags(drupal_get_title()),
       'last_access'     => REQUEST_TIME,
       'num_accesses'    => 1,
       'bytes_max'       => $params['mem'], 
@@ -283,7 +264,6 @@ function performance_log_details($params = array()) {
    'query_count' => $params['query_count'],
    'query_timer' => $params['query_timer'],
    'anon'        => ($user->uid) ? 0 : 1,
-   'title'       => strip_tags(drupal_get_title()),
    'path'        => $params['path'],
   );
 
@@ -370,7 +350,7 @@ function performance_view_summary() {
 
     if ($data['num_accesses'] > $threshold) {
       $shown++;
-      $row_data[] = performance_url($data['path'], $data['title']);
+      $row_data[] = $data['path'];
       $row_data[] = format_date($data['last_access'], 'small');
       $row_data[] = $data['num_accesses'];
       $row_data[] = number_format($data['bytes_max']/1024/1024, 2);
@@ -452,7 +432,7 @@ function performance_view_details() {
 
     $row_data[] = $data['pid'];
     $row_data[] = format_date($data['timestamp'], 'small');
-    $row_data[] = performance_url($data['path'], $data['title']);
+    $row_data[] = $data['path'];
     $row_data[] = number_format($data['bytes']/1024/1024, 2);
     $row_data[] = $data['millisecs'];
     $row_data[] = ($data['anon']) ? t('Yes') : t('No');
@@ -533,14 +513,132 @@ function performance_clear_apc_confirm_submit($form_id, &$form) {
   drupal_goto('admin/settings/performance');
 }
 
-function performance_url($path = '', $title = '') {
-  if (variable_get('performance_titles', 0)) {
-    // Show titles
-    $ret = ($title) ? l($title, $path) : l($path, $path);
-    return $ret;
+/**
+ * Implementation of hook_nagios_info()
+ */
+function performance_nagios_info() {
+  return array(
+    'name'   => 'Performance logging',
+    'id'     => 'PERF',
+  );
+}
+
+/**
+ * Implementation of hook_nagios()
+ */
+function performance_nagios() {
+  $info = performance_nagios_info();
+  $id = $info['id']; 
+
+  // Find out if we have what we need enabled
+  $sum = array();
+
+  $sum[] = variable_get('performance_summary_db', 0);
+  $sum[] = variable_get('performance_summary_apc', 0);
+  $go = array_sum($sum);
+
+  if (!$go) {
+    return array(
+      $id => array(
+        'status' => NAGIOS_STATUS_UNKNOWN,
+        'text'   => t('Performance logging is not enabled'),
+      ),
+    );
+  }
+
+  // Initialize variables
+  $total_rows = $total_bytes = $total_millisecs = $total_accesses = $total_query_time = $total_query_count = 0;
+
+  // Check which data store to use
+  if (variable_get('performance_summary_apc', 0) && function_exists('apc_cache_info')) {
+    // Get the data from the APC cache
+    foreach(performance_apc_list_all() as $key) {
+      $data_list[] = apc_fetch($key);
+    }
   }
   else {
-    // Show URLs only
-    return $path;
+    // Get the data form the database table
+    $result = db_query("SELECT * FROM {performance_summary}");
+    while($row = db_fetch_array($result)) {
+      $data_list[] = $row;
+    }
   }
+
+  foreach($data_list as $data) {
+    $total_rows++;
+
+    // Calculate running averages
+    $total_bytes += $data['bytes_avg'];
+    $total_millisecs += $data['millisecs_avg'];
+    $total_accesses += $data['num_accesses'];
+    $total_query_time += $data['query_timer_avg'];
+    $total_query_count += $data['query_count_avg'];
+  }
+
+  // Protect against divide by zero
+  if ($total_rows > 0) {
+    $mb_avg = number_format($total_bytes/$total_rows/1024/1024, 1);
+    $ms_avg = number_format($total_millisecs/$total_rows, 2);
+    $ms_query = number_format($total_query_time/$total_rows, 2);
+    $query_count = number_format($total_query_count/$total_rows, 2);
+  }
+  else {
+    $mb_avg = '-';
+    $ms_avg = '-';
+    $ms_query = '-';
+    $query_count = '-';
+  }
+
+  $status = NAGIOS_STATUS_OK;
+  $mb_thresh = variable_get('performance_nagios_mb', 8);
+  $ms_thresh = variable_get('performance_nagios_ms', 500);
+  $query_count_thresh = variable_get('performance_nagios_qc', 400);
+  // Check if any of the following conditions is met:
+  //
+  // - page execution average milliseconds is greater than threshold
+  // - page memory usage average megabytes is greater than threshold
+  // - query count average is greater than threshold
+  // - query time is more than half the total page execution time
+  if ($ms_avg      > $ms_thresh ||
+      $mb_avg      > $mb_thresh ||
+      $query_count > $query_count_thresh ||
+      $ms_query    > ($ms_avg/2)) {
+    // Raise a critical alert
+    $status = NAGIOS_STATUS_CRITICAL;
+  }
+
+  return array(
+    $id => array(
+      'status' => $status,
+      'text'   => $total_accesses . '/' .  $ms_avg . 'ms/' . $mb_avg . 'MB/' . $query_count . '/' .  $ms_query . 'ms',
+    ),
+  );
 }
+
+/**
+ * Implementation of hook_nagios_settings()
+ */
+function performance_nagios_settings() {
+  $form['performance_nagios_ms'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Critical page generation time (milliseconds)'),
+    '#default_value' => variable_get('performance_nagios_ms', 500),
+    '#description'   => t('Number of milliseconds (average) considered critical.')
+  );
+
+  $form['performance_nagios_qc'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Critical number of queries'),
+    '#default_value' => variable_get('performance_nagios_qc', 400),
+    '#description'   => t('Number of queries per page load that is considered critical.')
+  );
+
+  $form['performance_nagios_mb'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Critical memory (MB)'),
+    '#default_value' => variable_get('performance_nagios_mb', 8),
+    '#description'   => t('Number of megabytes (average) considered critical.')
+  );
+  return $form;
+}
+
