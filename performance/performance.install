@@ -56,8 +56,7 @@ function performance_install() {
 }
 
 function performance_uninstall() {
-  db_query("DROP TABLE {performance_detail}");
-  db_query("DROP TABLE {performance_summary}");
+  drupal_uninstall_schema('performance');
   db_query("DELETE FROM {variable} WHERE name LIKE 'performance%'");
 }
 
