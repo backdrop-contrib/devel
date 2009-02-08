@@ -71,7 +71,7 @@ function performance_requirements($phase) {
      $requirements['performance_detail'] = array(
        'title'       => t('Performance logging details'),
        'value'       => 'Enabled',
-       'severity'    => REQUIREMENT_ERROR,
+       'severity'    => REQUIREMENT_WARNING,
        'description' => t('Performance detailed logging is !link. This can cause severe issues on live sites.', array('!link' => l(t('enabled'), 'admin/settings/performance_logging'))),
      );
    }
@@ -83,7 +83,7 @@ function performance_requirements($phase) {
        $requirements['performance_query'] = array(
          'title'       => t('Performance logging query'),
          'value'       => 'Enabled',
-         'severity'    => REQUIREMENT_ERROR,
+         'severity'    => REQUIREMENT_WARNING,
          'description' => t('Query timing and count logging is !link. This can cause memory size per page to be larger than normal.', array('!link' => l(t('enabled'), 'admin/settings/performance_logging'))),
        );
      }
@@ -103,7 +103,7 @@ function performance_requirements($phase) {
      $requirements['performance_apc_mem'] = array(
        'title'       => t('Performance logging APC memory size'),
        'value'       => $shm_size,
-       'severity'    => REQUIREMENT_ERROR,
+       'severity'    => REQUIREMENT_WARNING,
        'description' => t('APC has been configured for !size, which is less than the recommended 48 MB of memory. If you encounter errors when viewing the summary report, then try to increase that limit for APC.', array('!size' => $shm_size)),
      );
   }
