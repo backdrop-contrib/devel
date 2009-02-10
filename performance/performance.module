@@ -328,7 +328,7 @@ function performance_view_summary() {
     // Get the data form the database table
     $sql = "SELECT * FROM {performance_summary}";
     $tablesort = tablesort_sql($header);
-    $result = pager_query($sql . $tablesort, 5000);
+    $result = pager_query($sql . $tablesort, 50);
     while($row = db_fetch_array($result)) {
       $data_list[] = $row;
     }
