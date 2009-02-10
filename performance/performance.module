@@ -577,10 +577,10 @@ function performance_nagios() {
 
   // Protect against divide by zero
   if ($total_rows > 0) {
-    $mb_avg = number_format($total_bytes/$total_rows/1024/1024, 1);
-    $ms_avg = number_format($total_millisecs/$total_rows, 2);
-    $ms_query = number_format($total_query_time/$total_rows, 2);
-    $query_count = number_format($total_query_count/$total_rows, 2);
+    $ms_avg      = number_format($total_millisecs   / $total_rows, 1, '.', '');
+    $ms_query    = number_format($total_query_time  / $total_rows, 1, '.', '');
+    $query_count = number_format($total_query_count / $total_rows, 2, '.', '');
+    $mb_avg      = number_format($total_bytes       / $total_rows/1024/1024, 1);
   }
   else {
     $mb_avg = '-';
