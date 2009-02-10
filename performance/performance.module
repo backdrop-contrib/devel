@@ -557,8 +557,8 @@ function performance_nagios() {
     }
   }
   else {
-    // Get the data form the database table
-    $result = db_query("SELECT * FROM {performance_summary} ORDER BY last_access DESC LIMIT 1000");
+    // Get the data form the database table for URLs that have been accessed in the last 15 minutes
+    $result = db_query("SELECT * FROM {performance_summary} WHERE last_access >= %d", time() - 15*60);
     while($row = db_fetch_array($result)) {
       $data_list[] = $row;
     }
