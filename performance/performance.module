@@ -456,18 +456,25 @@ function performance_view_details() {
 }
 
 function performance_cron() {
-  performance_cron_apc_prune();
+  // One day ago ...
+  $timestamp = time() - 24*60*60;
+
+  performance_cron_db_prune($timestamp);
+  performance_cron_apc_prune($timestamp);
 }
 
-function performance_cron_apc_prune() {
-  // Remove entries from apc cache that has less than so many accesses
-  // to prevent clutter
-  $threshold = variable_get('performance_threshold_accesses', 0);
-  if (!$threshold) {
-    // Threshold not set
+function performance_cron_db_prune($timestamp = 0) {
+  // Remove rows which have not been accessed since a certain timestamp
+  db_query("DELETE FROM {performance_summary} WHERE last_access <= %d", $timestamp);
+}
+
+function performance_cron_apc_prune($timestamp = 0) {
+  if (!function_exists('apc_cache_info')) {
+    // APC not enabled, nothing to do ...
     return;
   }
 
+  // Get all entries in APC's user cache
   $list = performance_apc_list_all();
   if (!count($list)) {
     // Nothing stored yet
@@ -476,7 +483,7 @@ function performance_cron_apc_prune() {
 
   foreach($list as $key) {
     if ($data = apc_fetch($key)) {
-      if ($data['num_accesses'] <= $threshold) {
+      if ($data['last_access'] <= $timestamp) {
         apc_delete($key);
       }
     }
