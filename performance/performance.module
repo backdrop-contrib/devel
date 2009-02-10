@@ -558,7 +558,7 @@ function performance_nagios() {
   }
   else {
     // Get the data form the database table
-    $result = db_query("SELECT * FROM {performance_summary}");
+    $result = db_query("SELECT * FROM {performance_summary} ORDER BY last_access DESC LIMIT 1000");
     while($row = db_fetch_array($result)) {
       $data_list[] = $row;
     }
