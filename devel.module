@@ -1100,16 +1100,15 @@ function devel_variable_page() {
   $output = drupal_get_form('devel_variable_form');
   $page = drupal_get_page($output);
   $page['#show_blocks'] = FALSE;
-  return drupal_render_page($page);
+  return $page;
 }
 
 function devel_variable_form() {
   $header = array(
-    array(''),
-    array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),
-    array('data' => t('Value'), 'field' => 'value'),
-    array('data' => t('Length'), 'field' => 'length'),
-    array('data' => t('Operations')),
+    'name' => array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),
+    'value' => array('data' => t('Value'), 'field' => 'value'),
+    'length' => array('data' => t('Length'), 'field' => 'length'),
+    'edit' => array('data' => t('Operations')),
   );
   // TODO: we could get variables out of $conf but that would include hard coded ones too. ideally i would highlight overrridden/hard coded variables
   switch (db_driver()) {
@@ -1122,8 +1121,8 @@ function devel_variable_form() {
   }
   $result = db_query($sql. tablesort_sql($header));
   foreach ($result as $row) {
-    $variables[$row->name] = '';
-    $form['name'][$row->name] = array('#markup' => check_plain($row->name));
+    // $variables[$row->name] = '';
+    $options[$row->name]['name'] = check_plain($row->name);
     if (merits_krumo($row->value)) {
       $value = krumo_ob(variable_get($row->name, NULL));
     }
@@ -1135,42 +1134,23 @@ function devel_variable_form() {
         $value = check_plain($row->value);
       }
     }
-    $form[$row->name]['value'] = array('#markup' => $value);
-    $form[$row->name]['length'] = array('#markup' => $row->length);
-    $form[$row->name]['edit'] = array('#markup' => l(t('edit'), "devel/variable/edit/$row->name"));
+    $options[$row->name]['value'] = $value;
+    $options[$row->name]['length'] = $row->length;
+    $options[$row->name]['edit'] = l(t('edit'), "devel/variable/edit/$row->name");
   }
-  $form['variables'] = array('#type' => 'checkboxes', '#options' => $variables);
+  $form['variables'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $options,
+    '#empty' => t('No variables.'),
+  );
   $form['submit'] = array(
-    '#type' => 'submit',
+    '#type' => 'submit', 
     '#value' => t('Delete'),
   );
+  
+    // krumo($form);
   return $form;
-}
-
-function theme_devel_variable_form($form) {
-  // TODO: this is not being called for some reason
-  // die(form);
-  $children = element_children($form['name']);
-  foreach ($children as $key) {
-    $rows[] = array(
-      drupal_render($form['variables'][$key]),
-      drupal_render($form['name'][$key]),
-      drupal_render($form[$key]['value']),
-      drupal_render($form[$key]['length']),
-      drupal_render($form[$key]['edit']),
-    );
-  }
-  $header = array(
-    theme('table_select_header_cell'),
-    array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),
-    array('data' => t('Value'), 'field' => 'value'),
-    array('data' => t('Length'), 'field' => 'length'),
-    array('data' => t('Operations'), 'colspan' => 2),
-  );
-  $output = theme('table', $header, $rows);
-  $output .= drupal_render($form);
-
-  return $output;
 }
 
 function devel_variable_form_submit($form, &$form_state) {
