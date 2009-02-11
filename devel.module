@@ -976,7 +976,6 @@ function devel_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('SMTP library'),
     '#return_value' => drupal_get_filename('module', 'devel'),
-//    '#options' => $smtp_options,
     '#default_value' => variable_get('smtp_library', 0),
     '#description' => t('Prevents site from sending any email and instead logs messages to the watchdog.'),
   );
