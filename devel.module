@@ -972,18 +972,13 @@ function devel_admin_settings() {
   if (variable_get('smtp_library', '') != '' && variable_get('smtp_library', '') != drupal_get_filename('module', 'devel')) {
     variable_set('devel_old_smtp_library', variable_get('smtp_library', ''));
   }
-  $smtp_options = array(
-    '' => t('Default'),
-    drupal_get_filename('module', 'devel') => t('Log only'),
-  );
-  if (variable_get('devel_old_smtp_library', '') != '') {
-    $smtp_options[variable_get('devel_old_smtp_library', '')] = t('Other (!library)', array('!library' => variable_get('devel_old_smtp_library', '')));
-  }
   $form['smtp_library'] = array(
-    '#type' => 'radios',
+    '#type' => 'checkbox',
     '#title' => t('SMTP library'),
-    '#options' => $smtp_options,
-    '#default_value' => variable_get('smtp_library', ''),
+    '#return_value' => drupal_get_filename('module', 'devel'),
+//    '#options' => $smtp_options,
+    '#default_value' => variable_get('smtp_library', 0),
+    '#description' => t('Prevents site from sending any email and instead logs messages to the watchdog.'),
   );
 
   return system_settings_form($form);
@@ -1745,17 +1740,6 @@ function devel_rebuild_node_comment_statistics() {
   // Insert 0 count records into the node_comment_statistics for nodes that are missing. See comment_enable()
   db_query_temporary("SELECT n.nid, n.changed, n.uid FROM {node} n LEFT JOIN {node_comment_statistics} c ON n.nid = c.nid WHERE c.comment_count IS NULL", 'missing_nids');
   db_query("INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) SELECT n.nid, n.changed, NULL, n.uid, 0 FROM missing_nids n");
-}
-
-/**
- * Set sequences table to a sane state. Useful after a bulk import.
- *
- * @return void
- **/
-function sequence_reset($table, $column) {
-  $max = db_result(db_query("SELECT MAX($column) FROM {$table}"));
-  $max = ($max ? $max+1 : 2);
-  db_query("UPDATE {sequences} SET id = $max WHERE name='${table}_$column'");
 }
 
 /**
