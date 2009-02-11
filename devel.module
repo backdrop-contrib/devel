@@ -339,6 +339,15 @@ function devel_init() {
       }
     }
   }
+  if (variable_get('devel_rebuild_theme_registry', FALSE)) {
+    drupal_theme_rebuild();
+    if (flood_is_allowed('devel_rebuild_registry_warning', 1)) {
+      flood_register_event('devel_rebuild_registry_warning');
+      if (!devel_silent() && user_access('access devel information')) {
+        drupal_set_message(t('The theme registry is being rebuilt on every request. Remember to <a href="!url">turn off</a> this feature on production websites.', array("!url" => url('admin/settings/devel'))));
+      }
+    }
+  }
 }
 
 // return boolean. no need for cache here.
@@ -978,6 +987,13 @@ function devel_admin_settings() {
     '#return_value' => drupal_get_filename('module', 'devel'),
     '#default_value' => variable_get('smtp_library', 0),
     '#description' => t('Prevents site from sending any email and instead logs messages to the watchdog.'),
+  );
+
+  $form['devel_rebuild_theme_registry'] = array(
+   '#type' => 'checkbox',
+   '#title' => t('Rebuild the theme registry on every page load'),
+   '#description' => t('While creating new templates and theme_ overrides the theme registry needs to be rebuilt.'),
+   '#default_value' => variable_get('devel_rebuild_theme_registry', FALSE),
   );
 
   return system_settings_form($form);
