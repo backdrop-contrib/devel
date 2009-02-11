@@ -45,7 +45,7 @@ function performance_settings() {
     1 => t('Enabled'),
   );
 
-  if (function_exists('apc_store')) {
+  if (function_exists('apc_cache_info')) {
     drupal_set_message(t('APC is enabled. It is reasonably safe to enable summary logging on live sites.'));
   }
   else {
@@ -75,7 +75,7 @@ function performance_settings() {
   );
 
   $disabled = TRUE;
-  if (function_exists('apc_store')) {
+  if (function_exists('apc_cache_info')) {
     $disabled = FALSE;
   }
 
@@ -173,7 +173,7 @@ function performance_shutdown() {
   }
 
   if (variable_get('performance_summary_apc', 0)) {
-    if (function_exists('apc_store')) {
+    if (function_exists('apc_cache_info')) {
       performance_log_summary_apc($params);
     }
   }
@@ -504,6 +504,12 @@ function performance_clear_apc_confirm() {
 }
 
 function performance_clear_apc_confirm_submit($form_id, &$form) {
+  if (!function_exists('apc_cache_info')) {
+    drupal_set_message(t('APC is not enabled. Nothing to do ...'));
+    drupal_goto('admin/settings/performance');
+    return;
+  }
+
   $list = performance_apc_list_all();
   if (!count($list)) {
     // Nothing stored yet
