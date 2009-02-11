@@ -979,7 +979,7 @@ function devel_admin_settings() {
     '#default_value' => variable_get('smtp_library', 0),
     '#description' => t('Prevents site from sending any email and instead logs messages to the watchdog.'),
   );
-
+dsm($form);
   return system_settings_form($form);
 }
 
