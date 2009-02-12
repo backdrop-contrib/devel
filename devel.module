@@ -704,6 +704,11 @@ function devel_verify_cli() {
   return (php_sapi_name() == 'cli');
 }
 
+function devel_page_alter($page) {
+  if (variable_get('devel_page_alter', FALSE) && user_access('access devel information')) {
+    dpm($page, 'page');
+  }
+}
 
 /**
  * See devel_shutdown() which registers this function as a shutdown function. Displays developer information in the footer.
@@ -957,6 +962,11 @@ function devel_admin_settings() {
     '#title' => t('Display form element keys and weights'),
     '#default_value' => variable_get('devel_form_weights', 0),
     '#description' => t('Form element names are needed for performing themeing or altering a form. Their weights determine the position of the element. Enabling this setting will show these keys and weights beside each form item.'),
+  );
+  $form['devel_page_alter'] = array('#type' => 'checkbox',
+    '#title' => t('Display $page array'),
+    '#default_value' => variable_get('devel_page_alter', FALSE),
+    '#description' => t('Display $page array from <a href="http://api.drupal.org/api/function/hook_page_alter/7">hook_page_alter()</a> in the messages area of each page.'),
   );
   $form['devel_error_handler'] = array('#type' => 'radios',
     '#title' => t('Error handler'),
