@@ -9,7 +9,7 @@ function performance_menu() {
 
   $items = array();
   $items['admin/settings/performance_logging'] = array(
-    'title'            => 'Performance Logging',
+    'title'            => 'Performance logging',
     'description'      => 'Logs performance data: page generation times and memory usage.',
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('performance_settings'),
