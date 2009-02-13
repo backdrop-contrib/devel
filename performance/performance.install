@@ -108,3 +108,10 @@ function performance_requirements($phase) {
 
   return $requirements;
 }
+
+function performance_update_1() {
+  $ret = array();
+  db_drop_field($ret, 'performance_detail', 'title');
+  db_drop_field($ret, 'performance_summary', 'title');
+  return $ret;
+}
