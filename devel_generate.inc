@@ -379,6 +379,22 @@ function devel_get_users() {
   return $users;
 }
 
+/**
+ * Generate statistics information for a node.
+ *
+ * @param $node
+ *   A node object.
+ */
+function devel_generate_add_statistics($node) {
+  $statistic = array(
+    'nid' => $node->nid,
+    'totalcount' => mt_rand(0, 500),
+    'timestamp' => REQUEST_TIME - mt_rand(0, $node->created),
+  );
+  $statistic['daycount'] = mt_rand(0, $statistic['totalcount']);
+  db_insert('node_counter')->fields($statistic)->execute();
+}
+
 function devel_generate_add_upload(&$node) {
   $source = DRUPAL_ROOT. '/misc/blog.png';
 

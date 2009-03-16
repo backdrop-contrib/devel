@@ -165,6 +165,13 @@ function devel_generate_content_form() {
     '#title' => t('Add an url alias for each node.'),
     '#default_value' => FALSE,
   );
+  $form['add_statistics'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Add statistics for each node (node_counter table).'),
+    '#default_value' => TRUE,
+    '#access' => module_exists('statistics'),
+  );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Do it!'),
@@ -246,5 +253,11 @@ function devel_generate_nodeapi_insert(&$node) {
     if (!empty($results['add_alias'])) {
       path_set_alias("node/$node->nid", "node-$node->nid-$node->type");
     }
+
+    // Add node statistics.
+    if (!empty($results['add_statistics'])) {
+      devel_generate_add_statistics($node);
+    }
   }
 }
+
