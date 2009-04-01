@@ -490,16 +490,20 @@ function devel_perm() {
 }
 
 /**
- * Implementation of hook_block().
+ * Implementation of hook_block_list().
  */
-function devel_block($op = 'list', $delta = 0, $edit = array()) {
-  if ($op == 'list') {
-    $blocks[0]['info'] = t('Switch user');
+function devel_block_list() {
+  $blocks[0]['info'] = t('Switch user');
 //     $blocks[1]['info'] = t('Devel');
-    $blocks[2]['info'] = t('Execute PHP');
-    return $blocks;
-  }
-  else if ($op == 'configure' && $delta == 0) {
+  $blocks[2]['info'] = t('Execute PHP');
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_list().
+ */
+function devel_block_configure($delta) {
+  if ($delta == 0) {
     $form['devel_switch_user_list_size'] = array(
       '#type' => 'textfield',
       '#title' => t('Number of users to display in the list'),
@@ -509,34 +513,38 @@ function devel_block($op = 'list', $delta = 0, $edit = array()) {
     );
     return $form;
   }
-  else if ($op == 'save' && $delta == 0) {
+}
+
+function devel_block_save($delta, $edit = array()) {
+  if ($delta == 0) {
     variable_set('devel_switch_user_list_size', $edit['devel_switch_user_list_size']);
-  }
-  else if ($op == 'view') {
-    $block = array();
-    switch ($delta) {
-      case 0:
-        $block = devel_block_switch_user();
-        break;
-      case 1:
-        // Deleted in favor of custom menu. do not reuse this index.
-        break;
-      case 2:
-        if (user_access('execute php code')) {
-          $block['subject'] = t('Execute PHP');
-          $block['content'] = drupal_get_form('devel_execute_form');
-        }
-        break;
-    }
-    return $block;
   }
 }
 
+function devel_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 0:
+      $block = devel_block_switch_user();
+      break;
+    case 1:
+      // Deleted in favor of custom menu. do not reuse this index.
+      break;
+    case 2:
+      if (user_access('execute php code')) {
+        $block['subject'] = t('Execute PHP');
+        $block['content'] = drupal_get_form('devel_execute_form');
+      }
+      break;
+  }
+  return $block;
+}
+
 function devel_block_switch_user() {
-  $block['subject'] = t('Switch user');
   $links = devel_switch_user_list();
   if (!empty($links)) {
-    $block['content'] = theme('item_list', $links);
+    $block['subject'] = t('Switch user');
+    $block['content'] = theme('links', $links);
     $block['content'] .= drupal_get_form('devel_switch_user_form');
     return $block;
   }
@@ -564,14 +572,25 @@ function devel_switch_user_list() {
       $users = db_query_range("SELECT DISTINCT u.uid, u.name, u.access FROM {users} u LEFT JOIN {users_roles} r ON u.uid = r.uid WHERE $where_sql ORDER BY u.access DESC", 0, $list_size);
     }
     while ($user = db_fetch_object($users)) {
-      $links[$user->uid] = l(theme('placeholder', $user->name), 'devel/switch/'. $user->name, array('attributes' => array('title' => t('This user can switch back.')), 'query' => $dest, 'html' => TRUE));
+      $links[$user->uid] = array(
+        'title' => theme('placeholder', $user->name),
+        'href' => 'devel/switch/' . $user->name,
+        'query' => $dest,
+        'attributes' => array('title' => t('This user can switch back.')),
+        'html' => TRUE,
+      );
     }
     $num_links = count($links);
     if ($num_links < $list_size) {
       // If we don't have enough, add distinct uids until we hit $list_size.
       $users = db_query_range('SELECT uid, name, access FROM {users} WHERE uid > 0 AND uid NOT IN ('. implode(',', array_keys($links)) .') ORDER BY access DESC', 0, $list_size - $num_links);
       while (($user = db_fetch_object($users)) && count($links) < $list_size) {
-        $links[$user->uid] = l($user->name ? $user->name : 'anon', 'devel/switch/'. $user->name, array('attributes' => array('title' => t('Caution: this user will be unable switch back.')), 'query' => $dest));
+        $links[$user->uid] = array(
+          'title' => $user->name ? $user->name : 'anon',
+          'href' => 'devel/switch/' . $user->name,
+          'query' => $dest,
+          'attributes' => array('title' => t('Caution: this user will be unable switch back.')),
+        );
       }
     }
   }
