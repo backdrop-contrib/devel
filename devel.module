@@ -304,7 +304,7 @@ function devel_highlight_file($path = NULL, $standalone = FALSE) {
     $source = highlight_file($path, TRUE);
     // add anchor links before all functions
     // with doxygen
-    $source = preg_replace('!(\/\*\*.*?\*\/.*?)<br.*?function.*?#0000BB">(.*?)<\/span>!', '<a id="$2"></a> $0', $source);
+    // $source = preg_replace('!(\/\*\*.*?\*\/.*?)<br.*?function.*?#0000BB">(.*?)<\/span>!', '<a id="$2"></a> $0', $source);
     //$source = preg_replace('!(\/\*\*.*?\*\/).*?function.*?#0000BB">(.*?)<\/span>!', '<a id="$2"></a> $0', $source);
     if ($standalone) {
       $source = <<<EOT
