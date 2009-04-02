@@ -5,8 +5,8 @@ if (Drupal.jsEnabled) {
     lastObj = false;
     thmrSpanified = false;
     strs = Drupal.settings.thmrStrings;
-    $('body').wrap('<span class="thmr_call" id="thmr_'+Drupal.settings.page_id+'"></span>');
-    $('span.thmr_call')
+    $('body').addClass("thmr_call").attr("id", "thmr_" + Drupal.settings.page_id);
+    $('body.thmr_call,span.thmr_call')
     .hover(
       function () {
         if (themerEnabled && this.parentNode.nodeName != 'BODY' && $(this).attr('thmr_curr') != 1) {
@@ -23,7 +23,7 @@ if (Drupal.jsEnabled) {
     var themerEnabled = 0;
     var themerToggle = function () {
       themerEnabled = 1 - themerEnabled;
-      $('input', this).attr('checked', themerEnabled ? 'checked' : '');
+      $('#themer-toggle :checkbox').attr('checked', themerEnabled ? 'checked' : '');
       $('#themer-popup').css('display', themerEnabled ? 'block' : 'none');
       if (themerEnabled) {
         document.onclick = themerEvent;
@@ -31,9 +31,7 @@ if (Drupal.jsEnabled) {
           $(lastObj).css('outline', '3px solid #999');
         }
         if (!thmrSpanified) {
-          // turn on the throbber
-          $('#themer-toggle img.throbber').show();
-          window.setTimeout('spanify()', 100);
+          spanify();
         }
       }
       else {
@@ -46,7 +44,7 @@ if (Drupal.jsEnabled) {
     $(Drupal.settings.thmr_popup)
       .appendTo($('body'));
 
-    $('<div id="themer-toggle"><input type="checkbox" />'+ strs.themer_info + strs.toggle_throbber +'</div>')
+    $('<div id="themer-toggle"><input type="checkbox" />'+ strs.themer_info +'</div>')
       .appendTo($('body'))
       .click(themerToggle);
 
@@ -55,7 +53,7 @@ if (Drupal.jsEnabled) {
         opacity: .6,
         handle: $('#themer-popup .topper')
       })
-      .prepend(strs.toggle_throbber)
+      //.prepend(strs.toggle_throbber)
     ;
 
     // close box
@@ -65,6 +63,10 @@ if (Drupal.jsEnabled) {
   });
 }
 
+/**
+ * Known issue: IE does NOT support outline css property.
+ * Solution: use another browser
+ */
 function themerHilight(obj) {
   // hilight the current object (and un-highlight the last)
   if (lastObj != false) {
@@ -79,7 +81,7 @@ function themerDoIt(obj) {
     return true;
   }
   // start throbber
-  $('#themer-popup img.throbber').show();
+  //$('#themer-popup img.throbber').show();
   var objs = thmrFindParents(obj);
   if (objs.length) {
     themerHilight(objs[0]);
@@ -102,7 +104,7 @@ function spanify() {
     });
   thmrSpanified = true;
   // turn off the throbber
-  $('#themer-toggle img.throbber').hide();
+  //$('#themer-toggle img.throbber').hide();
 }
 
 function thmrInPop(obj) {
@@ -130,12 +132,12 @@ function themerEvent(e) {
  */
 function thmrFindParents(obj) {
   var parents = new Array();
-  if (obj.className == 'thmr_call') {
+  if ($(obj).hasClass('thmr_call')) {
     parents[parents.length] = obj;
   }
   if (obj && obj.parentNode) {
     while (obj = obj.parentNode) {
-      if (obj.className == 'thmr_call') {
+      if ($(obj).hasClass('thmr_call')) {
         parents[parents.length] = obj;
       }
     }
@@ -265,5 +267,5 @@ function thmrRebuildPopup(objs) {
     thmrRefreshCollapse();
   }
   // stop throbber
-  $('#themer-popup img.throbber').hide();
+  //$('#themer-popup img.throbber').hide();
 }
