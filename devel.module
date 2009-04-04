@@ -199,7 +199,7 @@ function devel_menu_need_destination() {
  * This is more robust that setting alter in hook_menu(). See devel_translated_menu_link_alter().
  *
  **/
-function devel_menu_link_alter(&$item, &$menu) {
+function devel_menu_link_alter(&$item) {
   if (in_array($item['link_path'], devel_menu_need_destination())) {
     $item['options']['alter'] = TRUE;
   }
