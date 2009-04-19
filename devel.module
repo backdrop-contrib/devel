@@ -405,6 +405,7 @@ function devel_silent() {
   // isset($_GET['q']) is needed on IIS when calling the front page. q is not set.
   // Don't interfere with private files/images.
   return
+    devel_verify_cli() ||
     isset($GLOBALS['devel_shutdown']) ||
     strstr($_SERVER['PHP_SELF'], 'update.php') ||
     (isset($_GET['q']) && (
@@ -768,10 +769,6 @@ function devel_shutdown_real() {
           return;
         }
       }
-    }
-    // don't append gunk to CLI scripts
-    if (devel_verify_cli()) {
-      return;
     }
 
     if (isset($user) && user_access('access devel information')) {
