@@ -26,7 +26,7 @@ function devel_help($section) {
       return '<p>'. t('Here are the contents of your <code>$_SESSION</code> variable.'). '</p>';
     case 'devel/variable':
       $api = variable_get('devel_api_url', 'api.drupal.org');
-      return '<p>'. t('This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href="@variable-get-doc">variable_get()</a> and <a href="@variable-set-doc">variable_set()</a>. Variables that are too long can slow down your pages.', array('@variable-get-doc' => "http://$api/api/HEAD/function/variable_get", '@variable-set-doc' => 'http://$api/api/HEAD/function/variable_set')).'</p>';
+      return '<p>'. t('This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href="@variable-get-doc">variable_get()</a> and <a href="@variable-set-doc">variable_set()</a>. Variables that are too long can slow down your pages.', array('@variable-get-doc' => "http://$api/api/HEAD/function/variable_get", '@variable-set-doc' => "http://$api/api/HEAD/function/variable_set")).'</p>';
   }
 }
 
