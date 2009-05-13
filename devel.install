@@ -6,11 +6,21 @@
  */
 function devel_install() {
   // New module weights in core: put devel as the very last in the chain.
-  db_query("UPDATE {system} SET weight = 88 WHERE name = 'devel'");
+  db_update('system')
+    ->fields(array(
+      'weight' => 88,
+    ))
+    ->condition('name', 'devel')
+    ->execute();
 
   // Create our menu. See menu.install for an example.
-  // update_sql() does not support printf args. See http://drupal.org/node/36324
-  db_query("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('devel', 'Development', 'Development links')");
+  db_insert('menu_custom')
+    ->fields(array(
+      'menu_name' => 'devel',
+      'title' => 'Development',
+      'description' => 'Development links',
+    ))
+    ->execute();
 
   $item = array(
     'link_title' => 'Run cron',
@@ -45,6 +55,7 @@ function devel_uninstall() {
   variable_del('dev_mem');
   variable_del('devel_error_handler');
 
+  // TODO: Not necessary if core cleans up after self.
   db_query("DELETE FROM {menu_custom} WHERE menu_name = 'devel'");
   db_query("DELETE FROM {menu_links} WHERE module = 'devel'");
 }
