@@ -552,7 +552,7 @@ function devel_block_view($delta) {
     case 2:
       if (user_access('execute php code')) {
         $block['subject'] = t('Execute PHP');
-        $block['content'] = drupal_get_form('devel_execute_form');
+        $block['content'] = drupal_render(drupal_get_form('devel_execute_form'));
       }
       break;
   }
