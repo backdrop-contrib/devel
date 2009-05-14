@@ -110,14 +110,14 @@ function devel_themer_init() {
     }
     else
     {
-      drupal_add_js($path .'/ui.mouse.js');
-      drupal_add_js($path .'/ui.draggable.js');
+      // drupal_add_js($path .'/ui.mouse.js');
+      // drupal_add_js($path .'/ui.draggable.js');
     }
     
     // This needs to happen after all the other CSS.
-    drupal_set_html_head('<!--[if IE]>
+    drupal_add_css('<!--[if IE]>
     <link href="' . $path .'/devel_themer_ie_fix.css" rel="stylesheet" type="text/css" media="screen" />
-<![endif]-->');
+<![endif]-->', array('type' => 'inline'));
     devel_themer_popup();
 
     if (!devel_silent() && variable_get('devel_themer_log', FALSE)) {
@@ -371,14 +371,6 @@ function devel_themer_theme_twin() {
   $meta['hook'] = $hook;
   $meta['path'] = $info['theme path'];
 
-  // Include a file if the theme function or preprocess function is held elsewhere.
-  if (!empty($info['file'])) {
-    $include_file = $info['file'];
-    if (isset($info['path'])) {
-      $include_file = $info['path'] .'/'. $include_file;
-    }
-    include_once($include_file);
-  }
   if (isset($info['devel_function_intercept'])) {
     // The theme call is a function.
     $output = call_user_func_array($info['devel_function_intercept'], $args);
@@ -448,7 +440,7 @@ function devel_themer_theme_twin() {
       // call_user_func_array.
       $args = array(&$variables, $hook);
       foreach ($info['preprocess functions'] as $preprocess_function) {
-        if (function_exists($preprocess_function)) {
+        if (drupal_function_exists($preprocess_function)) {
           call_user_func_array($preprocess_function, $args);
         }
       }
