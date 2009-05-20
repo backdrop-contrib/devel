@@ -422,12 +422,19 @@ function devel_generate_add_upload(&$node) {
  * @param $num
  *   array of options obtained from devel_generate_content_form.
  */
-function devel_generate_content_kill(&$results) {
-  $sql = 'SELECT nid FROM {node} WHERE type IN ('. db_placeholders($results['node_types'], 'text'). ')';
-  $result = db_query($sql, $results['node_types']);
-  while ($row = db_fetch_object($result)) {
-    node_delete($row->nid);
+function devel_generate_content_kill($values) {
+  $results = db_select('node', 'n')
+              ->fields('n', array('nid'))
+              ->condition('type', $values['node_types'], 'IN')
+              ->execute();
+  foreach ($results as $result) {
+    $nids[] = $result->nid;
   }
+  
+  if (!empty($nids)) {
+    node_delete_multiple($nids);
+    drupal_set_message(t('Deleted %count nodes.', array('%count' => count($nids))));
+  } 
 }
 
 /**
