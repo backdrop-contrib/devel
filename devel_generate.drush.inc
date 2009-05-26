@@ -65,11 +65,11 @@ function devel_generate_drush_command() {
  */
 function drush_generate_users($num_users = NULL) {
   if (drush_generate_is_number($num_users) == FALSE) {
-    drush_error(t('Invalid number of users.'));
+    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of users.'));
   }
   drush_generate_include_devel();
   devel_create_users($num_users, drush_get_option('kill'));
-  drush_print(t('Generated @number users.', array('@number' => $num_users)));
+  drush_log(t('Generated @number users.', array('@number' => $num_users)), 'success');
 }
 
 /**
@@ -77,14 +77,14 @@ function drush_generate_users($num_users = NULL) {
  */
 function drush_generate_tax($num_vocab = NULL, $num_terms = NULL) {
   if (drush_generate_is_number($num_vocab) == FALSE) {
-    drush_error(t('Invalid vocabulary ID.'));
+    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid vocabulary ID.'));
   }
   if (drush_generate_is_number($num_terms) == FALSE) {
-    drush_error(t('Invalid number of terms.'));
+    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of terms.'));
   }
   drush_generate_include_devel();
   devel_generate_taxonomy_data($num_vocab, $num_terms, '12', drush_get_option('kill'));
-  drush_print(t('Generated @num_vocab vocabulary, @num_terms terms', array('@num_vocab' => $num_vocab, '@num_terms' => $num_terms)));
+  drush_log(t('Generated @num_vocab vocabulary, @num_terms terms', array('@num_vocab' => $num_vocab, '@num_terms' => $num_terms)), 'success');
 }
 
 /**
@@ -92,10 +92,10 @@ function drush_generate_tax($num_vocab = NULL, $num_terms = NULL) {
  */
 function drush_generate_nodescontent($num_nodes = NULL, $num_comments = NULL) {
   if (drush_generate_is_number($num_nodes) == FALSE) {
-    drush_error(t('Invalid number of nodes'));
+    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of nodes'));
   }
   if (!empty($num_comments) && drush_generate_is_number($num_comments) == FALSE) {
-    drush_error(t('Invalid number of comments.'));
+    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of comments.'));
   }
 
   // Let's load user 1, seems to be need for creating comments.
@@ -113,7 +113,7 @@ function drush_generate_nodescontent($num_nodes = NULL, $num_comments = NULL) {
   $values['values']['node_types'] = array('page' => 'page', 'article' => 'article');
   drush_generate_include_devel();
   devel_generate_content($values);
-  drush_print(t('Generated @num_nodes nodes, @num_comments comments per node', array('@num_nodes' => (int)$num_nodes, '@num_comments' => (int)$num_comments)));
+  drush_log(t('Generated @num_nodes nodes, @num_comments comments per node', array('@num_nodes' => (int)$num_nodes, '@num_comments' => (int)$num_comments)), 'success');
 }
 
 //////////////////////////////////////////////////////////////////////////////
