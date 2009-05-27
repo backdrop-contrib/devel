@@ -552,7 +552,7 @@ function devel_block_view($delta) {
     case 2:
       if (user_access('execute php code')) {
         $block['subject'] = t('Execute PHP');
-        $block['content'] = drupal_render(drupal_get_form('devel_execute_form'));
+        $block['content'] = drupal_get_form('devel_execute_form');
       }
       break;
   }
@@ -563,8 +563,9 @@ function devel_block_switch_user() {
   $links = devel_switch_user_list();
   if (!empty($links)) {
     $block['subject'] = t('Switch user');
-    $block['content'] = theme('links', $links);
-    $block['content'] .= drupal_get_form('devel_switch_user_form');
+    $build['devel_links'] = array('#markup' => theme('links', $links));
+    $build['devel_form'] = drupal_get_form('devel_switch_user_form');
+    $block['content'] = $build;
     return $block;
   }
 }
@@ -661,7 +662,7 @@ function devel_doc_function_form_submit($form, &$form_state) {
 }
 
 function devel_switch_user_form_validate($form, &$form_state) {
-  if (!$account = user_load(array('name' => $form_state['values']['username']))) {
+  if (!$account = user_load_by_name($form_state['values']['username'])) {
     form_set_error('username', t('Username not found'));
   }
 }
@@ -1253,7 +1254,7 @@ function devel_switch_user($name = NULL) {
   static $orig_user = array();
 
   if (isset($name)) {
-    $user = user_load(array('name' => $name));
+    $user = user_load_by_name($name);
   }
   // Retrieve the initial user. Can be called multiple times.
   else if (count($orig_user)) {
