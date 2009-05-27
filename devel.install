@@ -45,7 +45,6 @@ function devel_install() {
  */
 function devel_uninstall() {
   variable_del('dev_query');
-  variable_del('devel_old_smtp_library');
   variable_del('devel_form_weights');
   variable_del('devel_execution');
   variable_del('dev_timer');
@@ -69,10 +68,6 @@ function devel_disable() {
     variable_set('dev_query',0);
     drupal_set_message(t('Disabled query logging since devel module is disabled.'));
   }
-
-  // The SMTP server should also be restored.
-  variable_set('smtp_library', variable_get('devel_old_smtp_library', ''));
-  variable_del('devel_old_smtp_library');
 }
 
 /**

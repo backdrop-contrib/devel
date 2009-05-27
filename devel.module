@@ -1021,18 +1021,6 @@ function devel_admin_settings() {
     '#default_value' => variable_get('devel_krumo_skin', 'default'),
   );
 
-  // Save any old SMTP library
-  if (variable_get('smtp_library', '') != '' && variable_get('smtp_library', '') != drupal_get_filename('module', 'devel')) {
-    variable_set('devel_old_smtp_library', variable_get('smtp_library', ''));
-  }
-  $form['smtp_library'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('SMTP library'),
-    '#return_value' => drupal_get_filename('module', 'devel'),
-    '#default_value' => variable_get('smtp_library', 0),
-    '#description' => t('Prevents site from sending any email and instead logs messages to the watchdog.'),
-  );
-
   $form['devel_rebuild_theme_registry'] = array(
    '#type' => 'checkbox',
    '#title' => t('Rebuild the theme registry on every page load'),
@@ -1714,36 +1702,6 @@ function ddebug_backtrace() {
     else {
       dprint_r($rich_trace);
     }
-  }
-}
-
-// Only define our mail wrapper if the devel module is the current mail
-// wrapper.
-if (variable_get('smtp_library', '') == drupal_get_filename('module', 'devel')) {
-  /**
-   * Log the mails sent out instead of mailing.
-   */
-  function drupal_mail_wrapper($message) {
-  $mimeheaders = array();
-  foreach ($message['headers'] as $name => $value) {
-    // the check_plain nicely encodes <> chars for web presentation
-    $mimeheaders[] = check_plain($name .': '. mime_header_encode($value));
-  }
-  watchdog(
-    'devel',
-    'Mail sent:<br />Id: %mail_id<br />To: %to<br />From: %from<br />Language: %lang<br />Subject: %subject<br />Body: %body<br /><br />Additional headers: <br />!header',
-     array(
-       '%mail_id' => $message['id'],
-       '%to' => $message['to'],
-       '%from' => $message['from'],
-       '%lang' => $message['language']->language,
-       '%subject' => $message['subject'],
-       '%body' => $message['body'],
-       '!header' => implode("<br />", $mimeheaders),
-       WATCHDOG_INFO,
-       )
-  );
-  return TRUE;
   }
 }
 
