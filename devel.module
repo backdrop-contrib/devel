@@ -513,8 +513,10 @@ function devel_perm() {
  */
 function devel_block_list() {
   $blocks[0]['info'] = t('Switch user');
+  $blocks[0]['cache'] = BLOCK_NO_CACHE;
 //     $blocks[1]['info'] = t('Devel');
   $blocks[2]['info'] = t('Execute PHP');
+  $blocks[2]['cache'] = BLOCK_NO_CACHE;
   return $blocks;
 }
 
@@ -790,16 +792,18 @@ function devel_shutdown_real() {
         $mode = variable_get('devel_code_coverage', FALSE);
         $coverage = xdebug_get_code_coverage();
         if ($mode == 1) {
-          dpr(array_keys($coverage));
+          $output .= dpr(array_keys($coverage), TRUE);
         }
         else {
-          dpr($coverage);
+          $output .= dpr($coverage, TRUE);
         }
       }
     }
 
     if ($output) {
       // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
+      // For some reason, this is not actually printing for cached pages even though it gets executed 
+      // and $output looks good.
       print $output;
     }
   }
@@ -831,11 +835,7 @@ function devel_shutdown_query() {
       $output .= devel_query_table($queries, $counts);
     }
     else {
-      $output .= $txt;
-      $output .= '</div>';
-      ob_start();
-      dprint_r($queries);
-      $output .= ob_get_clean();
+      $output .= $txt . '</div>' . dprint_r($queries, TRUE);
     }
   }
 
