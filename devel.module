@@ -762,12 +762,13 @@ function devel_shutdown_real() {
   // text/javascript, etc).  This is is advised where applicable.
   if (!isset($GLOBALS['devel_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
     // Try not to break non html pages.
-    if (function_exists('drupal_get_headers')) {
-      $headers = drupal_get_headers();
-      $formats = array('xml', 'javascript', 'json', 'plain', 'image', 'application', 'csv', 'x-comma-separated-values');
-      foreach ($formats as $format) {
-        if (strstr($headers, $format)) {
-          return;
+    if (drupal_function_exists('drupal_get_header')) {
+      if ($headers = drupal_get_header()) {
+        $formats = array('xml', 'javascript', 'json', 'plain', 'image', 'application', 'csv', 'x-comma-separated-values');
+        foreach ($formats as $format) {
+          if (strstr($headers['content-type'], $format)) {
+            return;
+          }
         }
       }
     }
