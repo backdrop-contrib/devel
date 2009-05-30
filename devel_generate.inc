@@ -84,7 +84,7 @@ function devel_create_users($num, $kill, $age = 0) {
  * @return void
  */
 function devel_generate_content($form_state) {
-  if ($form_state['values']['kill_content']) {
+  if (!empty($form_state['values']['kill_content'])) {
     devel_generate_content_kill($form_state['values']);
   }
 

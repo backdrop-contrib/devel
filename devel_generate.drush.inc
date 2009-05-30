@@ -48,6 +48,7 @@ function devel_generate_drush_command() {
   $items['generate content'] = array(
     'callback' => 'drush_generate_nodescontent',
     'description' => 'Creates content.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN, // Various D7 code assumes we have a uid.
     'arguments' => array(
       'n' => 'Number of nodes to generate.',
       'c' => 'Number of comments to generate.',
@@ -100,7 +101,7 @@ function drush_generate_nodescontent($num_nodes = NULL, $num_comments = NULL) {
 
   // Let's load user 1, seems to be need for creating comments.
   global $user;
-  $user_one = user_load(array('uid' => '1'));
+  $user_one = user_load(1);
   $user = $user_one;
   drupal_save_session(FALSE);
 
