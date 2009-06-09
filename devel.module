@@ -1151,7 +1151,7 @@ function devel_variable_form() {
       $sql = "SELECT *, COL_LENGTH('{variable}', 'value') AS length FROM {variable}";
       break;
     default:
-      $sql = "SELECT *, LENGTH(value) AS length FROM {variable}";
+      $sql = "SELECT v.*, LENGTH(v.value) AS length FROM {variable} v";
       break;
   }
   $result = db_query($sql. tablesort_sql($header));
