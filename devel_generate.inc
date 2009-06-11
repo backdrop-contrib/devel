@@ -467,7 +467,7 @@ function devel_generate_content_add_node(&$results) {
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
 
-  $type = node_get_types('type', $node);
+  $type = node_type_get_type($node);
   $node->title = $type->has_title ? devel_create_greeking(rand(1, $results['title_length']), TRUE) : '';
   $node->body = $type->has_body ? "node ($node->type) - ". devel_create_content() : '';
   $node->teaser = node_teaser($node->body);
