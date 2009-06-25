@@ -163,6 +163,26 @@ function performance_shutdown() {
   $params['query_count'] = $query_count;
   $params['query_timer'] = $query_timer;
 
+  $anon = ($data['anon']) ? t('Yes') : t('No');
+
+  $header = array(
+    'path' => $path,
+    'timer' => $params['timer'],
+    'anon' => $anon,
+  );
+  module_invoke_all('performance', 'header', $header);
+
+  if (variable_get('performance_detail', 0)) {
+    $data = module_invoke_all('performance', 'data');
+    if (!empty($data[0])) {
+      $params['data'] = $data[0];
+    }
+
+    performance_log_details($params);
+  }
+  else {
+    module_invoke_all('performance', 'disable');
+  }
 
   if (variable_get('performance_detail', 0)) {
     performance_log_details($params);
@@ -265,6 +285,7 @@ function performance_log_details($params = array()) {
    'query_timer' => $params['query_timer'],
    'anon'        => ($user->uid) ? 0 : 1,
    'path'        => $params['path'],
+   'data'        => $params['data'],
   );
 
   db_insert('performance_detail')
@@ -466,6 +487,9 @@ function performance_cron() {
 function performance_cron_db_prune($timestamp = 0) {
   // Remove rows which have not been accessed since a certain timestamp
   db_query("DELETE FROM {performance_summary} WHERE last_access <= %d", $timestamp);
+
+  // Remove performance_detail rows on a daily basis
+  db_query("DELETE FROM {performance_detail} WHERE timestamp <= %d", $timestamp);
 }
 
 function performance_cron_apc_prune($timestamp = 0) {

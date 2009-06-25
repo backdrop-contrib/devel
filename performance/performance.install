@@ -36,6 +36,7 @@ function performance_schema() {
       'query_timer' => array('type' => 'int',    'not null' => TRUE,  'default' => 0, 'disp-width' => '11'),
       'anon'        => array('type' => 'int',    'not null' => FALSE, 'default' => 1, 'disp-width' => '1'),
       'path'        => array('type' => 'varchar', 'length' => '255', 'not null' => FALSE),
+      'data'        => array('type' => 'blob', 'not null' => FALSE, 'size' => 'big'),
       ),
     'primary key' => array('pid'),
     'indexes' => array(
@@ -115,3 +116,10 @@ function performance_update_1() {
   db_drop_field($ret, 'performance_summary', 'title');
   return $ret;
 }
+
+function performance_update_2() {
+  $ret = array();
+  db_add_field($ret, 'performance_detail', 'data', array('type' => 'blob', 'not null' => FALSE, 'size' => 'big'));
+  return $ret;
+}
+
