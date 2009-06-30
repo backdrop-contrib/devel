@@ -125,8 +125,8 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
     $comment->uid = $users[array_rand($users)];
 
     // This is slow but gets the threading right.
-    comment_save((array)$comment);
-
+    $comment = (array) $comment;
+    comment_save($comment);
   }
 }
 
@@ -469,8 +469,7 @@ function devel_generate_content_add_node(&$results) {
 
   $type = node_type_get_type($node);
   $node->title = $type->has_title ? devel_create_greeking(rand(1, $results['title_length']), TRUE) : '';
-  $node->body = $type->has_body ? "node ($node->type) - ". devel_create_content() : '';
-  $node->teaser = node_teaser($node->body);
+  $node->body[0]['value'] = $type->has_body ? "node ($node->type) - ". devel_create_content() : '';
   $node->filter = variable_get('filter_default_format', 1);
   $node->node_format = FILTER_FORMAT_DEFAULT;
   $node->language = '';

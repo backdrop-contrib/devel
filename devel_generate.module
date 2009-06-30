@@ -217,11 +217,12 @@ function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
   devel_generate_taxonomy_data($form_state['values']['num_vocab'], $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
 }
 
-// Modules that want to affect generated nodes may implement hook_nodeapi('presave'). See OG module or CCK.
+// Modules that want to affect generated nodes may implement hook_node('presave'). See OG module or CCK.
 // A few implementations live here because core doesn't do bulk node generation.
-function devel_generate_nodeapi_presave(&$node) {
+function devel_generate_node_presave(&$node) {
   if (isset($node->devel_generate)) {
     $results = $node->devel_generate;
+    dpr($results);
     if (!empty($results['add_upload'])) {
       devel_generate_add_upload($node);
     }
@@ -231,7 +232,7 @@ function devel_generate_nodeapi_presave(&$node) {
   }
 }
 
-function devel_generate_nodeapi_insert(&$node) {
+function devel_generate_node_insert(&$node) {
   if (isset($node->devel_generate)) {
     $results = $node->devel_generate;
 
@@ -239,13 +240,14 @@ function devel_generate_nodeapi_insert(&$node) {
       devel_generate_add_comments($node, $results['users'], $results['num_comments'], $results['title_length']);
     }
 
+
     // Add an url alias. Cannot happen before save because we don't know the nid.
     if (!empty($results['add_alias'])) {
       path_set_alias("node/$node->nid", "node-$node->nid-$node->type");
     }
 
     // Add node statistics.
-    if (!empty($results['add_statistics'])) {
+    if (!empty($results['add_statistics']) && module_exists('statistics')) {
       devel_generate_add_statistics($node);
     }
   }
