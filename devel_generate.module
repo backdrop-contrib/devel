@@ -222,7 +222,6 @@ function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
 function devel_generate_node_presave(&$node) {
   if (isset($node->devel_generate)) {
     $results = $node->devel_generate;
-    dpr($results);
     if (!empty($results['add_upload'])) {
       devel_generate_add_upload($node);
     }
