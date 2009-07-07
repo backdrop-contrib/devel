@@ -123,9 +123,6 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
     $comment->subject = devel_create_greeking(rand(1, $title_length), TRUE);
     $comment->comment = devel_create_content();
     $comment->uid = $users[array_rand($users)];
-
-    // This is slow but gets the threading right.
-    $comment = (array) $comment;
     comment_save($comment);
   }
 }
