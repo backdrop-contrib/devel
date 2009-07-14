@@ -1124,6 +1124,7 @@ function devel_reinstall_submit($form, &$form_state) {
 function devel_theme_registry() {
   init_theme();
   $hooks = theme_get_registry();
+  ksort($hooks);
   return kprint_r($hooks, TRUE);
 }
 
