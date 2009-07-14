@@ -407,8 +407,6 @@ function devel_generate_add_upload(&$node) {
   $file->status = 0;
   $file->new = TRUE;
   $file = file_save($file);
-
-  $_SESSION['upload_files'][$file->fid] = $file;
   $node->files[$file->fid] = $file;
 }
 

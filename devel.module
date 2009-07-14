@@ -1239,7 +1239,7 @@ function devel_variable_edit_submit($form, &$form_state) {
  */
 function devel_session() {
   global $user;
-  $output = kprint_r(drupal_get_session(), TRUE);
+  $output = kprint_r($_SESSION, TRUE);
   $headers = array(t('Session name'), t('Session ID'));
   $output .= theme('table', $headers, array(array(session_name(), session_id())));
   return $output;
