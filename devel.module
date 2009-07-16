@@ -485,9 +485,9 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
 }
 
 /**
- * Implementation of hook_perm().
+ * Implement hook_permission().
  */
-function devel_perm() {
+function devel_permission() {
   return array(
     'access devel information' => array(
       'description' => t('View developer output like variable printouts, query log, etc.'),
