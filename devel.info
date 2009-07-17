@@ -5,3 +5,4 @@ package = Development
 dependencies[] = menu
 core = 7.x
 files[] = devel.module
+files[] = devel.install
