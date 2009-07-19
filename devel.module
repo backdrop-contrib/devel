@@ -1122,7 +1122,7 @@ function devel_reinstall_submit($form, &$form_state) {
 
 // Menu callback.
 function devel_theme_registry() {
-  init_theme();
+  drupal_theme_initialize();
   $hooks = theme_get_registry();
   ksort($hooks);
   return kprint_r($hooks, TRUE);
