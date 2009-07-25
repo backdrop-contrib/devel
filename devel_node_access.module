@@ -99,6 +99,7 @@ function dna_summary() {
     $output .= '<p>'. t('Your node_access table contains entries that may be granting all users access to all nodes.  Depending on which access control module(s) you use, you may want to delete these entries.  If you are not using an access control module, you should probably leave these entries as is.') ."</p>\n";
     $headers = array(t('realm'));
     $output .= theme('table', $headers, $rows);
+    $access_granted_to_all_nodes = TRUE;
   }
 
   // how many nodes are not represented in the node_access table
@@ -108,6 +109,11 @@ function dna_summary() {
     $output .= '<p>'.
       t('You have !num nodes in your node table which are not represented in your node_access table.  If you have an access control module installed, these nodes may be hidden from all users.  This could be caused by publishing nodes before enabling the access control module.  If this is the case, manually updating each node should add it to the node_access table and fix the problem.', array('!num' => l($num, 'devel/node_access/view/NULL')))
       ."</p>\n";
+    if (!empty($access_granted_to_all_nodes)) {
+      $output .= '<p>'.
+        t('This issue may be masked by the one above, so look into the former first.')
+        ."</p>\n";
+    }
   }
   else {
     $output .= '<h3>'. t('All Nodes Represented') ."</h3>\n";
@@ -247,6 +253,7 @@ function devel_node_access_block($op = 'list', $delta = 0) {
             $states = array(
               'default'      => array(t('default'),      'ok',      t('Default grant supplied by core in the absence of any other non-empty grants, in !na.', $tokens)),
               'ok'           => array(t('ok'),           'ok',      t('Highest priority grant, in !na.', $tokens)),
+              'unexpected'   => array(t('unexpected'),   'warning', t('The 0/0/all/... grant applies to all nodes and all users -- usually it should not be present if any node access module is active!')),
               'ignored'      => array(t('ignored'),      'warning', t('Lower priority grant, not in !na and thus ignored.', $tokens)),
               'empty'        => array(t('empty'),        'warning', t('Does not grant any access, but could block lower priority grants; not in !na.', $tokens)),
               'missing'      => array(t('missing'),      'error',   t("Should be in !na but isn't!", $tokens)),
@@ -258,7 +265,6 @@ function devel_node_access_block($op = 'list', $delta = 0) {
             while ($active_grant = db_fetch_object($result)) {
               $active_grants[$active_grant->nid][$active_grant->realm][$active_grant->gid] = $active_grant;
             }
-            array_shift($nids);
             $all_grants = $checked_grants = $checked_status = array();
             foreach ($nids as $nid) {
               $acquired_grants_nid = array();
@@ -324,7 +330,7 @@ function devel_node_access_block($op = 'list', $delta = 0) {
                     }
                     $fixed_grant += array(
                       'nid'      => $nid,
-                      '#title'   => (isset($node->title) ? check_plain($node->title) : $node->nid),
+                      '#title'   => (empty($node) ? '&mdash;' : (isset($node->title) ? check_plain($node->title) : $node->nid)),
                     );
                     $all_grants[] = $fixed_grant;
                   }
@@ -376,12 +382,18 @@ function devel_node_access_block($op = 'list', $delta = 0) {
               $row->grant_delete = $grant['grant_delete'];
               $row->explained = implode('; ', module_invoke_all('node_access_explain', $row));
               unset($row->title);
-              $class = $states[$grant['state']][1];
+              if ($row->nid == 0 && $row->gid == 0 && $row->realm == 'all' && count($all_grants) > 1) {
+                $row->state = array('data' => $states['unexpected'][0], 'title' => $states['unexpected'][2]);
+                $class = $states['unexpected'][1];
+              }
+              else {
+                $class = $states[$grant['state']][1];
+              }
               $error_count += ($class == 'error');
               $row = (array) $row;
               foreach (array('view', 'update', 'delete') as $op) {
                 $row["grant_$op"] = array('data' => $row["grant_$op"]);
-                if (isset($checked_grants[$grant['nid']][$op][$grant['realm']]) && in_array($grant['gid'], $checked_grants[$grant['nid']][$op][$grant['realm']]) && !empty($row["grant_$op"]['data'])) {
+                if ((isset($checked_grants[$grant['nid']][$op][$grant['realm']]) && in_array($grant['gid'], $checked_grants[$grant['nid']][$op][$grant['realm']]) || ($row['nid'] == 0 && $row['gid'] == 0 && $row['realm'] == 'all')) && !empty($row["grant_$op"]['data'])) {
                   $row["grant_$op"]['data'] .= '&prime;';
                   $row["grant_$op"]['title'] = t('This entry grants access to this node to this user.');
                 }
@@ -403,7 +415,7 @@ function devel_node_access_block($op = 'list', $delta = 0) {
 
             if ($error_count > 0) {
               $tokens['!Rebuild_permissions'] = '<a href="'. url('admin/content/node-settings/rebuild') .'">'. $tr('Rebuild permissions') .'</a>';
-              $output .= theme_item(array('#value' => '<div class="error">'. t("You have errors in your !na table! You may be able to fix these for now by running !Rebuild_permissions, but this is likely to destroy the evidence and make it impossible to identify the underlying issues. If you don't fix those, the errors will probably come back again. <br /> DON'T do this just yet if you intent to ask for help with this situation.", $tokens) .'</div>'));
+              $output .= theme_item(array('#value' => '<div class="error">'. t("You have errors in your !na table! You may be able to fix these for now by running !Rebuild_permissions, but this is likely to destroy the evidence and make it impossible to identify the underlying issues. If you don't fix those, the errors will probably come back again. <br /> DON'T do this just yet if you intend to ask for help with this situation.", $tokens) .'</div>'));
             }
 
             // explain how access is granted (code from node_access())
@@ -419,32 +431,34 @@ function devel_node_access_block($op = 'list', $delta = 0) {
               }
 
               foreach ($nids as $nid) {
-                $module = node_get_types('module', $node);
-                if ($module == 'node') {
-                  $module = 'node_content'; // Avoid function name collisions.
-                }
-                $access = module_invoke($module, 'access', 'view', $node, $user);
-                if (!empty($access)) {
-                  $output .= devel_node_access_message($nid, t('by the %module module itself.', array('%module' => $module)));
-                }
-                else {
-                  if (!empty($checked_status[$nid])) {
-                    $cgs_by_realm = array();
-                    foreach ($checked_grants[$nid]['view'] as $realm => $cg) {
-                      if (isset($cg['#module'])) {
-                        $module = $cg['#module'];
-                        unset($cg['#module']);
-                        if (!empty($module) && (strpos($realm, $module) !== 0)) {
-                          $realm = $module .':'. $realm;
+                if ($node = node_load(array('nid' => $nid))) {
+                  $module = node_get_types('module', $node);
+                  if ($module == 'node') {
+                    $module = 'node_content'; // Avoid function name collisions.
+                  }
+                  $access = module_invoke($module, 'access', 'view', $node, $user);
+                  if (!empty($access)) {
+                    $output .= devel_node_access_message($nid, t('by the %module module itself.', array('%module' => $module)));
+                  }
+                  else {
+                    if (!empty($checked_status[$nid])) {
+                      $cgs_by_realm = array();
+                      foreach ($checked_grants[$nid]['view'] as $realm => $cg) {
+                        if (isset($cg['#module'])) {
+                          $module = $cg['#module'];
+                          unset($cg['#module']);
+                          if (!empty($module) && (strpos($realm, $module) !== 0)) {
+                            $realm = $module .':'. $realm;
+                          }
                         }
+                        $cgs_by_realm[$realm] = $realm .': '. implode(', ', $cg);
                       }
-                      $cgs_by_realm[$realm] = $realm .': '. implode(', ', $cg);
-                    }
-                    if (!empty($cgs_by_realm)) {
-                      $output .= devel_node_access_message($nid, t("by one or more of the following grants (if they are present above with status '!ok'): !list", array('!list' => theme('item_list', array_values($cgs_by_realm), NULL, 'ul'), '!ok' => t('ok'))));
-                    }
-                    elseif ($user->uid == $node->uid && $user->uid != 0) {
-                      $output .= devel_node_access_message($nid, t('as author of the node.'));
+                      if (!empty($cgs_by_realm)) {
+                        $output .= devel_node_access_message($nid, t("by one or more of the following grants (if they are present above): !list", array('!list' => theme('item_list', array_values($cgs_by_realm), NULL, 'ul'))));
+                      }
+                      elseif ($user->uid == $node->uid && $user->uid != 0) {
+                        $output .= devel_node_access_message($nid, t('as author of the node.'));
+                      }
                     }
                   }
                 }
@@ -492,11 +506,17 @@ function devel_node_access_block($op = 'list', $delta = 0) {
  */
 function devel_node_access_node_access_explain($row) {
   if ($row->gid == 0 && $row->realm == 'all') {
-    if ($row->nid == 0) {
-      return 'All users may view all nodes.';
+    foreach (array('view', 'update', 'delete') as $op) {
+      $gop = 'grant_'. $op;
+      if (!empty($row->$gop)) {
+        $ops[] = $op;
+      }
+    }
+    if (empty($ops)) {
+      return '(No access granted to '. ($row->nid == 0 ? 'any nodes.)' : 'this node.)'); 
     }
     else {
-      return 'All users may view this node.';
+      return 'All users may '. implode('/', $ops) . ($row->nid == 0 ? ' all nodes.' : ' this node.');
     }
   }
 }
