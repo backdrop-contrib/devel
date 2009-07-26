@@ -3,3 +3,5 @@ name = Devel node access
 description = Developer blocks and page illustrating relevant node_access records.
 package = Development
 core = 7.x
+files[] = devel_node_access.module
+files[] = devel_node_access.install
