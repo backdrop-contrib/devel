@@ -1717,16 +1717,6 @@ function ddebug_backtrace() {
  * migration related functions
  */
 
-/**
- * Menu callback. Rebuild node _comment_stats table.
- *
- * @return void
- **/
-function devel_rebuild_node_comment_statistics_page() {
-  devel_rebuild_node_comment_statistics();
-  drupal_set_message('node_comment_statistics table has been rebuilt.');
-  drupal_goto('admin');
-}
 
 /**
  * Update node_comment_statistics table for nodes with comments.
@@ -1756,23 +1746,4 @@ function devel_table_keys($tables, $verb = 'ENABLE') {
   foreach ($tables as $table) {
     db_query("ALTER TABLE $table $verb KEYS");
   }
-}
-
-/**
- * Save contents of an url to filesystem. Works for images.
- *
- * @return void
- **/
-function wget($url, $file) {
-  if (file_exists($file)) {
-    return;
-  }
-  print "get: $url\n";
-  $ch = curl_init($url);
-  $fp = fopen($file, "w");
-  curl_setopt($ch, CURLOPT_FILE, $fp);
-  curl_setopt($ch, CURLOPT_HEADER, 0);
-  curl_exec($ch);
-  curl_close($ch);
-  fclose($fp);
 }
