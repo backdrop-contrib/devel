@@ -113,6 +113,13 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'menu_name' => 'devel',
   );
+  $items['devel/field/info'] = array(
+    'title' => 'Field info',
+    'description' => 'View fields information across the whole site.',
+    'page callback' => 'devel_field_info',
+    'access arguments' => array('access devel information'),
+    'menu_name' => 'devel',
+  );
   $items['devel/elements'] = array(
     'title' => 'Hook_elements()',
     'description' => 'View the active form/render elements for this site.',
@@ -1126,6 +1133,12 @@ function devel_theme_registry() {
   $hooks = theme_get_registry();
   ksort($hooks);
   return kprint_r($hooks, TRUE);
+}
+
+// Menu callback.
+function devel_field_info() {
+  $info = field_info_fields();
+  return kprint_r($info, TRUE);
 }
 
 /**
