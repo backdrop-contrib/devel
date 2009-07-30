@@ -256,9 +256,6 @@ function devel_devel_themer_toggle() {
  */
 function devel_theme() { // &$cache, $type, $theme, $path
   return array(
-    'devel_variable_form' => array(
-        'arguments' => array('form' => NULL)
-    ),
     'devel_querylog' => array(
       'arguments' => array('header' => array(), 'rows' => array()),
     ),
