@@ -1145,9 +1145,10 @@ function devel_field_info() {
  * Menu callback; display all variables.
  */
 function devel_variable_page() {
-  // we print our own page so as to avoid blocks
+  // We return our own $page so as to avoid blocks.
   $output = drupal_get_form('devel_variable_form');
-  $page = drupal_get_page($output);
+  drupal_set_page_content($output);
+  $page = element_info('page');
   $page['#show_blocks'] = FALSE;
   return $page;
 }
