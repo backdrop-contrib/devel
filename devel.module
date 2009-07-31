@@ -116,7 +116,7 @@ function devel_menu() {
   $items['devel/field/info'] = array(
     'title' => 'Field info',
     'description' => 'View fields information across the whole site.',
-    'page callback' => 'devel_field_info',
+    'page callback' => 'devel_field_info_page',
     'access arguments' => array('access devel information'),
     'menu_name' => 'devel',
   );
@@ -1133,7 +1133,7 @@ function devel_theme_registry() {
 }
 
 // Menu callback.
-function devel_field_info() {
+function devel_field_info_page() {
   $info = field_info_fields();
   return kprint_r($info, TRUE);
 }
