@@ -29,45 +29,51 @@ function devel_create_users($num, $kill, $age = 0) {
     list($pic_config['width'], $pic_config['height']) = explode('x', variable_get('user_picture_dimensions', '85x85'));
   }
 
-  for ($i = 0; $i < $num; $i++) {
-    $name = devel_generate_word(rand(6, 12));
-    $edit = array(
-      'name' => $name,
-      'pass' => user_password(),
-      'mail' => $name .'@'. $url['host'],
-      'status' => 1,
-      'created' => REQUEST_TIME - rand(0, $age),
-    );
-    $account = user_save(NULL, $edit);
+  if ($num > 0) {
+    $names = array();
+    while (count($names) < $num) {
+      $name = devel_generate_word(mt_rand(6, 12));
+      $names[$name] = '';
+    }
+    foreach ($names as $name => $value) {
+      $edit = array(
+        'name'    => $name,
+        'pass'    => user_password(),
+        'mail'    => $name . '@' . $url['host'],
+        'status'  => 1,
+        'created' => REQUEST_TIME - mt_rand(0, $age),
+      );
+      $account = user_save(NULL, $edit);
 
-    if ($pic_config) {
-     $im = imagecreatetruecolor($pic_config['width'], $pic_config['height']);
+      if ($pic_config) {
+       $im = imagecreatetruecolor($pic_config['width'], $pic_config['height']);
 
-      // Randomize the foreground using the md5 of the user id, then invert it
-      // for the background color so there's enough contrast to read the text.
-      $parts = array_map('hexdec', str_split(md5($account->uid), 2));
-      $fg = imagecolorallocate($im, $parts[1], $parts[3], $parts[5]);
-      $bg = imagecolorallocate($im, 255 - $parts[0], 255 - $parts[1], 255 - $parts[2]);
+        // Randomize the foreground using the md5 of the user id, then invert it
+        // for the background color so there's enough contrast to read the text.
+        $parts = array_map('hexdec', str_split(md5($account->uid), 2));
+        $fg = imagecolorallocate($im, $parts[1], $parts[3], $parts[5]);
+        $bg = imagecolorallocate($im, 255 - $parts[0], 255 - $parts[1], 255 - $parts[2]);
 
-      // Fill the background then print their user info.
-      imagefill($im, 0, 0, $bg);
-      imagestring($im, 5, 5, 5, "#" . $account->uid, $fg);
-      imagestring($im, 5, 5, 25, $account->name, $fg);
+        // Fill the background then print their user info.
+        imagefill($im, 0, 0, $bg);
+        imagestring($im, 5, 5, 5, "#" . $account->uid, $fg);
+        imagestring($im, 5, 5, 25, $account->name, $fg);
 
-      // Create an empty managed file then write the image to it.
-      $file = file_save_data('', file_create_path($pic_config['path'] . '/picture-' . $account->uid . '.png'));
-      imagepng($im, $file->filepath);
-      imagedestroy($im);
+        // Create an empty managed file then write the image to it.
+        $file = file_save_data('', file_create_path($pic_config['path'] . '/picture-' . $account->uid . '.png'));
+        imagepng($im, $file->filepath);
+        imagedestroy($im);
 
-      // Clear the cached filesize the set the owner and resave the file.
-      clearstatcache();
-      $file->uid = $account->uid;
-      $file = file_save($file);
+        // Clear the cached filesize the set the owner and resave the file.
+        clearstatcache();
+        $file->uid = $account->uid;
+        $file = file_save($file);
 
-      // Save the user record with the new picture.
-      $edit = (array) $account;
-      $edit['picture'] = $file;
-      user_save($account, $edit);
+        // Save the user record with the new picture.
+        $edit = (array) $account;
+        $edit['picture'] = $file;
+        user_save($account, $edit);
+      }
     }
   }
   drupal_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
@@ -107,7 +113,7 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
     $comment->comment_format = FILTER_FORMAT_DEFAULT;
     $comment->name = 'devel generate';
     $comment->mail = 'devel_generate@example.com';
-    $comment->timestamp = rand($node->created, REQUEST_TIME);
+    $comment->timestamp = mt_rand($node->created, REQUEST_TIME);
 
     switch ($i % 3) {
       case 1:
@@ -120,7 +126,7 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
         $comment->pid = 0;
     }
 
-    $comment->subject = devel_create_greeking(rand(1, $title_length), TRUE);
+    $comment->subject = devel_create_greeking(mt_rand(1, $title_length), TRUE);
     $comment->comment = devel_create_content();
     $comment->uid = $users[array_rand($users)];
     comment_save($comment);
@@ -133,7 +139,7 @@ function devel_generate_vocabs($records, $maxlength = 12, $types = array('story'
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
     $voc = new stdClass();
-    $voc->name = devel_generate_word(rand(2, $maxlength));
+    $voc->name = devel_generate_word(mt_rand(2, $maxlength));
     $voc->description = "description of ". $voc->name;
     // TODO: not working
     $voc->nodes = array_flip(array($types[array_rand($types)]));
@@ -145,7 +151,7 @@ function devel_generate_vocabs($records, $maxlength = 12, $types = array('story'
     $voc->required = 0;
     $voc->relations = 1;
     $voc->hierarchy = 1;
-    $voc->weight = rand(0,10);
+    $voc->weight = mt_rand(0,10);
 
     taxonomy_vocabulary_save($voc);
     $vocs[] = $voc->name;
@@ -175,9 +181,9 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
         break;
     }
 
-    $term->name = devel_generate_word(rand(2, $maxlength));
+    $term->name = devel_generate_word(mt_rand(2, $maxlength));
     $term->description = "description of ". $term->name;
-    $term->weight = rand(0,10);
+    $term->weight = mt_rand(0,10);
     $status = taxonomy_term_save($term);
     $output = NULL;
 
@@ -224,7 +230,7 @@ function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $ki
 }
 
 function devel_generate_word($length){
-  srand((double)microtime()*1000000);
+  mt_srand((double)microtime()*1000000);
 
   $vowels = array("a", "e", "i", "o", "u");
   $cons = array("b", "c", "d", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "u", "v", "w", "tr",
@@ -235,33 +241,33 @@ function devel_generate_word($length){
   $word = '';
 
   while(strlen($word) < $length){
-    $word .= $cons[rand(0, $num_cons - 1)] . $vowels[rand(0, $num_vowels - 1)];
+    $word .= $cons[mt_rand(0, $num_cons - 1)] . $vowels[mt_rand(0, $num_vowels - 1)];
   }
 
   return substr($word, 0, $length);
 }
 
 function devel_create_content($type = NULL) {
-  $nparas = rand(1,12);
-  $type = empty($type) ? rand(0,3) : $type;
+  $nparas = mt_rand(1,12);
+  $type = empty($type) ? mt_rand(0,3) : $type;
 
   $output = "";
   switch($type % 3) {
     case 1: // html
       for ($i = 1; $i <= $nparas; $i++) {
-        $output .= devel_create_para(rand(10,60),1);
+        $output .= devel_create_para(mt_rand(10,60),1);
       }
       break;
 
     case 2: // brs only
       for ($i = 1; $i <= $nparas; $i++) {
-        $output .= devel_create_para(rand(10,60),2);
+        $output .= devel_create_para(mt_rand(10,60),2);
       }
       break;
 
     default: // plain text
       for ($i = 1; $i <= $nparas; $i++) {
-        $output .= devel_create_para(rand(10,60)) ."\n\n";
+        $output .= devel_create_para(mt_rand(10,60)) ."\n\n";
       }
   }
 
@@ -325,7 +331,7 @@ function devel_create_greeking($words, $title = FALSE) {
 
   if (!$title) {
 	  while ($words > 0) {
-	    $sentence_length = rand(3,10);
+	    $sentence_length = mt_rand(3,10);
 
 	    $greeking .= ucfirst($dictionary[array_rand($dictionary)]);
 	    for ($i = 1; $i < $sentence_length; $i++) {
@@ -402,7 +408,7 @@ function devel_generate_add_upload(&$node) {
   $file->filemime = 'image/png';
   $file->list = variable_get('upload_list_default', TRUE);
   $file->description = 'b log.png was here';
-  $file->weight = rand(0,10);
+  $file->weight = mt_rand(0,10);
   $file->uid = $node->uid;
   $file->status = 0;
   $file->new = TRUE;
@@ -425,11 +431,11 @@ function devel_generate_content_kill($values) {
   foreach ($results as $result) {
     $nids[] = $result->nid;
   }
-  
+
   if (!empty($nids)) {
     node_delete_multiple($nids);
     drupal_set_message(t('Deleted %count nodes.', array('%count' => count($nids))));
-  } 
+  }
 }
 
 /**
@@ -463,18 +469,18 @@ function devel_generate_content_add_node(&$results) {
   $node->uid = $users[array_rand($users)];
 
   $type = node_type_get_type($node);
-  $node->title = $type->has_title ? devel_create_greeking(rand(1, $results['title_length']), TRUE) : '';
+  $node->title = $type->has_title ? devel_create_greeking(mt_rand(1, $results['title_length']), TRUE) : '';
   $node->body[0]['value'] = $type->has_body ? "node ($node->type) - ". devel_create_content() : '';
   $node->filter = variable_get('filter_default_format', 1);
   $node->node_format = FILTER_FORMAT_DEFAULT;
   $node->language = '';
-  $node->revision = rand(0,1);
-  $node->promote = rand(0, 1);
+  $node->revision = mt_rand(0,1);
+  $node->promote = mt_rand(0, 1);
   // Avoid NOTICE.
   if (!isset($results['time_range'])) {
     $results['time_range'] = 0;
   }
-  $node->created = REQUEST_TIME - rand(0, $results['time_range']);
+  $node->created = REQUEST_TIME - mt_rand(0, $results['time_range']);
 
   // A flag to let hook_nodeapi() implementations know that this is a generated node.
   $node->devel_generate = $results;
