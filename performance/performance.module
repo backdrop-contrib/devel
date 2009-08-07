@@ -448,19 +448,18 @@ function performance_view_details() {
 
   $rows = array();
 
-  while ($data = db_fetch_array($result)) {
+  foreach ($result as $data) {
     $row_data = array();
-
-    $row_data[] = $data['pid'];
-    $row_data[] = format_date($data['timestamp'], 'small');
-    $row_data[] = $data['path'];
-    $row_data[] = number_format($data['bytes']/1024/1024, 2);
-    $row_data[] = $data['millisecs'];
-    $row_data[] = ($data['anon']) ? t('Yes') : t('No');
+    $row_data[] = $data->pid;
+    $row_data[] = format_date($data->timestamp, 'small');
+    $row_data[] = $data->path;
+    $row_data[] = number_format($data->bytes/1024/1024, 2);
+    $row_data[] = $data->millisecs;
+    $row_data[] = ($data->anon) ? t('Yes') : t('No');
 
     if (variable_get('performance_query', 0)) {
-      $row_data[] = $data['query_count'];
-      $row_data[] = $data['query_timer'];
+      $row_data[] = $data->query_count;
+      $row_data[] = $data->query_timer;
     }
 
     $rows[] = array('data' => $row_data);
@@ -471,7 +470,7 @@ function performance_view_details() {
   }
 
   $output  = theme('table', $header, $rows);
-  $output .= theme('pager', NULL, 50, 0);
+  $output .= theme('pager', NULL, 0, NULL, 50);
 
   return $output;
 }
