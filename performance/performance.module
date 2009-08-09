@@ -1,13 +1,17 @@
 <?php
 // $Id$
 
-// Copyright Khalid Baheyeldin 2008 of http://2bits.com
+/**
+ * @file
+ * Logs detailed and/or summary page generation time and memory consumption for page requests.
+ * Copyright Khalid Baheyeldin 2008 of http://2bits.com
+ */
 
 define('PERFORMANCE_KEY', 'dru-perf:' . $_SERVER['HTTP_HOST'] . ':');
 
 function performance_menu() {
-
   $items = array();
+
   $items['admin/settings/performance_logging'] = array(
     'title'            => 'Performance logging',
     'description'      => 'Logs performance data: page generation times and memory usage.',
@@ -30,12 +34,14 @@ function performance_menu() {
     'page callback'    => 'performance_view_summary',
     'access arguments' => array('access site reports'),
   );
+
   $items['admin/reports/performance_logging_details'] = array(
     'title'            => 'Performance Logs: Details',
     'description'      => 'View detailed, per page, performance logs: page generation times and memory usage.',
     'page callback'    => 'performance_view_details',
     'access arguments' => array('access site reports'),
   );
+
   return $items;
 }
 
@@ -45,7 +51,7 @@ function performance_settings() {
     1 => t('Enabled'),
   );
 
-  if (function_exists('apc_cache_info')) {
+  if (drupal_function_exists('apc_cache_info')) {
     drupal_set_message(t('APC is enabled. It is reasonably safe to enable summary logging on live sites.'), 'status', FALSE);
   }
   else {
@@ -75,7 +81,7 @@ function performance_settings() {
   );
 
   $disabled = TRUE;
-  if (function_exists('apc_cache_info')) {
+  if (drupal_function_exists('apc_cache_info')) {
     $disabled = FALSE;
   }
 
@@ -140,13 +146,13 @@ function performance_shutdown() {
   );
 
   // Memory
-  if (function_exists('memory_get_peak_usage')) {
+  if (drupal_function_exists('memory_get_peak_usage')) {
     $params['mem'] = memory_get_peak_usage(TRUE);
   }
   else {
     $params['mem'] = 0;
   }
-  
+
   // Query time and count
   $query_count = 0;
   $query_timer = 0;
@@ -193,7 +199,7 @@ function performance_shutdown() {
   }
 
   if (variable_get('performance_summary_apc', 0)) {
-    if (function_exists('apc_cache_info')) {
+    if (drupal_function_exists('apc_cache_info')) {
       performance_log_summary_apc($params);
     }
   }
@@ -219,7 +225,7 @@ function performance_log_summary_apc($params = array()) {
   else {
     $data = array(
       'path'            => $params['path'],
-      'bytes_max'       => $params['mem'], 
+      'bytes_max'       => $params['mem'],
       'bytes_avg'       => $params['mem'],
       'millisecs_max'   => $params['timer'],
       'millisecs_avg'   => $params['timer'],
@@ -258,7 +264,7 @@ function performance_log_summary_db($params = array()) {
     $fields = array(
       'last_access'     => REQUEST_TIME,
       'num_accesses'    => 1,
-      'bytes_max'       => $params['mem'], 
+      'bytes_max'       => $params['mem'],
       'bytes_avg'       => $params['mem'],
       'millisecs_max'   => $params['timer'],
       'millisecs_avg'   => $params['timer'],
@@ -296,7 +302,7 @@ function performance_log_details($params = array()) {
 function performance_apc_list_all() {
   $key_list = array();
   $list = apc_cache_info('user');
-  foreach($list['cache_list'] as $cache_id => $cache_data) {
+  foreach ($list['cache_list'] as $cache_id => $cache_data) {
     $regex = '/^' . PERFORMANCE_KEY . '/';
     if (preg_match($regex, $cache_data['info'])) {
       $key_list[] = $cache_data['info'];
@@ -339,9 +345,9 @@ function performance_view_summary() {
 
   $data_list = array();
 
-  if (variable_get('performance_summary_apc', 0) && function_exists('apc_cache_info')) {
+  if (variable_get('performance_summary_apc', 0) && drupal_function_exists('apc_cache_info')) {
     // Get the data from the APC cache
-    foreach(performance_apc_list_all() as $key) {
+    foreach (performance_apc_list_all() as $key) {
       $data_list[] = apc_fetch($key);
     }
   }
@@ -350,14 +356,14 @@ function performance_view_summary() {
     $sql = "SELECT * FROM {performance_summary}";
     $tablesort = tablesort_sql($header);
     $result = pager_query($sql . $tablesort, 50);
-    while($row = db_fetch_array($result)) {
+    while ($row = db_fetch_array($result)) {
       $data_list[] = $row;
     }
   }
 
   $rows = array();
 
-  foreach($data_list as $data) {
+  foreach ($data_list as $data) {
     $total_rows++;
     $last_max = max($last_max, $data['last_access']);
     $last_min = min($last_min, $data['last_access']);
@@ -504,7 +510,7 @@ function performance_cron_apc_prune($timestamp = 0) {
     return;
   }
 
-  foreach($list as $key) {
+  foreach ($list as $key) {
     if ($data = apc_fetch($key)) {
       if ($data['last_access'] <= $timestamp) {
         apc_delete($key);
@@ -515,7 +521,7 @@ function performance_cron_apc_prune($timestamp = 0) {
 
 function performance_clear_apc_confirm() {
   $form['confirm'] = array(
-    '#value' => t('Confirm APC clear'), 
+    '#value' => t('Confirm APC clear'),
   );
   return confirm_form(
     $form,
@@ -539,7 +545,7 @@ function performance_clear_apc_confirm_submit($form_id, &$form) {
     return;
   }
 
-  foreach($list as $key) {
+  foreach ($list as $key) {
     if ($data = apc_fetch($key)) {
       apc_delete($key);
     }
@@ -564,7 +570,7 @@ function performance_nagios_info() {
  */
 function performance_nagios() {
   $info = performance_nagios_info();
-  $id = $info['id']; 
+  $id = $info['id'];
 
   // Find out if we have what we need enabled
   $sum = array();
@@ -587,21 +593,21 @@ function performance_nagios() {
   $total_rows = $total_bytes = $total_millisecs = $total_accesses = $total_query_time = $total_query_count = 0;
 
   // Check which data store to use
-  if (variable_get('performance_summary_apc', 0) && function_exists('apc_cache_info')) {
+  if (variable_get('performance_summary_apc', 0) && drupal_function_exists('apc_cache_info')) {
     // Get the data from the APC cache
-    foreach(performance_apc_list_all() as $key) {
+    foreach (performance_apc_list_all() as $key) {
       $data_list[] = apc_fetch($key);
     }
   }
   else {
     // Get the data form the database table for URLs that have been accessed in the last 15 minutes
     $result = db_query("SELECT * FROM {performance_summary} WHERE last_access >= %d", time() - 15*60);
-    while($row = db_fetch_array($result)) {
+    while ($row = db_fetch_array($result)) {
       $data_list[] = $row;
     }
   }
 
-  foreach($data_list as $data) {
+  foreach ($data_list as $data) {
     $total_rows++;
 
     // Calculate running averages
