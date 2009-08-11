@@ -345,7 +345,7 @@ function devel_themer_theme_twin() {
 
   static $hooks = NULL;
   if (!isset($hooks)) {
-    init_theme();
+    drupal_theme_initialize();
     $hooks = theme_get_registry();
   }
 
