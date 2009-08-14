@@ -32,7 +32,7 @@ function devel_install() {
 
   $item = array(
     'link_title' => 'Devel settings',
-    'link_path' => 'admin/settings/devel',
+    'link_path' => 'admin/config/development/devel',
     'menu_name' => 'devel',
     'module' => 'devel',
   );

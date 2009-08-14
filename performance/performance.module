@@ -12,7 +12,7 @@ define('PERFORMANCE_KEY', 'dru-perf:' . $_SERVER['HTTP_HOST'] . ':');
 function performance_menu() {
   $items = array();
 
-  $items['admin/settings/performance_logging'] = array(
+  $items['admin/config/development/performance_logging'] = array(
     'title'            => 'Performance logging',
     'description'      => 'Logs performance data: page generation times and memory usage.',
     'page callback'    => 'drupal_get_form',
@@ -20,7 +20,7 @@ function performance_menu() {
     'access arguments' => array('access administration pages'),
   );
 
-  $items['admin/settings/performance_logging/apc_clear'] = array(
+  $items['admin/config/development/performance_logging/apc_clear'] = array(
     'title'            => 'Clear APC',
     'description'      => 'Clears performance statistics collected in APC.',
     'page callback'    => 'drupal_get_form',
@@ -318,7 +318,7 @@ function performance_view_summary() {
   $go = array_sum($sum);
 
   if (!$go) {
-    return t('Summary performance log is not enabled. Go to the !link to enable it.', array('!link' => l(t('settings page'), 'admin/settings/performance_logging')));
+    return t('Summary performance log is not enabled. Go to the !link to enable it.', array('!link' => l(t('settings page'), 'admin/config/development/performance_logging')));
   }
 
   $header = array();
@@ -431,7 +431,7 @@ function performance_view_summary() {
 
 function performance_view_details() {
   if (!variable_get('performance_detail', 0)) {
-    return t('Detail performance log is not enabled. Go to the !link to enable it.', array('!link' => l(t('settings page'), 'admin/settings/performance_logging')));
+    return t('Detail performance log is not enabled. Go to the !link to enable it.', array('!link' => l(t('settings page'), 'admin/config/development/performance_logging')));
   }
 
   $header = array(
@@ -526,7 +526,7 @@ function performance_clear_apc_confirm() {
   return confirm_form(
     $form,
     t('Are you sure you want to clear the APC statistics for this site?'),
-    'admin/settings/performance_logging',
+    'admin/config/development/performance_logging',
     t('This will clear all the collected performance statistics stored in APC. This action cannot be undone.'),
     t('Clear'),
     t('Cancel'));
@@ -535,7 +535,7 @@ function performance_clear_apc_confirm() {
 function performance_clear_apc_confirm_submit($form_id, &$form) {
   if (!function_exists('apc_cache_info')) {
     drupal_set_message(t('APC is not enabled. Nothing to do ...'), 'status', FALSE);
-    drupal_goto('admin/settings/performance');
+    drupal_goto('admin/config/development/performance');
     return;
   }
 
@@ -552,7 +552,7 @@ function performance_clear_apc_confirm_submit($form_id, &$form) {
   }
 
   drupal_set_message(t('Performance statistics collected in APC has been cleared.'), 'status', FALSE);
-  drupal_goto('admin/settings/performance');
+  drupal_goto('admin/config/development/performance');
 }
 
 /**

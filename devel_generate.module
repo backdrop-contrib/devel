@@ -7,14 +7,14 @@
 function devel_generate_menu() {
   $items = array();
   
-  $items['admin/development/generate/user'] = array(
+  $items['admin/config/development/generate/user'] = array(
     'title' => 'Generate users',
     'description' => 'Generate a given number of users. Optionally delete current users.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_generate_users_form'),
     'access arguments' => array('administer users'),
   );
-  $items['admin/development/generate/content'] = array(
+  $items['admin/config/development/generate/content'] = array(
     'title' => 'Generate content',
     'description' => 'Generate a given number of nodes and comments. Optionally delete current items.',
     'page callback' => 'drupal_get_form',
@@ -22,7 +22,7 @@ function devel_generate_menu() {
     'access arguments' => array('administer nodes'),
   );
   if (module_exists('taxonomy')) {
-    $items['admin/development/generate/taxonomy'] = array(
+    $items['admin/config/development/generate/taxonomy'] = array(
       'title' => 'Generate taxonomy',
       'description' => 'Generate a given number of vocabularies and terms. Optionally delete current taxonomies.',
       'page callback' => 'drupal_get_form',

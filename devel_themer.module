@@ -6,7 +6,7 @@
 function devel_themer_menu() {
   $items = array();
 
-  $items['admin/settings/devel_themer'] = array(
+  $items['admin/config/development/devel_themer'] = array(
     'title' => 'Devel Themer',
     'description' => 'Display or hide the textual template log',
     'page callback' => 'drupal_get_form',
@@ -389,7 +389,7 @@ function devel_themer_theme_twin() {
           // @TODO:  Consider informing theme developers of theme functions were passed more arguments than
           //         were declared in the functio signature.
           //         This could be disabled by default, with an option to
-          //         enable at admin/settings/devel_themer.  Given this is a theme developer module
+          //         enable at admin/config/development/devel_themer.  Given this is a theme developer module
           //         used by implementors of theme override functions, it would probably be a useful
           //         default feature.
           $meta['variables'][] = $args[$i];

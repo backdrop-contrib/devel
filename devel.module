@@ -149,7 +149,7 @@ function devel_menu() {
     'type' => MENU_CALLBACK,
     'menu_name' => 'devel',
   );
-  $items['admin/settings/devel'] = array(
+  $items['admin/config/development/devel'] = array(
     'title' => 'Devel settings',
     'description' =>  'Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the !block page.', array('!block' => l(t('block administration'), 'admin/build/block')),
     'page callback' => 'drupal_get_form',
@@ -348,7 +348,7 @@ function devel_init() {
     if (flood_is_allowed('devel_rebuild_registry_warning', 1)) {
       flood_register_event('devel_rebuild_registry_warning');
       if (!devel_silent() && user_access('access devel information')) {
-        drupal_set_message(t('The theme registry is being rebuilt on every request. Remember to <a href="!url">turn off</a> this feature on production websites.', array("!url" => url('admin/settings/devel'))));
+        drupal_set_message(t('The theme registry is being rebuilt on every request. Remember to <a href="!url">turn off</a> this feature on production websites.', array("!url" => url('admin/config/development/devel'))));
       }
     }
   }

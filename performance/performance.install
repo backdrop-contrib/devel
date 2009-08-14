@@ -73,7 +73,7 @@ function performance_requirements($phase) {
       'title'       => t('Performance logging details'),
       'value'       => 'Enabled',
       'severity'    => REQUIREMENT_WARNING,
-      'description' => t('Performance detailed logging is !link. This can cause severe issues on live sites.', array('!link' => l(t('enabled'), 'admin/settings/performance_logging'))),
+      'description' => t('Performance detailed logging is !link. This can cause severe issues on live sites.', array('!link' => l(t('enabled'), 'admin/config/development/performance_logging'))),
     );
   }
 
@@ -85,7 +85,7 @@ function performance_requirements($phase) {
         'title'       => t('Performance logging query'),
         'value'       => 'Enabled',
         'severity'    => REQUIREMENT_WARNING,
-        'description' => t('Query timing and count logging is !link. This can cause memory size per page to be larger than normal.', array('!link' => l(t('enabled'), 'admin/settings/performance_logging'))),
+        'description' => t('Query timing and count logging is !link. This can cause memory size per page to be larger than normal.', array('!link' => l(t('enabled'), 'admin/config/development/performance_logging'))),
       );
     }
   }
