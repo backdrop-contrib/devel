@@ -208,13 +208,9 @@ function devel_generate_get_vocabs() {
 function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $kill) {
 
   if ($kill) {
-    db_query("DELETE FROM {taxonomy_term_data}");
-    db_query("DELETE FROM {taxonomy_term_node}");
-    db_query("DELETE FROM {taxonomy_term_hierarchy}");
-    db_query("DELETE FROM {taxonomy_term_relation}");
-    db_query("DELETE FROM {taxonomy_term_synonym}");
-    db_query("DELETE FROM {taxonomy_vocabulary}");
-    db_query("DELETE FROM {taxonomy_vocabulary_node_type}");
+    foreach (taxonomy_get_vocabularies() as $vid => $vocab) {
+      taxonomy_vocabulary_delete($vid);
+    }
     drupal_set_message(t('Deleted existing vocabularies and terms.'));
   }
 
