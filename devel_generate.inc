@@ -18,6 +18,7 @@ if (!ini_get('safe_mode')) {
 function devel_create_users($num, $kill, $age = 0) {
   $url = parse_url($GLOBALS['base_url']);
   if ($kill) {
+    // TODO: deal with cancel API
     db_delete('users')->condition('uid', 1, '>')->execute();
     drupal_set_message(t('Users deleted.'));
   }
@@ -395,15 +396,15 @@ function devel_generate_add_statistics($node) {
 }
 
 function devel_generate_add_upload(&$node) {
-  $source = DRUPAL_ROOT. '/misc/blog.png';
+  $source = DRUPAL_ROOT. '/misc/forum-hot.png';
 
   // $after this call, $source contains the new path.
   $file = new stdClass();
   $file->filepath = file_unmanaged_copy($source);
-  $file->filename = 'blog.png';
+  $file->filename = 'forum-hot.png';
   $file->filemime = 'image/png';
   $file->list = variable_get('upload_list_default', TRUE);
-  $file->description = 'b log.png was here';
+  $file->description = 'forum-hot.png was here';
   $file->weight = mt_rand(0,10);
   $file->uid = $node->uid;
   $file->status = 0;
