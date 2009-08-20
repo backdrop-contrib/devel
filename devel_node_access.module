@@ -29,7 +29,7 @@ function devel_node_access_help($path, $arg) {
       $output .= '<p>'. t('If you have not installed any of these modules, you really have no need for the devel_node_access module.  This module is intended for use during development, so that developers and admins can confirm that the node_access table is working as expected.  You probably do not want this module enabled on a production site.') ."</p>\n";
       $output .= '<p>'. t('This module provides two blocks.  One called Devel Node Access by User is visible when a single node is shown on a page.  This block shows which users can view, update or delete the node shown.  Note that this block uses an inefficient algorithm to produce its output.  You should only enable this block on sites with very few user accounts.') ."</p>\n";
       $output .= '<p>'. t('The second block provided by this module shows the entries in the node_access table for any nodes shown on the current page.  You can enable the debug mode on the !settings_page to display much more information, but this can cause considerable overhead.  Because the tables shown are wide, it is recommended to enable the blocks in the page footer rather than a sidebar.',
-                          array('!settings_page' => l(t('settings page'), 'admin/settings/devel', array('fragment' => 'edit-devel-node-access-debug-mode')))
+                          array('!settings_page' => l(t('settings page'), 'admin/config/development/devel', array('fragment' => 'edit-devel-node-access-debug-mode')))
                           ) ."</p>\n";
       $output .= '<p>'. t('This module also provides a !summary_page which shows general information about your node_access table.  If you have installed the Views module, you may browse node_access by realm.',
                           array('!summary_page' => l(t('summary page'), 'devel/node_access/summary'))
@@ -53,13 +53,13 @@ function devel_node_access_menu() {
 
   /* D7
   if (!module_exists('devel')) {
-    $items['admin/settings/devel'] = array(
-      'title' => 'Devel node access',
-      'description' =>  'Helper pages and blocks to assist Drupal developers and admins with node_access. The devel blocks can be managed via the Blocks (admin/build/block) page.',
+    $items['admin/config/development/devel'] = array(
+      'title' => 'Devel settings',
+      'description' =>  'Helper pages and blocks to assist Drupal developers and admins with node_access. The devel blocks can be managed via the Blocks (admin/structure/block) page.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('devel_node_access_admin_settings'),
       'access arguments' => array('administer site configuration'),
-      'type' => MENU_NORMAL_ITEM
+      'menu_name' => 'devel_node_access',
     );
   }
   /**/
@@ -73,21 +73,17 @@ function devel_node_access_admin_settings() {
 }
 
 function devel_node_access_form_alter(&$form, $form_state, $form_id) {
-  /* D7
   $t = 't';
   if ($form_id == 'devel_admin_settings' || $form_id == 'devel_node_access_admin_settings') {
     $form['devel_node_access_debug_mode'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Devel Node Access debug mode'),
       '#default_value' => variable_get('devel_node_access_debug_mode', FALSE),
-      '#description'   => t('Debug mode verifies the grants in the node_access table against those that would be set by running !Rebuild_permissions, and displays them all; this can cause considerable overhead.', array('!Rebuild_permissions' => l('['. $t('Rebuild permissions') .']', 'admin/content/node-settings'))),
+      '#description'   => t('Debug mode verifies the grants in the node_access table against those that would be set by running !Rebuild_permissions, and displays them all; this can cause considerable overhead.', array('!Rebuild_permissions' => l('['. $t('Rebuild permissions') .']', 'admin/reports/status/rebuild'))),
     );
     // push these down:
-    $form['devel_error_handler']['#weight'] = 1;
-    $form['smtp_library']['#weight'] = 1;
-    $form['buttons']['#weight'] = 2;
+    $form['buttons']['#weight'] = 1;
   }
-  /**/
 }
 
 function dna_summary() {
@@ -269,7 +265,7 @@ function devel_node_access_block_view($delta = '') {
         $all_grants = $checked_grants = $checked_status = array();
         foreach ($nids as $nid) {
           $acquired_grants_nid = array();
-          if ($node = node_load(array('nid' => $nid))) {
+          if ($node = node_load($nid)) {
             // check node_access_acquire_grants()
             $grants = _devel_node_access_module_invoke_all('node_access_records', $node);
             if (!empty($grants)) {
@@ -412,10 +408,10 @@ function devel_node_access_block_view($delta = '') {
         }
         $output = theme_table($headers, $rows, array('class' => 'system-status-report', 'style' => 'text-align: left'));
 
-        $output .= theme_item(array('#value' => '', '#description' => '(Some of the table elements provide additional information if you hover your mouse over them.)'));
+        $output .= theme_form_element(array('#value' => '', '#description' => '(Some of the table elements provide additional information if you hover your mouse over them.)', '#children' => NULL));
 
         if ($error_count > 0) {
-          $tokens['!Rebuild_permissions'] = '<a href="'. url('admin/content/node-settings/rebuild') .'">'. $tr('Rebuild permissions') .'</a>';
+          $tokens['!Rebuild_permissions'] = '<a href="'. url('admin/reports/status/rebuild') .'">'. $tr('Rebuild permissions') .'</a>';
           $output .= theme_item(array('#value' => '<div class="error">'. t("You have errors in your !na table! You may be able to fix these for now by running !Rebuild_permissions, but this is likely to destroy the evidence and make it impossible to identify the underlying issues. If you don't fix those, the errors will probably come back again. <br /> DON'T do this just yet if you intend to ask for help with this situation.", $tokens) .'</div>'));
         }
 
@@ -432,7 +428,7 @@ function devel_node_access_block_view($delta = '') {
           }
 
           foreach ($nids as $nid) {
-            if ($node = node_load(array('nid' => $nid))) {
+            if ($node = node_load($nid)) {
               $module = node_get_types('module', $node);
               if ($module == 'node') {
                 $module = 'node_content'; // Avoid function name collisions.
