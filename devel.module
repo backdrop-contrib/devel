@@ -446,7 +446,7 @@ function devel_start() {
   }
 
   // we need user_access() in the shutdown function. make sure it gets loaded
-  drupal_function_exists('user_access');
+  drupal_load('module', 'user');
   register_shutdown_function('devel_shutdown');
 }
 
@@ -769,7 +769,7 @@ function devel_shutdown_real() {
   // text/javascript, etc).  This is is advised where applicable.
   if (!isset($GLOBALS['devel_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
     // Try not to break non html pages.
-    if (drupal_function_exists('drupal_get_header')) {
+    if (function_exists('drupal_get_header')) {
       if ($headers = drupal_get_header()) {
         $formats = array('xml', 'javascript', 'json', 'plain', 'image', 'application', 'csv', 'x-comma-separated-values');
         foreach ($formats as $format) {

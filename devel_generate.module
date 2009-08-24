@@ -67,7 +67,7 @@ function devel_generate_users_form() {
 }
 
 function devel_generate_users_form_submit($form_id, &$form_state) {
-  drupal_function_exists('devel_create_users');
+  module_load_include('inc', 'devel_generate', 'devel_generate');
   devel_create_users($form_state['values']['num'], $form_state['values']['kill_users'], $form_state['values']['time_range']);
 }
 
@@ -213,7 +213,7 @@ function devel_generate_taxonomy_form() {
 }
 
 function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
-  drupal_function_exists('devel_generate_taxonomy_data');
+  module_load_include('inc', 'devel_generate', 'devel_generate');
   devel_generate_taxonomy_data($form_state['values']['num_vocab'], $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
 }
 

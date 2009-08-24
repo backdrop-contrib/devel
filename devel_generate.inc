@@ -25,7 +25,7 @@ function devel_create_users($num, $kill, $age = 0) {
   // Determine if we should create user pictures.
   $pic_config = FALSE;
   module_load_include('inc', 'system', 'image.gd');
-  if (variable_get('user_pictures', 0) && drupal_function_exists('image_gd_check_settings') && image_gd_check_settings()) {
+  if (variable_get('user_pictures', 0) && function_exists('image_gd_check_settings') && image_gd_check_settings()) {
     $pic_config['path'] = variable_get('user_picture_path', 'pictures');
     list($pic_config['width'], $pic_config['height']) = explode('x', variable_get('user_picture_dimensions', '85x85'));
   }
