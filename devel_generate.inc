@@ -47,7 +47,9 @@ function devel_create_users($num, $kill, $age = 0) {
       $account = user_save(NULL, $edit);
 
       if ($pic_config) {
-       $im = imagecreatetruecolor($pic_config['width'], $pic_config['height']);
+        // Since the image.module should scale the picture just pick an
+        // arbitrary size that it's too big for our font.
+        $im = imagecreatetruecolor(200, 200);
 
         // Randomize the foreground using the md5 of the user id, then invert it
         // for the background color so there's enough contrast to read the text.
@@ -60,14 +62,25 @@ function devel_create_users($num, $kill, $age = 0) {
         imagestring($im, 5, 5, 5, "#" . $account->uid, $fg);
         imagestring($im, 5, 5, 25, $account->name, $fg);
 
-        // Create an empty managed file then write the image to it.
-        $file = file_save_data('', file_create_path($pic_config['path'] . '/picture-' . $account->uid . '.png'));
-        imagepng($im, $file->filepath);
+
+        // Create an empty, managed file where we want the user's picture to
+        // be so we can have GD overwrite it with the image.
+        $picture_directory =  variable_get('file_default_scheme', 'public') . '://' . variable_get('user_picture_path', 'pictures');
+        $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '.png');
+        $file = file_save_data('', $destination);
+
+        // GD doesn't like stream wrapped paths so convert the URI to a normal
+        // file system path.
+        if ($wrapper = file_stream_wrapper_get_instance_by_uri($file->uri)) {
+          imagepng($im, $wrapper->realpath());
+        }
         imagedestroy($im);
 
-        // Clear the cached filesize the set the owner and resave the file.
+        // Clear the cached filesize, set the owner and MIME-type then re-save
+        // the file.
         clearstatcache();
         $file->uid = $account->uid;
+        $file->filemime = 'image/png';
         $file = file_save($file);
 
         // Save the user record with the new picture.
