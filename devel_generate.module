@@ -6,7 +6,7 @@
  */
 function devel_generate_menu() {
   $items = array();
-  
+
   $items['admin/config/development/generate/user'] = array(
     'title' => 'Generate users',
     'description' => 'Generate a given number of users. Optionally delete current users.',
@@ -72,6 +72,8 @@ function devel_generate_users_form_submit($form_id, &$form_state) {
 }
 
 function devel_generate_content_form() {
+  $options = array();
+
   if (module_exists('content')) {
     $types = content_types();
     foreach ($types as $type) {
@@ -90,6 +92,12 @@ function devel_generate_content_form() {
   }
   // we cannot currently generate valid polls.
   unset($options['poll']);
+
+  if (empty($options)) {
+    drupal_set_message(t('You do not have any content types that can be generated. <a href="@create-type">Go create a new content type</a> already!</a>', array('@create-type' => url('admin/structure/types/add'))), 'error', FALSE);
+    return;
+  }
+
   $form['node_types'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Which node types do you want to create?'),
