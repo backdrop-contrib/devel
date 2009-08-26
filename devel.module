@@ -175,6 +175,24 @@ function devel_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
   );
+  $items['comment/%comment/devel/load'] = array(
+    'title' => 'Dev load',
+    'page callback' => 'devel_load_object',
+    'page arguments' => array(1, 'comment'),
+    'access callback' => 'user_access',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
+  $items['comment/%comment/devel/render'] = array(
+    'title' => 'Dev render',
+    'page callback' => 'devel_render_object',
+    'page arguments' => array('comment', 1),
+    'access callback' => 'user_access',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
   $items['user/%user/devel/load'] = array(
     'title' => 'Dev load',
     'page callback' => 'devel_load_object',
