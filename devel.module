@@ -193,6 +193,24 @@ function devel_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
   );
+  $items['taxonomy/term/%taxonomy_term/devel/load'] = array(
+    'title' => 'Dev load',
+    'page callback' => 'devel_load_object',
+    'page arguments' => array(2, 'term'),
+    'access callback' => 'user_access',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
+  $items['taxonomy/term/%taxonomy_term/devel/render'] = array(
+    'title' => 'Dev render',
+    'page callback' => 'devel_render_term',
+    'page arguments' => array(2),
+    'access callback' => 'user_access',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
 
   return $items;
 }
@@ -1289,6 +1307,24 @@ function devel_load_object($object, $name = NULL) {
   $title = isset($object->title) ? $object->title : $object->name;
   drupal_set_title(check_plain($title));
   return kdevel_print_object($object, '$'. $name .'->');
+}
+
+
+/**
+ * Menu callback; prints the render structure of the a term.
+ */
+function devel_render_term($term) {
+  $build = array();
+  $build += field_attach_view('taxonomy_term', $term);
+  if (!empty($term->description)) {
+    $build['term_description'] = array(
+      '#markup' => filter_xss_admin($term->description),
+      '#weight' => -1,
+      '#prefix' => '<div class="taxonomy-term-description">',
+      '#suffix' => '</div>',
+    );
+  }
+  return kdevel_print_object($build, '$term->');
 }
 
 /**
