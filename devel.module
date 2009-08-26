@@ -1300,7 +1300,7 @@ function devel_render_object($type, $object) {
   // not sure why menu system doesn't give us a reasonable title here.
   drupal_set_title(check_plain($title));
   $function = $type .'_build_content';
-  $content = $function($object, FALSE, FALSE);
+  $content = $function($object);
   return kdevel_print_object($content, '$'. $type .'->');
 }
 
