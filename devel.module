@@ -756,7 +756,6 @@ function devel_exit($destination = NULL) {
       $output = t_safe('<p>The user is being redirected to <a href="@destination">@destination</a>.</p>', array('@destination' => $destination));
       drupal_set_page_content($output);
       $page = element_info('page');
-      $page['#show_blocks'] = FALSE;
       print drupal_render_page($page);
 
       // Don't allow the automatic redirect to happen.
@@ -1182,7 +1181,6 @@ function devel_variable_page() {
   $output = drupal_get_form('devel_variable_form');
   drupal_set_page_content($output);
   $page = element_info('page');
-  $page['#show_blocks'] = FALSE;
   return $page;
 }
 
