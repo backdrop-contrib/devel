@@ -482,10 +482,13 @@ function devel_generate_content_add_node(&$results) {
 
   $type = node_type_get_type($node);
   $node->title = $type->has_title ? devel_create_greeking(mt_rand(1, $results['title_length']), TRUE) : '';
-  $node->body[0][$language->language]['value'] = $type->has_body ? "node ($node->type) - ". devel_create_content() : '';
+  $node->body[0][FIELD_LANGUAGE_NONE]['value'] = $type->has_body ? "node ($node->type) - ". devel_create_content() : '';
+  $node->body[0][FIELD_LANGUAGE_NONE]['value_format'] = FILTER_FORMAT_DEFAULT;
+  $node->body[0][FIELD_LANGUAGE_NONE]['format'] = FILTER_FORMAT_DEFAULT;
+
   $node->filter = variable_get('filter_default_format', 1);
   $node->node_format = FILTER_FORMAT_DEFAULT;
-  $node->language = $language->language;
+  $node->language = '';
   $node->revision = mt_rand(0,1);
   $node->promote = mt_rand(0, 1);
   // Avoid NOTICE.
