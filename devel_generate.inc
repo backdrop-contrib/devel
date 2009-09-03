@@ -496,6 +496,10 @@ function devel_generate_content_add_node(&$results) {
 
   // A flag to let hook_nodeapi() implementations know that this is a generated node.
   $node->devel_generate = $results;
+  
+  // Populate all core fields on behalf of field.module
+  module_load_include('inc', 'devel_generate', 'devel_generate.fields');
+  cck_generate_fields($node, $node->type);
 
   // See devel_generate_nodeapi() for actions that happen before and after this save.
   node_save($node);
