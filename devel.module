@@ -548,23 +548,23 @@ function devel_permission() {
   );
 }
 
-/**
- * Implementation of hook_block_list().
- */
-function devel_block_list() {
-  $blocks[0]['info'] = t('Switch user');
-  $blocks[0]['cache'] = BLOCK_NO_CACHE;
-//     $blocks[1]['info'] = t('Devel');
-  $blocks[2]['info'] = t('Execute PHP');
-  $blocks[2]['cache'] = BLOCK_NO_CACHE;
+function devel_block_info() {
+  $blocks['execute_php'] = array(
+    'info' => t('Execute PHP'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['switch_user'] = array(
+    'info' => t('Switch user'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
 
 /**
- * Implementation of hook_block_list().
+ * Implementation of hook_block_configure().
  */
 function devel_block_configure($delta) {
-  if ($delta == 0) {
+  if ($delta == 'switch_user') {
     $form['devel_switch_user_list_size'] = array(
       '#type' => 'textfield',
       '#title' => t('Number of users to display in the list'),
@@ -577,7 +577,7 @@ function devel_block_configure($delta) {
 }
 
 function devel_block_save($delta, $edit = array()) {
-  if ($delta == 0) {
+  if ($delta == 'switch_user') {
     variable_set('devel_switch_user_list_size', $edit['devel_switch_user_list_size']);
   }
 }
@@ -585,13 +585,11 @@ function devel_block_save($delta, $edit = array()) {
 function devel_block_view($delta) {
   $block = array();
   switch ($delta) {
-    case 0:
+    case 'switch_user':
       $block = devel_block_switch_user();
       break;
-    case 1:
-      // Deleted in favor of custom menu. do not reuse this index.
-      break;
-    case 2:
+
+    case 'execute_php':
       if (user_access('execute php code')) {
         $block['subject'] = t('Execute PHP');
         $block['content'] = drupal_get_form('devel_execute_form');
@@ -842,7 +840,7 @@ function devel_shutdown_real() {
 
     if ($output) {
       // TODO: gzip this text if we are sending a gzip page. see drupal_page_header().
-      // For some reason, this is not actually printing for cached pages even though it gets executed 
+      // For some reason, this is not actually printing for cached pages even though it gets executed
       // and $output looks good.
       print $output;
     }
@@ -1226,10 +1224,10 @@ function devel_variable_form() {
     '#empty' => t('No variables.'),
   );
   $form['submit'] = array(
-    '#type' => 'submit', 
+    '#type' => 'submit',
     '#value' => t('Delete'),
   );
-  
+
     // krumo($form);
   return $form;
 }
@@ -1610,10 +1608,10 @@ function theme_devel_querylog($header = array(), $rows = array()) {
 function _devel_table_sort($a, $b) {
   $a = is_array($a[0]) ? $a[0]['data'] : $a[0];
   $b = is_array($b[0]) ? $b[0]['data'] : $b[0];
-  if ($a < $b) { 
+  if ($a < $b) {
     return 1;
   }
-  if ($a > $b) { 
+  if ($a > $b) {
     return -1;
   }
   return 0;
