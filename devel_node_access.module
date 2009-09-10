@@ -204,23 +204,28 @@ function _devel_node_access_module_invoke_all() {  // array returns only!
   return $return;
 }
 
-function devel_node_access_block_list() {
-  $blocks[0]['info'] = t('Devel Node Access');
-  $blocks[0]['status'] = 1;
-  $blocks[0]['region'] = 'footer';
-  $blocks[1]['info'] = t('Devel Node Access by User');
-  $blocks[1]['status'] = 0;
-  $blocks[1]['region'] = 'footer';
+function devel_node_access_block_info() {
+  $blocks['dna_node'] = array(
+    'info' => t('Devel Node Access'),
+    'region' => 'footer',
+    'status' => 1,
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['dna_user'] = array(
+    'info' => t('Devel Node Access by User'),
+    'region' => 'footer',
+    'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
 
-function devel_node_access_block_view($delta = '') {
+function devel_node_access_block_view($delta) {
   global $user;
   if (!user_access(DNA_ACCESS_VIEW)) {
     return;
   }
   switch ($delta) {
-    case 0:
+    case 'dna_node':
       if (!count(dna_visible_nodes())) {
         return;
       }
@@ -466,7 +471,7 @@ function devel_node_access_block_view($delta = '') {
       $subject = t('node_access entries for nodes shown on this page');
       return array('subject' => $subject, 'content' => $output .'<br /><br />');
 
-    case 1:
+    case 'dna_user':
       // show which users can access this node
       if (arg(0) == 'node' && is_numeric(arg(1))) {
         $nid = arg(1);
@@ -479,7 +484,7 @@ function devel_node_access_block_view($delta = '') {
         // anyone is up for that please submit a patch.
         $result = db_query_range('SELECT DISTINCT u.* FROM {users} u ORDER BY u.access DESC', 0, 10);
         while ($data = db_fetch_object($result)) {
-          $account = user_load(array('uid' => $data->uid));
+          $account = user_load($data->uid);
           $rows[] = array(theme('username', $data),
                           theme('dna_permission', node_access('view', $node, $account)),
                           theme('dna_permission', node_access('update', $node, $account)),
