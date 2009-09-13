@@ -318,7 +318,7 @@ function performance_view_summary() {
   $go = array_sum($sum);
 
   if (!$go) {
-    return t('Summary performance log is not enabled. Go to the !link to enable it.', array('!link' => l(t('settings page'), 'admin/config/development/performance_logging')));
+    return t('Summary performance log is not enabled. Go to the <a href="@link">settings page</a> to enable it.', array('@link' => url('admin/config/development/performance_logging')));
   }
 
   $header = array();
@@ -431,7 +431,7 @@ function performance_view_summary() {
 
 function performance_view_details() {
   if (!variable_get('performance_detail', 0)) {
-    return t('Detail performance log is not enabled. Go to the !link to enable it.', array('!link' => l(t('settings page'), 'admin/config/development/performance_logging')));
+    return t('Detail performance log is not enabled. Go to the <a href="@link">settings page</a> to enable it.', array('@link' => url('admin/config/development/performance_logging')));
   }
 
   $header = array(

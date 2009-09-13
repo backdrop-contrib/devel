@@ -28,11 +28,11 @@ function devel_node_access_help($path, $arg) {
       $output .= '<p>'. t('The node_access table is one method Drupal provides to hide content from some users while displaying it to others.  By default, Drupal shows all nodes to all users.  There are a number of optional modules which may be installed to hide content from some users.') ."</p>\n";
       $output .= '<p>'. t('If you have not installed any of these modules, you really have no need for the devel_node_access module.  This module is intended for use during development, so that developers and admins can confirm that the node_access table is working as expected.  You probably do not want this module enabled on a production site.') ."</p>\n";
       $output .= '<p>'. t('This module provides two blocks.  One called Devel Node Access by User is visible when a single node is shown on a page.  This block shows which users can view, update or delete the node shown.  Note that this block uses an inefficient algorithm to produce its output.  You should only enable this block on sites with very few user accounts.') ."</p>\n";
-      $output .= '<p>'. t('The second block provided by this module shows the entries in the node_access table for any nodes shown on the current page.  You can enable the debug mode on the !settings_page to display much more information, but this can cause considerable overhead.  Because the tables shown are wide, it is recommended to enable the blocks in the page footer rather than a sidebar.',
-                          array('!settings_page' => l(t('settings page'), 'admin/config/development/devel', array('fragment' => 'edit-devel-node-access-debug-mode')))
+      $output .= '<p>'. t('The second block provided by this module shows the entries in the node_access table for any nodes shown on the current page.  You can enable the debug mode on the <a href="@settings_page">settings page</a> to display much more information, but this can cause considerable overhead.  Because the tables shown are wide, it is recommended to enable the blocks in the page footer rather than a sidebar.',
+                          array('@settings_page' => url('admin/config/development/devel', array('fragment' => 'edit-devel-node-access-debug-mode')))
                           ) ."</p>\n";
-      $output .= '<p>'. t('This module also provides a !summary_page which shows general information about your node_access table.  If you have installed the Views module, you may browse node_access by realm.',
-                          array('!summary_page' => l(t('summary page'), 'devel/node_access/summary'))
+      $output .= '<p>'. t('This module also provides a <a href="@summary_page">summary page</a> which shows general information about your node_access table.  If you have installed the Views module, you may browse node_access by realm.',
+                          array('@summary_page' => url('devel/node_access/summary'))
                           ) ."</p>\n";
       $output .= '<p>'. t('') ."</p>\n";
       return $output;
@@ -73,13 +73,13 @@ function devel_node_access_admin_settings() {
 }
 
 function devel_node_access_form_alter(&$form, $form_state, $form_id) {
-  $t = 't';
+  $tr = 't';
   if ($form_id == 'devel_admin_settings' || $form_id == 'devel_node_access_admin_settings') {
     $form['devel_node_access_debug_mode'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Devel Node Access debug mode'),
       '#default_value' => variable_get('devel_node_access_debug_mode', FALSE),
-      '#description'   => t('Debug mode verifies the grants in the node_access table against those that would be set by running !Rebuild_permissions, and displays them all; this can cause considerable overhead.', array('!Rebuild_permissions' => l('['. $t('Rebuild permissions') .']', 'admin/reports/status/rebuild'))),
+      '#description'   => t('Debug mode verifies the grants in the node_access table against those that would be set by running !Rebuild_permissions, and displays them all; this can cause considerable overhead.', array('!Rebuild_permissions' => l('['. $tr('Rebuild permissions') .']', 'admin/reports/status/rebuild'))),
     );
     // push these down:
     $form['buttons']['#weight'] = 1;
@@ -421,9 +421,9 @@ function devel_node_access_block_view($delta) {
         }
 
         // explain how access is granted (code from node_access())
-        $t = 't';
+        $tr = 't';
         if (user_access('administer nodes')) {
-          $output .= t('This user has the %administer_nodes permission and thus full access to all nodes.', array('%administer_nodes' => $t('administer nodes')));
+          $output .= t('This user has the %administer_nodes permission and thus full access to all nodes.', array('%administer_nodes' => $tr('administer nodes')));
         }
         else {
 
