@@ -409,19 +409,24 @@ function devel_generate_add_statistics($node) {
 }
 
 function devel_generate_add_upload(&$node) {
-  $source = DRUPAL_ROOT. '/misc/forum-hot.png';
+  // Pick a random PNG to attach.
+  $files = file_scan_directory(DRUPAL_ROOT. '/misc', '/^.*\.png$/');
+  $source = $files[array_rand($files)];
 
-  // $after this call, $source contains the new path.
+  // Setup the file object.
   $file = new stdClass();
-  $file->filepath = file_unmanaged_copy($source);
-  $file->filename = 'forum-hot.png';
+  $file->uri = file_unmanaged_copy($source->uri);
+  $file->filename = $source->filename;
   $file->filemime = 'image/png';
-  $file->list = variable_get('upload_list_default', TRUE);
-  $file->description = 'forum-hot.png was here';
-  $file->weight = mt_rand(0,10);
   $file->uid = $node->uid;
-  $file->status = 0;
+  $file->status = FILE_STATUS_PERMANENT;
+
+  // Data for upload.module.
+  $file->list = variable_get('upload_list_default', TRUE);
+  $file->description = $source->name . ' was here';
+  $file->weight = mt_rand(0,10);
   $file->new = TRUE;
+
   $file = file_save($file);
   $node->files[$file->fid] = $file;
 }
