@@ -71,7 +71,7 @@ function devel_create_users($num, $kill, $age = 0) {
 
         // GD doesn't like stream wrapped paths so convert the URI to a normal
         // file system path.
-        if ($wrapper = file_stream_wrapper_get_instance_by_uri($file->uri)) {
+        if (isset($file) && $wrapper = file_stream_wrapper_get_instance_by_uri($file->uri)) {
           imagepng($im, $wrapper->realpath());
         }
         imagedestroy($im);
@@ -131,10 +131,10 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
 
     switch ($i % 3) {
       case 1:
-        $comment->pid = db_result(db_query_range("SELECT cid FROM {comment} WHERE pid = 0 AND nid = :nid ORDER BY RAND()", array(':nid' => $comment->nid), 0, 1));
+        $comment->pid = db_query_range("SELECT cid FROM {comment} WHERE pid = 0 AND nid = :nid ORDER BY RAND()", 0, 1, array(':nid' => $comment->nid))->fetchField();
         break;
       case 2:
-        $comment->pid = db_result(db_query("SELECT cid FROM {comment} WHERE pid > 0 AND nid = :nid ORDER BY RAND()", array(':nid' => $comment->nid), 0, 1));
+        $comment->pid = db_query_range("SELECT cid FROM {comment} WHERE pid > 0 AND nid = :nid ORDER BY RAND()", 0, 1, array(':nid' => $comment->nid))->fetchField();
         break;
       default:
         $comment->pid = 0;
@@ -189,7 +189,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
         break;
       case 2:
       default:
-        $parent = db_fetch_object(db_query_range("SELECT t.tid, v.vid FROM {taxonomy_term_data} t INNER JOIN {taxonomy_vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1));
+        $parent = db_query_range("SELECT t.tid, v.vid FROM {taxonomy_term_data} t INNER JOIN {taxonomy_vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1)->fetchObject();
         $term->parent = array($parent->tid);
         $term->vid = $parent->vid;
         break;
@@ -386,8 +386,8 @@ function devel_generate_add_terms(&$node) {
 function devel_get_users() {
   $users = array();
   $result = db_query_range("SELECT uid FROM {users}", 0, 50);
-  while($user = db_fetch_object($result)){
-    $users[] = $user->uid;
+  foreach ($result as $record) {
+    $users[] = $record->uid;
   }
   return $users;
 }
@@ -472,7 +472,7 @@ function devel_generate_content_pre_node(&$results) {
  */
 function devel_generate_content_add_node(&$results) {
   global $language;
-  
+
   // Insert new data:
   $node->type = array_rand($results['node_types']);
   module_load_include('inc', 'node', 'node.pages');
@@ -496,7 +496,7 @@ function devel_generate_content_add_node(&$results) {
 
   // A flag to let hook_nodeapi() implementations know that this is a generated node.
   $node->devel_generate = $results;
-  
+
   // Populate all core fields on behalf of field.module
   module_load_include('inc', 'devel_generate', 'devel_generate.fields');
   cck_generate_fields($node, $node->type);

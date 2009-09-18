@@ -1190,15 +1190,20 @@ function devel_variable_form() {
     'edit' => array('data' => t('Operations')),
   );
   // TODO: we could get variables out of $conf but that would include hard coded ones too. ideally i would highlight overrridden/hard coded variables
+  $query = db_select('variable', 'v')->extend('TableSort');
+  $query->fields('v', array('name', 'value'));
   switch (db_driver()) {
     case 'mssql':
-      $sql = "SELECT *, COL_LENGTH('{variable}', 'value') AS length FROM {variable}";
+      $query->addExpression("COL_LENGTH('{variable}', 'value')", 'length');
       break;
     default:
-      $sql = "SELECT v.*, LENGTH(v.value) AS length FROM {variable} v";
+      $query->addExpression("CONVERT(LENGTH(v.value), UNSIGNED INTEGER)", 'length');
       break;
   }
-  $result = db_query($sql. tablesort_sql($header));
+  $result = $query
+    ->orderByHeader($header)
+    ->execute();
+
   foreach ($result as $row) {
     // $variables[$row->name] = '';
     $options[$row->name]['name'] = check_plain($row->name);
