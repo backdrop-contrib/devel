@@ -631,7 +631,7 @@ function devel_switch_user_list() {
       $where_sql = implode(' OR ', $where);
       $users = db_query_range("SELECT DISTINCT u.uid, u.name, u.access FROM {users} u LEFT JOIN {users_roles} r ON u.uid = r.uid WHERE $where_sql ORDER BY u.access DESC", 0, $list_size);
     }
-    while ($user = db_fetch_object($users)) {
+    foreach ($users as $user) {
       $links[$user->uid] = array(
         'title' => theme('placeholder', $user->name),
         'href' => 'devel/switch/'. $user->name,
@@ -644,7 +644,10 @@ function devel_switch_user_list() {
     if ($num_links < $list_size) {
       // If we don't have enough, add distinct uids until we hit $list_size.
       $users = db_query_range('SELECT uid, name, access FROM {users} WHERE uid > 0 AND uid NOT IN ('. implode(',', array_keys($links)) .') ORDER BY access DESC', 0, $list_size - $num_links);
-      while (($user = db_fetch_object($users)) && count($links) < $list_size) {
+      foreach ($users as $user) {
+        if (count($links) >= $list_size) {
+          break;
+        }
         $links[$user->uid] = array(
           'title' => $user->name ? $user->name : 'anon',
           'href' => 'devel/switch/'. $user->name,
@@ -1119,7 +1122,7 @@ function devel_menu_rebuild() {
 /**
  * Display a dropdown of installed modules with the option to reinstall them.
  */
-function devel_reinstall($form_state) {
+function devel_reinstall($form, &$form_state) {
   $output = '';
   $modules = module_list();
   sort($modules);
@@ -1243,7 +1246,7 @@ function devel_variable_form_submit($form, &$form_state) {
   drupal_set_message(format_plural(count($deletes), 'One variable deleted.', '@count variables deleted.'));
 }
 
-function devel_variable_edit($form_state, $name) {
+function devel_variable_edit($form, &$form_state, $name) {
   $value = variable_get($name, 'not found');
   $form['name'] = array(
     '#type' => 'value',
