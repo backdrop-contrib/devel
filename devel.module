@@ -1327,7 +1327,7 @@ function devel_switch_user($name = NULL) {
  */
 function devel_load_object($object, $name = NULL) {
   $title = isset($object->title) ? $object->title : $object->name;
-  drupal_set_title(check_plain($title));
+  drupal_set_title($title);
   return kdevel_print_object($object, '$'. $name .'->');
 }
 
@@ -1356,7 +1356,7 @@ function devel_render_object($type, $object) {
   $output = '';
   $title = isset($object->title) ? $object->title : $object->name;
   // not sure why menu system doesn't give us a reasonable title here.
-  drupal_set_title(check_plain($title));
+  drupal_set_title($title);
   $function = $type .'_build_content';
   $content = $function($object);
   return kdevel_print_object($content, '$'. $type .'->');
