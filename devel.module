@@ -149,6 +149,14 @@ function devel_menu() {
     'type' => MENU_CALLBACK,
     'menu_name' => 'devel',
   );
+  $items['devel/run-cron'] = array(
+    'title' => 'Run cron',
+    'page callback' => 'system_run_cron',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+    'menu_name' => 'devel',
+  );
   $items['admin/config/development/devel'] = array(
     'title' => 'Devel settings',
     'description' =>  'Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the <a href="@block">block administration</a> page.', array('@block' => url('admin/build/block')),

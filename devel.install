@@ -22,21 +22,6 @@ function devel_install() {
     ))
     ->execute();
 
-  $item = array(
-    'link_title' => 'Run cron',
-    'link_path' => 'admin/reports/status/run-cron',
-    'menu_name' => 'devel',
-    'module' => 'devel',
-  );
-  menu_link_save($item);
-
-  $item = array(
-    'link_title' => 'Devel settings',
-    'link_path' => 'admin/config/development/devel',
-    'menu_name' => 'devel',
-    'module' => 'devel',
-  );
-  menu_link_save($item);
   return array();
 }
 
@@ -54,9 +39,23 @@ function devel_uninstall() {
   variable_del('dev_mem');
   variable_del('devel_error_handler');
 
-  // TODO: Not necessary if core cleans up after self.
-  db_query("DELETE FROM {menu_custom} WHERE menu_name = 'devel'");
-  db_query("DELETE FROM {menu_links} WHERE module = 'devel'");
+  // TODO: Not necessary if core cleans up after self or had proper menu APIs.
+  db_delete('menu_links')
+    ->condition('menu_name', 'devel')
+    ->execute();
+  db_delete('menu_custom')
+    ->condition('menu_name', 'devel')
+    ->execute();
+  if (module_exists('block')) {
+    db_delete('block')
+      ->condition('module', 'menu')
+      ->condition('delta', 'devel')
+      ->execute();
+    db_delete('block_role')
+      ->condition('module', 'menu')
+      ->condition('delta', 'devel')
+      ->execute();
+  }
 }
 
 /**
@@ -151,5 +150,15 @@ function devel_update_7000() {
   $ret = array();
   db_drop_table($ret, 'devel_queries');
   db_drop_table($ret, 'devel_times');
+  return $ret;
+}
+
+/**
+ * Rebuild the menus since everything is defined by devel_menu().
+ */
+function devel_update_7001() {
+  $ret = array();
+  $ret[] = update_sql("DELETE FROM {menu_links} WHERE module = 'devel'");
+  variable_set('menu_rebuild_needed', TRUE);
   return $ret;
 }
