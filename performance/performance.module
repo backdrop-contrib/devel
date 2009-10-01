@@ -51,7 +51,7 @@ function performance_settings() {
     1 => t('Enabled'),
   );
 
-  if (drupal_function_exists('apc_cache_info')) {
+  if (function_exists('apc_cache_info')) {
     drupal_set_message(t('APC is enabled. It is reasonably safe to enable summary logging on live sites.'), 'status', FALSE);
   }
   else {
@@ -81,7 +81,7 @@ function performance_settings() {
   );
 
   $disabled = TRUE;
-  if (drupal_function_exists('apc_cache_info')) {
+  if (function_exists('apc_cache_info')) {
     $disabled = FALSE;
   }
 
@@ -146,7 +146,7 @@ function performance_shutdown() {
   );
 
   // Memory
-  if (drupal_function_exists('memory_get_peak_usage')) {
+  if (function_exists('memory_get_peak_usage')) {
     $params['mem'] = memory_get_peak_usage(TRUE);
   }
   else {
@@ -199,7 +199,7 @@ function performance_shutdown() {
   }
 
   if (variable_get('performance_summary_apc', 0)) {
-    if (drupal_function_exists('apc_cache_info')) {
+    if (function_exists('apc_cache_info')) {
       performance_log_summary_apc($params);
     }
   }
@@ -311,6 +311,40 @@ function performance_apc_list_all() {
   return $key_list;
 }
 
+/**
+ * Custom sort for summary performance report
+ *
+ * @param $x
+ * @param $y
+ * @return int
+ */
+function performance_summary_sort($x, $y) {
+
+  $epsilon = 1E-8; // arbitrary (mostly)
+
+  $column = $x['sql']; // N.B.: === $y['sql']
+  // These arrays only contain integer and float values, so can use "-"
+  $diff = $x[$column] - $y[$column];
+
+  // Specific floating-point equality test
+  if (gettype($x[$column]) == 'float') {
+    if (abs($diff) < $epsilon) {
+      return 0;
+    }
+  }
+
+  if ($diff === 0) { // Will never happen for floats
+    return 0;
+  }
+  else {
+    $ret = ($diff < 0) ? -1 : 1;
+    if ($x['sort'] == 'desc') {
+      $ret = - $ret;
+    }
+    return $ret;
+  }
+}
+
 function performance_view_summary() {
   $sum = array();
   $sum[] = variable_get('performance_summary_db', 0);
@@ -345,11 +379,14 @@ function performance_view_summary() {
 
   $data_list = array();
 
-  if (variable_get('performance_summary_apc', 0) && drupal_function_exists('apc_cache_info')) {
+  if (variable_get('performance_summary_apc', 0) && function_exists('apc_cache_info')) {
+    $tablesort = tablesort_init($header);
+
     // Get the data from the APC cache
     foreach (performance_apc_list_all() as $key) {
-      $data_list[] = apc_fetch($key);
+      $data_list[] = apc_fetch($key) + $tablesort;
     }
+    usort($data_list, 'performance_summary_sort');
   }
   else {
     // Get the data form the database table
@@ -424,7 +461,7 @@ function performance_view_summary() {
   $output .= t('Last access: !access.',  array('!access' => format_date($last_max, 'small'))) . '<br/>';
 
   $output .= theme('table', $header, $rows);
-  $output .= theme('pager', NULL, 50, 0);
+  $output .= theme('pager', 50, 0);
 
   return $output;
 }
@@ -593,7 +630,7 @@ function performance_nagios() {
   $total_rows = $total_bytes = $total_millisecs = $total_accesses = $total_query_time = $total_query_count = 0;
 
   // Check which data store to use
-  if (variable_get('performance_summary_apc', 0) && drupal_function_exists('apc_cache_info')) {
+  if (variable_get('performance_summary_apc', 0) && function_exists('apc_cache_info')) {
     // Get the data from the APC cache
     foreach (performance_apc_list_all() as $key) {
       $data_list[] = apc_fetch($key);
