@@ -440,7 +440,7 @@ function devel_themer_theme_twin() {
       // call_user_func_array.
       $args = array(&$variables, $hook);
       foreach ($info['preprocess functions'] as $preprocess_function) {
-        if (drupal_function_exists($preprocess_function)) {
+        if (function_exists($preprocess_function)) {
           call_user_func_array($preprocess_function, $args);
         }
       }
@@ -491,7 +491,7 @@ function devel_themer_exit() {
 
     $GLOBALS['devel_theme_calls']['request_id'] = $request_id;
     $GLOBALS['devel_theme_calls']['devel_themer_uri'] = url("devel_themer/variables/$request_id");
-    print '<script type="text/javascript">jQuery.extend(Drupal.settings, '.  drupal_to_js($GLOBALS['devel_theme_calls']) .");</script>\n";
+    print '<script type="text/javascript">jQuery.extend(Drupal.settings, '.  drupal_json_encode($GLOBALS['devel_theme_calls']) .");</script>\n";
   }
 }
 
