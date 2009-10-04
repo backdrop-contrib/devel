@@ -48,7 +48,7 @@ function devel_themer_menu() {
  * A chunk of HTML with the devel_print_object() rendering of the variables.
  */
 function devel_themer_ajax_variables($request_id, $call) {
-  $file = file_directory_temp(). "/devel_themer_$request_id";
+  $file = file_directory_path('temporary') . "/devel_themer_$request_id";
   if ($data = unserialize(file_get_contents($file))) {
     $variables = $data[$call]['variables'];
     if (has_krumo()) {
@@ -487,7 +487,7 @@ function devel_themer_exit() {
     // Write the variables information to the a file. It will be retrieved on demand via AJAX.
     // We used to write this to DB but was getting 'Warning: Got a packet bigger than 'max_allowed_packet' bytes'
     // Writing to temp dir means we don't worry about folder existence/perms and cleanup is free.
-    file_put_contents(file_directory_temp(). "/devel_themer_$request_id", serialize($GLOBALS['devel_themer_server']));
+    file_put_contents(file_directory_path('temporary') . "/devel_themer_$request_id", serialize($GLOBALS['devel_themer_server']));
 
     $GLOBALS['devel_theme_calls']['request_id'] = $request_id;
     $GLOBALS['devel_theme_calls']['devel_themer_uri'] = url("devel_themer/variables/$request_id");
@@ -602,7 +602,7 @@ EOT;
  *   void.
  */
 function devel_themer_cleanup() {
-  foreach (array_keys(file_scan_directory(file_directory_temp(), 'devel_themer_*', array('.', '..', 'CVS'), 0, FALSE)) as $file) {
+  foreach (array_keys(file_scan_directory(file_directory_path('temporary'), 'devel_themer_*', array('.', '..', 'CVS'), 0, FALSE)) as $file) {
     file_delete($file);
   }
 }
