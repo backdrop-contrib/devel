@@ -124,7 +124,7 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
   for ($i = 1; $i <= $num_comments; $i++) {
     $comment->nid = $node->nid;
     $comment->cid = NULL;
-    $comment->comment_format = FILTER_FORMAT_DEFAULT;
+    $comment->comment_format = filter_default_format();
     $comment->name = 'devel generate';
     $comment->mail = 'devel_generate@example.com';
     $comment->timestamp = mt_rand($node->created, REQUEST_TIME);
@@ -147,7 +147,7 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
   }
 }
 
-function devel_generate_vocabs($records, $maxlength = 12, $types = array('story', 'blog', 'forum', 'page')) {
+function devel_generate_vocabs($records, $maxlength = 12, $types = array('page', 'article')) {
   $vocs = array();
 
   // Insert new data:
@@ -212,11 +212,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
 
 function devel_generate_get_vocabs() {
   $vocs = array();
-  $result = db_query("SELECT vid FROM {taxonomy_vocabulary}");
-  while($voc = db_fetch_object($result)){
-    $vocs[] = $voc->vid;
-  }
-  return $vocs;
+  return db_query("SELECT vid FROM {taxonomy_vocabulary}")->fetchCol();
 }
 
 function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $kill) {
@@ -368,8 +364,8 @@ function devel_generate_add_terms(&$node) {
   $vocabs = taxonomy_get_vocabularies($node->type);
   foreach ($vocabs as $vocab) {
     $sql = "SELECT tid FROM {taxonomy_term_data} WHERE vid = :vid ORDER BY RAND()";
-    $result = db_query_range($sql, array(':vid' => $vocab->vid), 0, 5);
-    while ($row = db_fetch_object($result)) {
+    $result = db_query_range($sql, 0, 5 , array(':vid' => $vocab->vid));
+    foreach($result as $row) {
       $node->taxonomy[] = $row->tid;
       if (!$vocab->multiple) {
         break;
@@ -472,6 +468,7 @@ function devel_generate_content_pre_node(&$results) {
  */
 function devel_generate_content_add_node(&$results) {
   global $language;
+  $node = new StdClass();
 
   // Insert new data:
   $node->type = array_rand($results['node_types']);
@@ -479,12 +476,11 @@ function devel_generate_content_add_node(&$results) {
   node_object_prepare($node);
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
-
   $type = node_type_get_type($node);
   $node->title = $type->has_title ? devel_create_greeking(mt_rand(1, $results['title_length']), TRUE) : '';
 
   $node->filter = variable_get('filter_default_format', 1);
-  $node->node_format = FILTER_FORMAT_DEFAULT;
+  $node->node_format = filter_default_format();
   $node->language = '';
   $node->revision = mt_rand(0,1);
   $node->promote = mt_rand(0, 1);
