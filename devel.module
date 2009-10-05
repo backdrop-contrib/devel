@@ -376,8 +376,17 @@ function devel_init() {
       devel_set_handler(variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD));
       // We want to include the class early so that anyone may call krumo() as needed. See http://krumo.sourceforge.net/
       has_krumo();
-      // See http://www.firephp.org/
-      $path = './'. drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/fb.php';
+      
+      // See http://www.firephp.org/.
+      // Support Libraries API - http://drupal.org/project/libraries
+      if (module_exists('libraries') && file_exists(libraries_get_path('FirePHPCore') . '/lib/FirePHPCore/fb.php')) {
+        $path = libraries_get_path('FirePHPCore') . '/lib/FirePHPCore/fb.php';
+      }
+      else {
+        $path = './'. drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/fb.php';
+      }
+      require_once($path);
+      
       if (file_exists($path)) {
         include_once $path;
       }
