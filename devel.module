@@ -379,14 +379,12 @@ function devel_init() {
       
       // See http://www.firephp.org/.
       // Support Libraries API - http://drupal.org/project/libraries
-      if (module_exists('libraries') && file_exists(libraries_get_path('FirePHPCore') . '/lib/FirePHPCore/fb.php')) {
+      if (module_exists('libraries')) {
         $path = libraries_get_path('FirePHPCore') . '/lib/FirePHPCore/fb.php';
       }
       else {
         $path = './'. drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/fb.php';
       }
-      require_once($path);
-      
       if (file_exists($path)) {
         include_once $path;
       }
