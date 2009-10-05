@@ -21,8 +21,6 @@ function devel_install() {
       'description' => 'Development links',
     ))
     ->execute();
-
-  return array();
 }
 
  /**
@@ -69,96 +67,19 @@ function devel_disable() {
   }
 }
 
-/**
- * Do update 1 again as the hook_install() was missing and new
- * installations are not having the weight set.
- */
-function devel_update_2() {
-  // New module weights in core: put devel as the very last in the chain.
-  $ret = array();
-  $ret[] = update_sql('UPDATE {system} SET weight = 10 WHERE name = "devel"');
-  return $ret;
-}
-
-function devel_update_3() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysqli':
-    case 'mysql':
-      $sql = "CREATE TABLE {devel_queries} (
-        qid int(10) NOT NULL auto_increment,
-        query varchar(255) NOT NULL default '',
-        hash varchar(255) NOT NULL default '',
-        PRIMARY KEY (`hash`),
-        KEY qid (qid)
-        ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
-      $ret[] = update_sql($sql);
-
-      $sql = "CREATE TABLE {devel_times} (
-        tid int(10) NOT NULL auto_increment,
-        qid int(10) NOT NULL default 0,
-        time float default NULL,
-        PRIMARY KEY (tid),
-        KEY qid (qid)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;";
-      $ret[] = update_sql($sql);
-      return $ret;
-  }
-}
-
-function devel_update_4() {
-  $ret = array();
-
-  db_add_field($ret, 'devel_queries', 'function', array('type' => 'varchar', 'length' => 255, 'not null' => true, 'default' => ''));
-
-  return $ret;
-}
-
-function devel_update_5() {
-  $ret = array();
-
-  db_change_field($ret, 'devel_queries', 'query', 'query text', array('type' => 'varchar', 'length' => 255, 'not null' => true, 'default' => ''));
-
-  return $ret;
-}
-
-function devel_update_6001() {
-  // Create our menu. See menu.install for an example.
-  $ret[] = update_sql("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('%s', '%s', '%s')", 'devel', 'Development', 'Development links.');
-  return $ret;
-}
-
-function devel_update_6002() {
-  $item = array(
-    'link_title' => 'Run cron',
-    'link_path' => 'admin/reports/status/run-cron',
-    'menu_name' => 'devel',
-    'module' => 'devel',
-  );
-  menu_link_save($item);
-  return array();
-}
-
-function devel_update_6003() {
-  // Another try. update_sql() does not support printf args. See http://drupal.org/node/36324
-  $ret[] = update_sql("DELETE FROM {menu_custom} WHERE menu_name = 'devel' OR menu_name = ''");
-  $ret[] = update_sql("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('devel', 'Development', 'Development links')");
-  return $ret;
-}
-
 // Remove feature for storing queries. Cleanup deprecated tables and variables.
 function devel_update_7000() {
-  $ret = array();
-  db_drop_table($ret, 'devel_queries');
-  db_drop_table($ret, 'devel_times');
-  return $ret;
+  db_drop_table('devel_queries');
+  db_drop_table('devel_times');
+  return t('Removed support for logging queries to database.');
 }
 
 /**
  * Rebuild the menus since everything is defined by devel_menu().
  */
 function devel_update_7001() {
-  $ret = array();
-  $ret[] = update_sql("DELETE FROM {menu_links} WHERE module = 'devel'");
+  db_delete('menu_links')
+    ->condition('module', 'devel');
   variable_set('menu_rebuild_needed', TRUE);
-  return $ret;
+  return t('Devel module menu links will be rebuilt.');
 }
