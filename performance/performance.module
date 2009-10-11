@@ -352,7 +352,8 @@ function performance_view_summary() {
   $go = array_sum($sum);
 
   if (!$go) {
-    return t('Summary performance log is not enabled. Go to the <a href="@link">settings page</a> to enable it.', array('@link' => url('admin/config/development/performance_logging')));
+    return t('Summary performance log is not enabled. Go to the <a href="!link">settings page</a> to enable it.', 
+      array('!link' => url('admin/config/development/performance_logging')));
   }
 
   $header = array();
@@ -378,7 +379,7 @@ function performance_view_summary() {
   $threshold = variable_get('performance_threshold_accesses', 0);
 
   $data_list = array();
-
+  $pager_height = 50;
   if (variable_get('performance_summary_apc', 0) && function_exists('apc_cache_info')) {
     $tablesort = tablesort_init($header);
 
@@ -387,12 +388,30 @@ function performance_view_summary() {
       $data_list[] = apc_fetch($key) + $tablesort;
     }
     usort($data_list, 'performance_summary_sort');
+    
+    // Set up pager since this is not done automatically when not using DB
+    $page = isset($_GET['page']) ? $_GET['page'] : 0; // unsafe
+    $page = sprintf('%d', $page); // now safe
+    
+    global 
+      $pager_page_array,  // array of element-keyed current page - 1
+      $pager_total,       // array of element-keyed total number of pages
+      $pager_total_items, // array of element-keyed total number of data rows 
+      $pager_limits;      // array of element-keyed number of rows per page
+    
+    $pager_page_array  = array(0 => $page);
+    $pager_total_items = array(0 => count($data_list));
+    $pager_limits      = array(0 => $pager_height);
+    $pager_total       = array(0 => ceil($pager_total_items[0] / $pager_limits[0]));
+    
+    // Extract the data subset we need
+    $data_list = array_slice($data_list, $page * $pager_height, $pager_height);
   }
   else {
     // Get the data form the database table
     $sql = "SELECT * FROM {performance_summary}";
     $tablesort = tablesort_sql($header);
-    $result = pager_query($sql . $tablesort, 50);
+    $result = pager_query($sql . $tablesort, $pager_height);
     while ($row = db_fetch_array($result)) {
       $data_list[] = $row;
     }
@@ -460,8 +479,19 @@ function performance_view_summary() {
   $output .= t('First access: !access.', array('!access' => format_date($last_min, 'small'))) . '<br/>';
   $output .= t('Last access: !access.',  array('!access' => format_date($last_max, 'small'))) . '<br/>';
 
-  $output .= theme('table', $header, $rows);
-  $output .= theme('pager', 50, 0);
+  $output .= theme_table(array(
+    'header' => $header, 
+    'rows' => $rows, 
+    'attributes' => array(),
+    'caption' => NULL,
+    'colgroups' => NULL,
+    'sticky' => TRUE,
+  ));
+  $output .= theme_pager(array(
+    'tags'       => NULL, 
+    'element'    => 0, 
+    'parameters' => $header, 
+    'quantity'   => 9));
 
   return $output;
 }
@@ -485,9 +515,10 @@ function performance_view_details() {
     $header[] = array('data' => t('Query Milliseconds'), 'field' => 'query_timer');
   }
 
+  $pager_height = 50;
   $sql = "SELECT * FROM {performance_detail}";
   $tablesort = tablesort_sql($header);
-  $result = pager_query($sql . $tablesort, 50);
+  $result = pager_query($sql . $tablesort, $pager_height);
 
   $rows = array();
 
@@ -513,7 +544,7 @@ function performance_view_details() {
   }
 
   $output  = theme('table', $header, $rows);
-  $output .= theme('pager', NULL, 0, NULL, 50);
+  $output .= theme('pager', NULL, 0, NULL, $pager_height);
 
   return $output;
 }
