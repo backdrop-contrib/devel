@@ -159,7 +159,7 @@ function devel_menu() {
   );
   $items['admin/config/development/devel'] = array(
     'title' => 'Devel settings',
-    'description' =>  'Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the <a href="@block">block administration</a> page.', array('@block' => url('admin/build/block')),
+    'description' =>  'Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the <a href="' . url('admin/structure/block') . '">block administration</a> page.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('devel_admin_settings'),
     'access arguments' => array('administer site configuration'),
