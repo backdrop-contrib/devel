@@ -5,22 +5,23 @@
  * Implementation of hook_install()
  */
 function devel_install() {
+  $t = get_t();
+
   // New module weights in core: put devel as the very last in the chain.
   db_update('system')
     ->fields(array(
       'weight' => 88,
     ))
+    ->condition('type', 'module')
     ->condition('name', 'devel')
     ->execute();
 
-  // Create our menu. See menu.install for an example.
-  db_insert('menu_custom')
-    ->fields(array(
-      'menu_name' => 'devel',
-      'title' => 'Development',
-      'description' => 'Development links',
-    ))
-    ->execute();
+  $menu = array(
+    'menu_name' => 'devel',
+    'title' => $t('Development'),
+    'description' => $t('Development link'),
+  );
+  menu_save($menu);
 }
 
  /**
@@ -37,23 +38,9 @@ function devel_uninstall() {
   variable_del('dev_mem');
   variable_del('devel_error_handler');
 
-  // TODO: Not necessary if core cleans up after self or had proper menu APIs.
-  db_delete('menu_links')
-    ->condition('menu_name', 'devel')
-    ->execute();
-  db_delete('menu_custom')
-    ->condition('menu_name', 'devel')
-    ->execute();
-  if (module_exists('block')) {
-    db_delete('block')
-      ->condition('module', 'menu')
-      ->condition('delta', 'devel')
-      ->execute();
-    db_delete('block_role')
-      ->condition('module', 'menu')
-      ->condition('delta', 'devel')
-      ->execute();
-  }
+  // Delete the development menu.
+  $devel_menu = menu_load('devel');
+  menu_delete($devel_menu);
 }
 
 /**
@@ -67,19 +54,17 @@ function devel_disable() {
   }
 }
 
-// Remove feature for storing queries. Cleanup deprecated tables and variables.
+/**
+ * Remove feature for storing queries. Cleanup deprecated tables and variables.
+ */
 function devel_update_7000() {
   db_drop_table('devel_queries');
   db_drop_table('devel_times');
-  return t('Removed support for logging queries to database.');
 }
 
 /**
  * Rebuild the menus since everything is defined by devel_menu().
  */
 function devel_update_7001() {
-  db_delete('menu_links')
-    ->condition('module', 'devel');
-  variable_set('menu_rebuild_needed', TRUE);
-  return t('Devel module menu links will be rebuilt.');
+  // Empty update. Update.php will rebuild menus automatically.
 }
