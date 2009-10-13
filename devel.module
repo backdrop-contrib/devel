@@ -35,7 +35,7 @@ function devel_help($section) {
  */
 function devel_menu() {
   $items = array();
-  // note: we can't dynamically append destination to querystring. do so at theme layer. fix in D7?
+  // Note: we can't dynamically append destination to querystring. Do so at theme layer. Fix in D7?
   $items['devel/cache/clear'] = array(
     'title' => 'Empty cache',
     'page callback' => 'devel_cache_clear',

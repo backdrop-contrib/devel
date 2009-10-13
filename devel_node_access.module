@@ -280,7 +280,7 @@ function devel_node_access_block_view($delta) {
                 $top_priority = (isset($top_priority) ? max($top_priority, $priority) : $priority);
                 $grant['priority'] = (isset($grant['priority']) ? $priority : '&ndash;&nbsp;');
                 $acquired_grants_nid[$priority][$grant['realm']][$grant['gid']] = $grant + array(
-                  '#title' => ($node->title ? check_plain($node->title) : $node->nid),
+                  '#title' => ($node->title[FIELD_LANGUAGE_NONE][0]['value'] ? check_plain($node->title[FIELD_LANGUAGE_NONE][0]['value']) : $node->nid),
                   '#module' => (isset($grant['#module']) ? $grant['#module'] : ''),
                 );
               }
@@ -332,7 +332,7 @@ function devel_node_access_block_view($delta) {
                 }
                 $fixed_grant += array(
                   'nid'      => $nid,
-                  '#title'   => (empty($node) ? '&mdash;' : (isset($node->title) ? check_plain($node->title) : $node->nid)),
+                  '#title'   => (empty($node) ? '&mdash;' : (isset($node->title[FIELD_LANGUAGE_NONE][0]['value']) ? check_plain($node->title[FIELD_LANGUAGE_NONE][0]['value']) : $node->nid)),
                 );
                 $all_grants[] = $fixed_grant;
               }

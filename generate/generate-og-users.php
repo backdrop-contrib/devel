@@ -45,7 +45,7 @@ $groups = gou_get_groups();
 
 foreach ($groups as $nid => $group) {
   $node = node_load($nid);
-  drupal_set_message(t('Assigned %n users to group %t.', array('%n' => $users, '%t' => theme('placeholder', $node->title))));
+  drupal_set_message(t('Assigned %n users to group %t.', array('%n' => $users, '%t' => theme('placeholder', $node->title[FIELD_LANGUAGE_NONE][0]['value']))));
   gou_assign_users($nid, $group, $users);
   $users = floor($users / 2 + count($group));
 }
