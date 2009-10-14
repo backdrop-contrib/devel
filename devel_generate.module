@@ -46,6 +46,14 @@ function devel_generate_users_form() {
     '#title' => t('Delete all users (except user id 1) before generating new users.'),
     '#default_value' => FALSE,
   );
+  $options = user_roles(TRUE);
+  unset($options[DRUPAL_AUTHENTICATED_RID]);
+  $form['roles'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Which roles should the users receive?'),
+    '#description' => t('Users always receive the <em>authenticated user</em> role.'),
+    '#options' => $options,
+  );
 
   $options = array(1 => t('Now'));
   foreach (array(3600, 86400, 604800, 2592000, 31536000) as $interval) {
@@ -68,7 +76,8 @@ function devel_generate_users_form() {
 
 function devel_generate_users_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate');
-  devel_create_users($form_state['values']['num'], $form_state['values']['kill_users'], $form_state['values']['time_range']);
+  $values = $form_state['values'];
+  devel_create_users($values['num'], $values['kill_users'], $values['time_range'], $values['roles']);
 }
 
 function devel_generate_content_form() {

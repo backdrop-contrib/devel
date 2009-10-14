@@ -14,8 +14,10 @@ if (!ini_get('safe_mode')) {
  *  Boolean that indicates if existing users should be removed first.
  * @param $age
  *  The max age of each randomly-generated user, in seconds.
+ * @param $roles
+ *  An array of role IDs that the users should receive.
  */
-function devel_create_users($num, $kill, $age = 0) {
+function devel_create_users($num, $kill, $age = 0, $roles = array()) {
   $url = parse_url($GLOBALS['base_url']);
   if ($kill) {
     // TODO: deal with cancel API
@@ -43,7 +45,9 @@ function devel_create_users($num, $kill, $age = 0) {
         'mail'    => $name . '@' . $url['host'],
         'status'  => 1,
         'created' => REQUEST_TIME - mt_rand(0, $age),
+        'roles' => drupal_map_assoc($roles),
       );
+      
       $account = user_save(NULL, $edit);
 
       if ($pic_config) {
