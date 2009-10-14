@@ -66,5 +66,9 @@ function devel_update_7000() {
  * Rebuild the menus since everything is defined by devel_menu().
  */
 function devel_update_7001() {
-  // Empty update. Update.php will rebuild menus automatically.
+  db_delete('menu_links')
+    ->condition('module', 'devel')
+    ->execute();
+  variable_set('menu_rebuild_needed', TRUE);
+  return t('Devel module menu links will be rebuilt.');
 }
