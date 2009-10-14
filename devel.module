@@ -1576,7 +1576,7 @@ function devel_query_table($queries, $counts) {
   if (variable_get('devel_query_sort', DEVEL_QUERY_SORT_BY_SOURCE)) {
     usort($cell, '_devel_table_sort');
   }
-  return theme('devel_querylog', $header, $cell);
+  return theme('devel_querylog', array('header' => $header, 'rows' => $cell));
 }
 
 function theme_devel_querylog_row($row) {
@@ -1608,7 +1608,9 @@ function theme_devel_querylog_row($row) {
   return $output;
 }
 
-function theme_devel_querylog($header = array(), $rows = array()) {
+function theme_devel_querylog($variables) {
+  $header = $variables['header'];
+  $rows = $variables['rows'];
   $output = '';
   if (!empty($header)) {
     $output .= "<div class='devel-querylog devel-querylog-header clear-block'>";
