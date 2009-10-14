@@ -32,6 +32,7 @@ function devel_generate_drush_command() {
     ),
     'options' => array(
       'kill' => 'Specify \'kill\' to delete all users before generating new ones.',
+      'roles' => 'A comma delimited list of role IDs which should be granted to the new users. No need to specify authenticated user role.',
     ),
   );
   $items['generate taxonomy'] = array(
@@ -69,7 +70,8 @@ function drush_generate_users($num_users = NULL) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of users.'));
   }
   drush_generate_include_devel();
-  devel_create_users($num_users, drush_get_option('kill'));
+  $roles = drush_get_option('roles') ? explode(',', drush_get_option('roles')) : array();
+  devel_create_users($num_users, drush_get_option('kill'), 0, $roles);
   drush_log(t('Generated @number users.', array('@number' => $num_users)), 'success');
 }
 
