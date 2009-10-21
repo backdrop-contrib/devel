@@ -1739,7 +1739,7 @@ function kprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') 
   // We do not want to krumo() strings and integers and such
   if (merits_krumo($input)) {
     if (user_access('access devel information')) {
-      return $return ? krumo_ob($input) : krumo($input);
+      return $return ? (isset($name) ? $name .' => ' : '') . krumo_ob($input) : krumo($input);
     }
   }
   else {
