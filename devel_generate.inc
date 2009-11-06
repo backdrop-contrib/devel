@@ -147,6 +147,7 @@ function devel_generate_add_comments($node, $users, $num_comments, $title_length
     $comment->subject = devel_create_greeking(mt_rand(1, $title_length), TRUE);
     $comment->comment = devel_create_content();
     $comment->uid = $users[array_rand($users)];
+    $comment->language = 'en'; // $node->language not usable since it is '' but comment requires en
     comment_save($comment);
   }
 }
