@@ -298,7 +298,13 @@ function devel_node_access_block_view($delta) {
           'illegitimate' => array(t('illegitimate'), 'error',   t('Should NOT be in !na because of lower priority!', $variables)),
           'alien'        => array(t('alien'),        'error',   t('Should NOT be in !na because of unknown origin!', $variables)),
         );
-        $headers = array(t('node'), t('prio'), t('status'), t('realm'), t('gid'), t('view'), t('update'), t('delete'), t('explained'));
+        $headers = array(
+          array('data' => t('node'), 'style' => array('text-align: right')),
+          array('data' => t('prio'), 'style' => array('text-align: right')),
+          t('status'), t('realm'),
+          array('data' => t('gid'), 'style' => array('text-align: right')),
+          t('view'), t('update'), t('delete'), t('explained')
+        );
         $active_grants = array();
         foreach ($query->execute() as $active_grant) {
           $active_grants[$active_grant->nid][$active_grant->realm][$active_grant->gid] = $active_grant;
