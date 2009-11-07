@@ -315,6 +315,7 @@ function devel_node_access_block_view($delta) {
           if ($node = node_load($nid)) {
             // check node_access_acquire_grants()
             $grants = _devel_node_access_module_invoke_all('node_access_records', $node);
+            drupal_alter('node_access_records', $grants, $node);
             if (!empty($grants)) {
               $top_priority = NULL;
               foreach ($grants as $grant) {
@@ -332,10 +333,9 @@ function devel_node_access_block_view($delta) {
             $checked_status[$nid] = $node->status;
             if ($node->nid && $node->status) {
               foreach (array('view', 'update', 'delete') as $op) {
-                $checked_grants[$nid][$op] = array_merge(
-                  array('all' => array(0)),
-                  _devel_node_access_module_invoke_all('node_grants', $user, $op)
-                );
+                $grants = _devel_node_access_module_invoke_all('node_grants', $user, $op);
+                drupal_alter('node_grants', $grants, $user, $op);
+                $checked_grants[$nid][$op] = array_merge(array('all' => array(0)), $grants);
               }
             }
           }
