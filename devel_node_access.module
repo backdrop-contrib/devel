@@ -490,7 +490,8 @@ function devel_node_access_block_view($delta) {
         }
         else {
           $variables['!list'] = '<div style="margin-left: 2em">' . _devel_node_access_get_grant_list($nid, $checked_status, $checked_grants) . '</div>';
-          $output .= "\n<div style='text-align: left' title='" . t('These are the grants returned by hook_node_grants() for this user.') . "'>" . t('!username (user %uid) can use these grants (if they are present above): !list', $variables) . "</div>\n";
+          $variables['%access'] = 'view';
+          $output .= "\n<div style='text-align: left' title='" . t('These are the grants returned by hook_node_grants() for this user.') . "'>" . t('!username (user %uid) can use these grants for %access access (if they are present above): !list', $variables) . "</div>\n";
           $accounts[] = $user;
         }
         if (arg(0) == 'node' && is_numeric(arg(1)) && !$block1_visible) {  // only for single nodes
