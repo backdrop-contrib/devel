@@ -498,7 +498,10 @@ function devel_start() {
     xdebug_start_code_coverage();
   }
 
-  // we need user_access() in the shutdown function. make sure it gets loaded
+  // We need user_access() in the shutdown function. make sure it gets loaded.
+  // Also prime the drupal_get_filename() static with user.module's location to
+  // avoid a stray query.
+  drupal_get_filename('module', 'user', 'modules/user/user.module');
   drupal_load('module', 'user');
   register_shutdown_function('devel_shutdown');
 }
