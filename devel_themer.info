@@ -1,7 +1,0 @@
-; $Id$
-name = Theme developer
-description = Essential theme API information for theme developers
-package = Development
-dependencies[] = devel
-core = 7.x
-files[] = devel_themer.module
