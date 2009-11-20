@@ -190,10 +190,6 @@ function performance_shutdown() {
     module_invoke_all('performance', 'disable');
   }
 
-  if (variable_get('performance_detail', 0)) {
-    performance_log_details($params);
-  }
-
   if (variable_get('performance_summary_db', 0)) {
     performance_log_summary_db($params);
   }
