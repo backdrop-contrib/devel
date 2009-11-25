@@ -10,9 +10,9 @@
  * Enrich the $object that is about to be saved with arbitrary
  * information in each of its fields.
  **/
-function cck_generate_fields(&$object, $bundle) {
+function cck_generate_fields(&$object, $obj_type, $bundle) {
   $field_types = field_info_field_types();
-  $instances = field_info_instances($bundle);
+  $instances = field_info_instances($obj_type, $bundle);
   foreach ($instances as $instance) {
     $field_name = $instance['field_name'];
     $table_name = _field_sql_storage_tablename($field_name);
