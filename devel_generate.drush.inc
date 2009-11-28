@@ -12,11 +12,11 @@
 function devel_generate_drush_help($section) {
   switch ($section) {
     case 'drush:generate users':
-      return dt('Usage: drush [options] generate users <number_users> <kill>. <kill> is optional, Specify "kill" if you want to delete the users first.');
+      return dt('Usage: drush generate users <number_users>. Specify --kill if you want to delete the users first.');
     case 'drush:generate taxonomy':
-      return dt('Usage: drush [options] generate tax <number_vocab> <number_terms> <kill>. <kill> is optional; specify "kill" if you want to delete all taxonomy first.');
+      return dt('Usage: drush generate tax <number_vocab> <number_terms>. Specify --kill if you want to delete all taxonomy first.');
     case 'drush:generate content':
-      return dt('Usage: drush [options] generate content <number_nodes> <number_comments>. <kill> is optional; specify "kill" if you want to delete all content first.');
+      return dt('Usage: drush generate content <number_nodes> <number_comments>. Specify --kill if you want to delete all content first.');
   }
 }
 
@@ -28,7 +28,7 @@ function devel_generate_drush_command() {
     'callback' => 'drush_generate_users',
     'description' => 'Creates users.',
     'arguments' => array(
-      'n' => 'Number of users to generate.',
+      'number_users' => 'Number of users to generate.',
     ),
     'options' => array(
       'kill' => 'Specify \'kill\' to delete all users before generating new ones.',
@@ -51,11 +51,12 @@ function devel_generate_drush_command() {
     'description' => 'Creates content.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN, // Various D7 code assumes we have a uid.
     'arguments' => array(
-      'n' => 'Number of nodes to generate.',
-      'c' => 'Number of comments to generate.',
+      'number_nodes' => 'Number of nodes to generate.',
+      'number_comments' => 'Number of comments to generate.',
     ),
     'options' => array(
-      'kill' => 'Specify \'kill\' to delete all content before generating new content.'
+      'kill' => 'Specify \'kill\' to delete all content before generating new content.',
+      'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
     ),
   );
   return $items;
@@ -101,7 +102,7 @@ function drush_generate_nodescontent($num_nodes = NULL, $num_comments = NULL) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of comments.'));
   }
 
-  // Let's load user 1, seems to be need for creating comments.
+  // Let's load user 1, seems to be needed for creating comments.
   global $user;
   $user_one = user_load(1);
   $user = $user_one;
@@ -113,7 +114,7 @@ function drush_generate_nodescontent($num_nodes = NULL, $num_comments = NULL) {
   $values['values']['title_length'] = '8';
   $values['values']['num_nodes'] = $num_nodes;
   $values['values']['num_comments'] = $num_comments;
-  $values['values']['node_types'] = array('page' => 'page', 'article' => 'article');
+  $values['values']['node_types'] = drupal_map_assoc(explode(',', drush_get_option('types', 'page,article')));
   drush_generate_include_devel();
   devel_generate_content($values);
   drush_log(t('Generated @num_nodes nodes, @num_comments comments per node', array('@num_nodes' => (int)$num_nodes, '@num_comments' => (int)$num_comments)), 'success');
