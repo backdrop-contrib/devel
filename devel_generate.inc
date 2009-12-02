@@ -47,7 +47,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
         'created' => REQUEST_TIME - mt_rand(0, $age),
         'roles' => drupal_map_assoc($roles),
       );
-      
+
       $account = user_save(NULL, $edit);
 
       if ($pic_config) {
@@ -185,7 +185,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
 
   // Insert new data:
   for ($i = 1; $i <= $records; $i++) {
-  	$term = new stdClass();
+    $term = new stdClass();
     switch ($i % 2) {
       case 1:
         $term->vid = $vocs[array_rand($vocs)];
@@ -341,26 +341,26 @@ function devel_create_greeking($words, $title = FALSE) {
   $greeking = "";
 
   if (!$title) {
-	  while ($words > 0) {
-	    $sentence_length = mt_rand(3,10);
+    while ($words > 0) {
+      $sentence_length = mt_rand(3,10);
 
-	    $greeking .= ucfirst($dictionary[array_rand($dictionary)]);
-	    for ($i = 1; $i < $sentence_length; $i++) {
-	      $greeking .= " " . $dictionary[array_rand($dictionary)];
-	    }
+      $greeking .= ucfirst($dictionary[array_rand($dictionary)]);
+      for ($i = 1; $i < $sentence_length; $i++) {
+        $greeking .= " " . $dictionary[array_rand($dictionary)];
+      }
 
-	    $greeking .= ". ";
-	    $words -= $sentence_length;
-	  }
+      $greeking .= ". ";
+      $words -= $sentence_length;
+    }
   }
   else {
-  	// use different method for titles
-  	$title_length = $words;
-  	$array = array();
-  	for ($i = 0; $i < $words; $i++) {
-  		$array[] = $dictionary[array_rand($dictionary)];
-  	}
-  	$greeking = ucwords(implode(' ', $array));
+    // use different method for titles
+    $title_length = $words;
+    $array = array();
+    for ($i = 0; $i < $words; $i++) {
+      $array[] = $dictionary[array_rand($dictionary)];
+    }
+    $greeking = ucwords(implode(' ', $array));
   }
   return $greeking;
 }
@@ -482,7 +482,7 @@ function devel_generate_content_add_node(&$results) {
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
   $type = node_type_get_type($node);
-  $node->title[FIELD_LANGUAGE_NONE][0]['value'] = $type->has_title ? devel_create_greeking(mt_rand(1, $results['title_length']), TRUE) : '';
+  $node->title[LANGUAGE_NONE][0]['value'] = $type->has_title ? devel_create_greeking(mt_rand(1, $results['title_length']), TRUE) : '';
 
   $node->filter = variable_get('filter_default_format', 1);
   $node->node_format = filter_default_format();
@@ -500,7 +500,7 @@ function devel_generate_content_add_node(&$results) {
 
   // Populate all core fields on behalf of field.module
   module_load_include('inc', 'devel_generate', 'devel_generate.fields');
-  cck_generate_fields($node, 'node', $node->type);
+  cck_generate_fields($node, $node->type);
 
   // See devel_generate_nodeapi() for actions that happen before and after this save.
   node_save($node);

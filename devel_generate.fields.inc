@@ -49,9 +49,9 @@ function cck_generate_fields(&$object, $obj_type, $bundle) {
         }
       }
     }
-    // TODO Come back later and see if we need 
+    // TODO Come back later and see if we need
     // a valid language code or if 'none' is OK.
-    $object->{$field['field_name']}[FIELD_LANGUAGE_NONE] = $object_field;
+    $object->{$field['field_name']}[LANGUAGE_NONE] = $object_field;
   }
 }
 
