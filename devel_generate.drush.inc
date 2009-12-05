@@ -50,13 +50,16 @@ function devel_generate_drush_command() {
     'callback' => 'drush_generate_nodescontent',
     'description' => 'Creates content.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN, // Various D7 code assumes we have a uid.
+    'drupal dependencies' => array('devel_generate'),
     'arguments' => array(
       'number_nodes' => 'Number of nodes to generate.',
-      'number_comments' => 'Number of comments to generate.',
+      'maximum_comments' => 'Maximum number of comments to generate.',
     ),
     'options' => array(
       'kill' => 'Specify \'kill\' to delete all content before generating new content.',
       'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
+      'add-terms' => 'Add terms to generated nodes.',
+      'add-upload' => 'Add an attached file to generated nodes.',
     ),
   );
   return $items;
@@ -94,11 +97,11 @@ function drush_generate_tax($num_vocab = NULL, $num_terms = NULL) {
 /**
  * Command callback. Generate a number of content.
  */
-function drush_generate_nodescontent($num_nodes = NULL, $num_comments = NULL) {
+function drush_generate_nodescontent($num_nodes = NULL, $max_comments = NULL) {
   if (drush_generate_is_number($num_nodes) == FALSE) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of nodes'));
   }
-  if (!empty($num_comments) && drush_generate_is_number($num_comments) == FALSE) {
+  if (!empty($max_comments) && drush_generate_is_number($max_comments) == FALSE) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of comments.'));
   }
 
@@ -113,11 +116,13 @@ function drush_generate_nodescontent($num_nodes = NULL, $num_comments = NULL) {
   }
   $values['values']['title_length'] = '8';
   $values['values']['num_nodes'] = $num_nodes;
-  $values['values']['num_comments'] = $num_comments;
+  $values['values']['max_comments'] = $max_comments;
+  $values['values']['add_terms'] = drush_get_option('add-terms', FALSE);
+  $values['values']['add_upload'] = drush_get_option('add-upload', FALSE);
   $values['values']['node_types'] = drupal_map_assoc(explode(',', drush_get_option('types', 'page,article')));
   drush_generate_include_devel();
   devel_generate_content($values);
-  drush_log(t('Generated @num_nodes nodes, @num_comments comments per node', array('@num_nodes' => (int)$num_nodes, '@num_comments' => (int)$num_comments)), 'success');
+  drush_log(t('Generated @num_nodes nodes, @max_comments comments per node', array('@num_nodes' => (int)$num_nodes, '@max_comments' => (int)$max_comments)), 'success');
 }
 
 //////////////////////////////////////////////////////////////////////////////
