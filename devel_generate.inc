@@ -147,7 +147,7 @@ function devel_generate_add_comments($node, $users, $max_comments, $title_length
     $comment->subject = devel_create_greeking(mt_rand(1, $title_length), TRUE);
     $comment->comment = devel_create_content();
     $comment->uid = $users[array_rand($users)];
-    $comment->language = 'en'; // $node->language not usable since it is '' but comment requires en
+    $comment->language = LANGUAGE_NONE;
     comment_save($comment);
   }
 }
@@ -486,7 +486,7 @@ function devel_generate_content_add_node(&$results) {
 
   $node->filter = variable_get('filter_default_format', 1);
   $node->node_format = filter_default_format();
-  $node->language = '';
+  $node->language = LANGUAGE_NONE;
   $node->revision = mt_rand(0,1);
   $node->promote = mt_rand(0, 1);
   // Avoid NOTICE.
