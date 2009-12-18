@@ -51,7 +51,13 @@ function cck_generate_fields(&$object, $obj_type, $bundle) {
     }
     // TODO Come back later and see if we need
     // a valid language code or if 'none' is OK.
-    $object->{$field['field_name']}[LANGUAGE_NONE] = $object_field;
+    // TODO: Completely overriding any existing $object->{$field['field_name']}
+    // is necessary here because the forum module has a bug where it
+    // initializes the property with incorrect data.
+    // @see http://drupal.org/node/652176
+    $object->{$field['field_name']} = array(
+      LANGUAGE_NONE => $object_field,
+    );
   }
 }
 
@@ -202,6 +208,32 @@ if (module_exists('userreference')) {
     if (!empty($allowed_values)) {
       // Just pick one of the specified allowed values.
       $object_field['uid'] = array_rand($allowed_values);
+    }
+    return $object_field;
+  }
+}
+
+if (module_exists('taxonomy')) {
+  function taxonomy_cck_generate($object, $field, $instance, $bundle) {
+    if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {
+      return cck_devel_multiple('_taxonomy_cck_generate', $object, $field, $instance, $bundle);
+    }
+    else {
+      return _taxonomy_cck_generate($object, $field, $instance, $bundle);
+    }
+  }
+
+  function _taxonomy_cck_generate($object, $field, $instance, $bundle) {
+    $object_field = array();
+    // TODO: For free tagging vocabularies that do not already have terms, this
+    // will not result in any tags being added.
+    $allowed_values = taxonomy_allowed_values($field);
+    if (!empty($allowed_values)) {
+      // Pick one of the allowed values.
+      $object_field['tid'] = array_rand($allowed_values);
+    }
+    else {
+      $object_field['tid'] = 0;
     }
     return $object_field;
   }

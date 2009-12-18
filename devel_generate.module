@@ -158,13 +158,6 @@ function devel_generate_content_form() {
     '#title' => t('Add an upload to each node'),
     '#default_value' => FALSE,
   );
-  $form['add_terms'] = array(
-    '#disabled' => !module_exists('taxonomy'),
-    '#description' => t('Requires taxonomy.module'),
-    '#type' => 'checkbox',
-    '#title' => t('Add taxonomy terms to each node.'),
-    '#default_value' => FALSE,
-  );
   $form['add_alias'] = array(
     '#type' => 'checkbox',
     '#disabled' => !module_exists('path'),
@@ -244,9 +237,6 @@ function devel_generate_node_presave(&$node) {
     $results = $node->devel_generate;
     if (!empty($results['add_upload'])) {
       devel_generate_add_upload($node);
-    }
-    if (!empty($results['add_terms'])) {
-      devel_generate_add_terms($node);
     }
   }
 }
