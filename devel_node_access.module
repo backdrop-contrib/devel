@@ -273,7 +273,7 @@ function devel_node_access_block_view($delta) {
         $rows = array();
         foreach ($query->execute() as $row) {
           $explained = module_invoke_all('node_access_explain', $row);
-          $rows[] = array(_devel_node_access_get_node_title($nodes[$row->nid]),
+          $rows[] = array('<a href="#node-'. $row->nid .'">'. _devel_node_access_get_node_title($nodes[$row->nid]) .'</a>',
                           $row->realm,
                           $row->gid,
                           $row->grant_view,
@@ -438,7 +438,7 @@ function devel_node_access_block_view($delta) {
           $row->grant_update = $grant['grant_update'];
           $row->grant_delete = $grant['grant_delete'];
           $row->explained = implode('<br />', module_invoke_all('node_access_explain', $row));
-          unset($row->title);
+          unset($row->title);  // possibly needed above
           if ($row->nid == 0 && $row->gid == 0 && $row->realm == 'all' && count($all_grants) > 1) {
             $row->state = array('data' => $states['unexpected'][0], 'title' => $states['unexpected'][2]);
             $class = $states['unexpected'][1];
@@ -459,6 +459,7 @@ function devel_node_access_block_view($delta) {
               $row["grant_$op"]['class'][] = 'error';
             }
           }
+          $row['nid'] = '<a href="#node-'. $grant['nid'] .'">'. $row['nid'] .'</a>';
           foreach (array('nid', 'priority', 'gid') as $key) {
             $row[$key] = array('data' => $row[$key], 'style' => 'text-align: right');
           }
