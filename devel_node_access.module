@@ -530,9 +530,7 @@ function devel_node_access_block_view($delta) {
 
     case 'dna_user':
       // show which users can access this node
-      if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == null) {
-        $nid = arg(1);
-        $node = node_load($nid);
+      if (arg(0) == 'node' && is_numeric($nid = arg(1)) && arg(2) == NULL && $node = node_load($nid)) {
         $node_type = node_type_get_type($node);
         $headers = array(t('username'), '<span title="' . t("Create nodes of the '@Node_type' type.", array('@Node_type' => $node_type->name)) . '">' . t('create') . '</span>', t('view'), t('update'), t('delete'));
         $rows = array();
