@@ -298,6 +298,7 @@ function devel_node_access_block_view($delta) {
           'illegitimate' => array(t('illegitimate'), 'error',   t('Should NOT be in !na because of lower priority!', $variables)),
           'alien'        => array(t('alien'),        'error',   t('Should NOT be in !na because of unknown origin!', $variables)),
         );
+        $active_states = array('default', 'ok', 'static', 'unexpected', 'illegitimate', 'alien');
         $headers = array(
           array('data' => t('node'), 'style' => array('text-align: right')),
           array('data' => t('prio'), 'style' => array('text-align: right')),
@@ -450,7 +451,7 @@ function devel_node_access_block_view($delta) {
           $row = (array) $row;
           foreach (array('view', 'update', 'delete') as $op) {
             $row["grant_$op"] = array('data' => $row["grant_$op"]);
-            if ((isset($checked_grants[$grant['nid']][$op][$grant['realm']]) && in_array($grant['gid'], $checked_grants[$grant['nid']][$op][$grant['realm']]) || ($row['nid'] == 0 && $row['gid'] == 0 && $row['realm'] == 'all')) && !empty($row["grant_$op"]['data'])) {
+            if ((isset($checked_grants[$grant['nid']][$op][$grant['realm']]) && in_array($grant['gid'], $checked_grants[$grant['nid']][$op][$grant['realm']]) || ($row['nid'] == 0 && $row['gid'] == 0 && $row['realm'] == 'all')) && !empty($row["grant_$op"]['data']) && in_array($grant['state'], $active_states)) {
               $row["grant_$op"]['data'] .= '&prime;';
               $row["grant_$op"]['title'] = t('This entry grants access to this node to this user.');
             }
