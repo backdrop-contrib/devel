@@ -456,7 +456,7 @@ function devel_node_access_block_view($delta) {
               $row["grant_$op"]['title'] = t('This entry grants access to this node to this user.');
             }
             if (isset($grant["grant_$op!"])) {
-              $row["grant_$op"]['data'] = $grant["grant_$op!"] . '&gt;' . $row["grant_$op"]['data'];
+              $row["grant_$op"]['data'] = $grant["grant_$op!"] . '&gt;' . (!$row["grant_$op"]['data'] ? 0 : $row["grant_$op"]['data']);
               $row["grant_$op"]['class'][] = 'error';
             }
           }
