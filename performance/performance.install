@@ -134,14 +134,12 @@ function performance_update_2() {
 function performance_update_7001() {
   $int_field = array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'disp-width' => '11');
 
-  $ret = array();
-  db_change_field($ret, 'performance_summary', 'millisecs_max', 'ms_max', $int_field);
-  db_change_field($ret, 'performance_summary', 'millisecs_avg', 'ms_avg', $int_field);
-  db_change_field($ret, 'performance_detail',  'millisecs',     'ms',     $int_field);
+  db_change_field('performance_summary', 'millisecs_max', 'ms_max', $int_field);
+  db_change_field('performance_summary', 'millisecs_avg', 'ms_avg', $int_field);
+  db_change_field('performance_detail',  'millisecs',     'ms',     $int_field);
 
   // We don't have a cache update method, so it's better to clear it
-  if (!function_exists('apc_fetch')) {
+  if (function_exists('apc_fetch')) {
     apc_clear_cache('user');
   }
-  return $ret;
 }
