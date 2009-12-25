@@ -180,9 +180,7 @@ function performance_shutdown() {
 
   if (variable_get('performance_detail', 0)) {
     $data = module_invoke_all('performance', 'data');
-    if (!empty($data[0])) {
-      $params['data'] = $data[0];
-    }
+    $params['data'] = !empty($data[0]) ? $data[0] : NULL;
 
     performance_log_details($params);
   }
@@ -237,8 +235,8 @@ function performance_log_summary_apc($params = array()) {
 }
 
 function performance_log_summary_db($params = array()) {
-  $row = db_fetch_object(db_query("SELECT * FROM {performance_summary} WHERE path = '%s'", $params['path']));
-  if (!empty($row)) {
+  $row = db_query("SELECT * FROM {performance_summary} WHERE path = :path", array(':path' => $params['path']))->fetch();
+  if ($row) {
     db_update('performance_summary')
       ->condition('path', $params['path'])
       ->fields(array(
@@ -405,10 +403,15 @@ function performance_view_summary() {
   }
   else {
     // Get the data form the database table
-    $sql = "SELECT * FROM {performance_summary}";
-    $tablesort = tablesort_sql($header);
-    $result = pager_query($sql . $tablesort, $pager_height);
-    while ($row = db_fetch_array($result)) {
+    $result = db_select('performance_summary', 'p')
+      ->fields('p')
+      ->extend('PagerDefault')
+      ->limit($pager_height)
+      ->extend('TableSort')
+      ->orderByHeader($header)
+      ->execute();
+
+    foreach ($result as $row) {
       $data_list[] = $row;
     }
   }
@@ -417,30 +420,30 @@ function performance_view_summary() {
 
   foreach ($data_list as $data) {
     $total_rows++;
-    $last_max = max($last_max, $data['last_access']);
-    $last_min = min($last_min, $data['last_access']);
+    $last_max = max($last_max, $data->last_access);
+    $last_min = min($last_min, $data->last_access);
 
     // Calculate running averages
-    $total_bytes += $data['bytes_avg'];
-    $total_millisecs += $data['millisecs_avg'];
-    $total_accesses += $data['num_accesses'];
+    $total_bytes += $data->bytes_avg;
+    $total_millisecs += $data->millisecs_avg;
+    $total_accesses += $data->num_accesses;
 
     $row_data = array();
 
-    if ($data['num_accesses'] > $threshold) {
+    if ($data->num_accesses > $threshold) {
       $shown++;
-      $row_data[] = $data['path'];
-      $row_data[] = format_date($data['last_access'], 'small');
-      $row_data[] = $data['num_accesses'];
-      $row_data[] = number_format($data['bytes_max']/1024/1024, 2);
-      $row_data[] = number_format($data['bytes_avg']/1024/1024, 2);
-      $row_data[] = number_format($data['millisecs_max'], 1);
-      $row_data[] = number_format($data['millisecs_avg'], 1);
+      $row_data[] = $data->path;
+      $row_data[] = format_date($data->last_access, 'small');
+      $row_data[] = $data->num_accesses;
+      $row_data[] = number_format($data->bytes_max/1024/1024, 2);
+      $row_data[] = number_format($data->bytes_avg/1024/1024, 2);
+      $row_data[] = number_format($data->millisecs_max, 1);
+      $row_data[] = number_format($data->millisecs_avg, 1);
       if (variable_get('performance_query', 0)) {
-        $row_data[] = number_format($data['query_timer_max'], 1);
-        $row_data[] = number_format($data['query_timer_avg'], 1);
-        $row_data[] = $data['query_count_max'];
-        $row_data[] = $data['query_count_avg'];
+        $row_data[] = number_format($data->query_timer_max, 1);
+        $row_data[] = number_format($data->query_timer_avg, 1);
+        $row_data[] = $data->query_count_max;
+        $row_data[] = $data->query_count_avg;
       }
     }
     $rows[] = array('data' => $row_data);
@@ -482,6 +485,7 @@ function performance_view_summary() {
     'caption' => NULL,
     'colgroups' => NULL,
     'sticky' => TRUE,
+    'empty' => t('No data has been collected.'),
   ));
   $output .= theme_pager(array(
     'tags'       => NULL, 
@@ -494,7 +498,8 @@ function performance_view_summary() {
 
 function performance_view_details() {
   if (!variable_get('performance_detail', 0)) {
-    return t('Detail performance log is not enabled. Go to the <a href="@link">settings page</a> to enable it.', array('@link' => url('admin/config/development/performance_logging')));
+    return t('Detail performance log is not enabled. Go to the <a href="@link">settings page</a> to enable it.', 
+      array('@link' => url('admin/config/development/performance_logging')));
   }
 
   $header = array(
@@ -512,9 +517,13 @@ function performance_view_details() {
   }
 
   $pager_height = 50;
-  $sql = "SELECT * FROM {performance_detail}";
-  $tablesort = tablesort_sql($header);
-  $result = pager_query($sql . $tablesort, $pager_height);
+  $result = db_select('performance_detail', 'p')
+    ->fields('p')
+    ->extend('PagerDefault')
+    ->limit($pager_height)
+    ->extend('TableSort')
+    ->orderByHeader($header)
+    ->execute();
 
   $rows = array();
 
@@ -539,8 +548,8 @@ function performance_view_details() {
     $rows[] = array(array('data' => t('No log messages available.'), 'colspan' => count($header)));
   }
 
-  $output  = theme('table', $header, $rows);
-  $output .= theme('pager', NULL, 0, NULL, $pager_height);
+  $output  = theme('table', array('header' => $header, 'rows' => $rows));
+  $output .= theme('pager', array('tags' => NULL, 'quantity' => $pager_height));
 
   return $output;
 }
@@ -555,10 +564,10 @@ function performance_cron() {
 
 function performance_cron_db_prune($timestamp = 0) {
   // Remove rows which have not been accessed since a certain timestamp
-  db_query("DELETE FROM {performance_summary} WHERE last_access <= %d", $timestamp);
+  db_delete('performance_summary')->condition('last_access', $timestamp, '<=');
 
   // Remove performance_detail rows on a daily basis
-  db_query("DELETE FROM {performance_detail} WHERE timestamp <= %d", $timestamp);
+  db_delete('performance_detail')->condition('timestamp', $timestamp, '<=');
 }
 
 function performance_cron_apc_prune($timestamp = 0) {
