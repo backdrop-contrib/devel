@@ -17,7 +17,7 @@ function performance_menu() {
     'description'      => 'Logs performance data: page generation times and memory usage.',
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('performance_settings'),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer performance logging'),
   );
 
   $items['admin/config/development/performance_logging/apc_clear'] = array(
@@ -25,24 +25,35 @@ function performance_menu() {
     'description'      => 'Clears performance statistics collected in APC.',
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('performance_clear_apc_confirm'),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer performance logging'),
   );
 
   $items['admin/reports/performance_logging_summary'] = array(
     'title'            => 'Performance Logs: Summary',
     'description'      => 'View summary performance logs: page generation times and memory usage.',
     'page callback'    => 'performance_view_summary',
-    'access arguments' => array('access site reports'),
+    'access arguments' => array('administer performance logging'),
   );
 
   $items['admin/reports/performance_logging_details'] = array(
     'title'            => 'Performance Logs: Details',
     'description'      => 'View detailed, per page, performance logs: page generation times and memory usage.',
     'page callback'    => 'performance_view_details',
-    'access arguments' => array('access site reports'),
+    'access arguments' => array('administer performance logging'),
   );
 
   return $items;
+}
+
+/**
+ * Implementation of hook_permission().
+ */
+function performance_permission() {
+  return array(
+  'administer performance logging' => array(
+    'title'       => t('Administer performance logging'),
+    'description' => t('Allows both configuring the performance module and accessing its reports.'),
+  ));
 }
 
 function performance_settings() {
