@@ -231,12 +231,12 @@ function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $ki
 
   $new_vocs = devel_generate_vocabs($num_vocab, $title_length);
   if (!empty($new_vocs)) {
-    drupal_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => theme('item_list', $new_vocs))));
+    drupal_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => theme('item_list', array('items' => $new_vocs)))));
   }
   $vocs = devel_generate_get_vocabs();
   $new_terms = devel_generate_terms($num_terms, $vocs, $title_length);
   if (!empty($new_terms)) {
-    drupal_set_message(t('Created the following new terms: !terms', array('!terms' => theme('item_list', $new_terms))));
+    drupal_set_message(t('Created the following new terms: !terms', array('!terms' => theme('item_list', array('items' => $new_terms)))));
   }
 }
 

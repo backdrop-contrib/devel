@@ -947,7 +947,7 @@ function devel_function_reference() {
   foreach ($ufunctions as $function) {
     $links[] = l($function, "http://$api/api/$version/function/$function");
   }
-  return theme('item_list', $links);
+  return theme('item_list', array('items' => $links));
 }
 
 function devel_get_core_version($version) {
