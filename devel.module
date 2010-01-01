@@ -301,10 +301,10 @@ function devel_devel_themer_toggle() {
 function devel_theme() { // &$cache, $type, $theme, $path
   return array(
     'devel_querylog' => array(
-      'arguments' => array('header' => array(), 'rows' => array()),
+      'variables' => array('header' => array(), 'rows' => array()),
     ),
     'devel_querylog_row' => array(
-      'arguments' => array('row' => array()),
+      'variables' => array('row' => array()),
     ),
   );
 }
@@ -1313,7 +1313,7 @@ function devel_session() {
   global $user;
   $output = kprint_r($_SESSION, TRUE);
   $headers = array(t('Session name'), t('Session ID'));
-  $output .= theme('table', $headers, array(array(session_name(), session_id())));
+  $output .= theme('table', array('headers' => $headers, 'rows' => array(array(session_name(), session_id()))));
   return $output;
 }
 
@@ -1584,7 +1584,8 @@ function devel_query_table($queries, $counts) {
   return theme('devel_querylog', array('header' => $header, 'rows' => $cell));
 }
 
-function theme_devel_querylog_row($row) {
+function theme_devel_querylog_row($variables) {
+  $row = $variables['row'];
   $i = 0;
   $output = '';
   foreach ($row as $cell) {
@@ -1619,7 +1620,7 @@ function theme_devel_querylog($variables) {
   $output = '';
   if (!empty($header)) {
     $output .= "<div class='devel-querylog devel-querylog-header clear-block'>";
-    $output .= theme('devel_querylog_row', $header);
+    $output .= theme('devel_querylog_row', array('row' => $header));
     $output .= "</div>";
   }
   if (!empty($rows)) {
@@ -1628,7 +1629,7 @@ function theme_devel_querylog($variables) {
       $i++;
       $zebra = ($i % 2) == 0 ? 'even' : 'odd';
       $output .= "<div class='devel-querylog devel-querylog-$zebra clear-block'>";
-      $output .= theme('devel_querylog_row', $row);
+      $output .= theme('devel_querylog_row', array('row' => $row));
       $output .= "</div>";
     }
   }
