@@ -1243,7 +1243,7 @@ function devel_variable_form() {
     }
     $options[$row->name]['value'] = $value;
     $options[$row->name]['length'] = $row->length;
-    $options[$row->name]['edit'] = l(t('edit'), "devel/variable/edit/$row->name");
+    $options[$row->name]['edit'] = l(t('Edit'), "devel/variable/edit/$row->name");
   }
   $form['variables'] = array(
     '#type' => 'tableselect',
