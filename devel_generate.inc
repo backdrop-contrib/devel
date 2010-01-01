@@ -159,6 +159,7 @@ function devel_generate_vocabs($records, $maxlength = 12, $types = array('page',
   for ($i = 1; $i <= $records; $i++) {
     $voc = new stdClass();
     $voc->name = devel_generate_word(mt_rand(2, $maxlength));
+    $voc->machine_name = drupal_strtolower($voc->name);
     $voc->description = "description of ". $voc->name;
     // TODO: not working
     $voc->nodes = array_flip(array($types[array_rand($types)]));
