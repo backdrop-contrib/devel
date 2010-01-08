@@ -128,7 +128,6 @@ function devel_generate_add_comments($node, $users, $max_comments, $title_length
   for ($i = 1; $i <= $num_comments; $i++) {
     $comment->nid = $node->nid;
     $comment->cid = NULL;
-    $comment->comment_format = filter_default_format();
     $comment->name = 'devel generate';
     $comment->mail = 'devel_generate@example.com';
     $comment->timestamp = mt_rand($node->created, REQUEST_TIME);
@@ -145,9 +144,11 @@ function devel_generate_add_comments($node, $users, $max_comments, $title_length
     }
 
     $comment->subject = devel_create_greeking(mt_rand(1, $title_length), TRUE);
-    $comment->comment = devel_create_content();
     $comment->uid = $users[array_rand($users)];
     $comment->language = LANGUAGE_NONE;
+    // Populate all core fields on behalf of field.module
+    module_load_include('inc', 'devel_generate', 'devel_generate.fields');
+    cck_generate_fields($comment, 'comment', 'comment_node_' . $node->type);
     comment_save($comment);
   }
 }
