@@ -273,7 +273,7 @@ function devel_node_access_block_view($delta) {
         $rows = array();
         foreach ($query->execute() as $row) {
           $explained = module_invoke_all('node_access_explain', $row);
-          $rows[] = array('<a href="#node-'. $row->nid .'">'. _devel_node_access_get_node_title($nodes[$row->nid]) .'</a>',
+          $rows[] = array((empty($row->nid) ? '0' : '<a href="#node-'. $row->nid .'">'. _devel_node_access_get_node_title($nodes[$row->nid]) .'</a>'),
                           $row->realm,
                           $row->gid,
                           $row->grant_view,
