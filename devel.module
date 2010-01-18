@@ -261,7 +261,7 @@ function devel_translated_menu_link_alter(&$item) {
 /**
  * Implementation of hook_theme()
  */
-function devel_theme() { // &$cache, $type, $theme, $path
+function devel_theme() {
   return array(
     'devel_querylog' => array(
       'variables' => array('header' => array(), 'rows' => array()),
@@ -693,37 +693,6 @@ function devel_switch_user_form_submit($form, &$form_state) {
   $form_state['redirect'] = 'devel/switch/'. $form_state['values']['username'];
 }
 
-
-/**
- * TODO: I switched params as per http://drupal.org/node/144132#form-alter but needs work still
- * Implementation of hook_form_alter().
- */
-function devel_form_alter(&$form, $form_state, $form_id, $key_in = NULL) {
-  if (user_access('access devel information') && variable_get('devel_form_weights', 0)) {
-    $children = element_children($form);
-    if (empty($children)) {
-      if (isset($form['#type']) && !in_array($form['#type'], array('value', 'hidden'))) {
-        if (!isset($form['#title'])) {
-          $form['#title'] = '';
-        }
-        $form['#title'] .= " (key=$key_in, weight=". (isset($form['#weight']) ? $form['#weight'] : 0) .')';
-      }
-    }
-    else {
-      foreach (element_children($form) as $key) {
-        // We need to add the weight to fieldsets.
-        if (element_children($form[$key])) { // Which are a container of others.
-          if (!isset($form[$key]['#title'])) {
-            $form[$key]['#title'] = '';
-          }
-          $form[$key]['#title'] .= " (key=$key, weight=". (isset($form[$key]['#weight']) ? $form[$key]['#weight'] : 0) .')';
-        }
-        devel_form_alter($form[$key], $form_state, $form_id, $key);
-      }
-    }
-  }
-}
-
 // An implementation of hook_exit().
 function devel_exit($destination = NULL) {
   global $user;
@@ -975,11 +944,6 @@ function devel_admin_settings() {
     '#title' => t('Display redirection page'),
     '#default_value' => variable_get('devel_redirect_page', 0),
     '#description' => t('When a module executes drupal_goto(), the query log and other developer information is lost. Enabling this setting presents an intermediate page to developers so that the log can be examined before continuing to the destination page.'),
-  );
-  $form['devel_form_weights'] = array('#type' => 'checkbox',
-    '#title' => t('Display form element keys and weights'),
-    '#default_value' => variable_get('devel_form_weights', 0),
-    '#description' => t('Form element names are needed for performing themeing or altering a form. Their weights determine the position of the element. Enabling this setting will show these keys and weights beside each form item.'),
   );
   $form['devel_page_alter'] = array('#type' => 'checkbox',
     '#title' => t('Display $page array'),
