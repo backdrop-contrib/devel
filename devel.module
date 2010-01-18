@@ -59,15 +59,6 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'menu_name' => 'devel',
   );
-  $items['devel/devel_themer'] = array(
-    'title callback' => 'devel_menu_title_theme_developer',
-    'title arguments' => array(NULL),
-    'title' => 'foo',
-    'description' => 'Quickly enable or disable theme developer module. Useful for removing HTML cruft added by that module.',
-    'page callback' => 'devel_devel_themer_toggle',
-    'access arguments' => array('access devel information'),
-    'menu_name' => 'devel',
-  );
   $items['devel/source'] = array(
     'title' => 'Display the PHP code of any file in your Drupal installation',
     'page callback' => 'devel_display_source',
@@ -242,7 +233,7 @@ function devel_menu() {
 }
 
 function devel_menu_need_destination() {
-  return array('devel/cache/clear', 'devel/devel_themer', 'devel/reinstall', 'devel/menu/reset', 'admin/og/og', 'devel/variable', 'admin/reports/status/run-cron');
+  return array('devel/cache/clear', 'devel/reinstall', 'devel/menu/reset', 'devel/variable', 'admin/reports/status/run-cron');
 }
 
 /**
@@ -265,34 +256,6 @@ function devel_translated_menu_link_alter(&$item) {
   if (in_array($item['href'], devel_menu_need_destination())) {
     $item['localized_options']['query'] = drupal_get_destination();
   }
-}
-
-function devel_menu_title_theme_developer() {
-  if (module_exists('devel_themer')) {
-    return t('Disable Theme developer');
-  }
-  else {
-    return t('Enable Theme developer');
-  }
-}
-
-function devel_devel_themer_toggle() {
-  if (module_exists('devel_themer')) {
-    module_disable(array('devel_themer'));
-  }
-  else {
-    // Sanity check in case the devel_themer schema is not installed.
-    include_once('./includes/install.inc');
-    if (drupal_get_schema_versions('devel_themer') == FALSE) {
-      drupal_install_modules(array('devel_themer'));
-    }
-    else {
-      module_enable(array('devel_themer'));
-    }
-  }
-  drupal_theme_rebuild();
-  menu_rebuild();
-  drupal_goto();
 }
 
 /**
@@ -326,7 +289,7 @@ function devel_display_source($standalone = TRUE) {
   if ($output) {
     if ($standalone) {
       print $output;
-      exit();
+      drupal_exit();
     }
     return $output;
   }
@@ -678,7 +641,7 @@ function devel_switch_user_list() {
 
 function devel_phpinfo() {
   print phpinfo();
-  exit;
+  drupal_exit();
 }
 
 function devel_switch_user_form() {
