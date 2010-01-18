@@ -423,7 +423,7 @@ function devel_silent() {
   // isset($_GET['q']) is needed on IIS when calling the front page. q is not set.
   // Don't interfere with private files/images.
   return
-    devel_verify_cli() ||
+    drupal_is_cli() ||
     strpos($_SERVER['HTTP_USER_AGENT'], 'ApacheBench') !== FALSE ||
     !empty($_REQUEST['XDEBUG_PROFILE']) ||
     isset($GLOBALS['devel_shutdown']) ||
@@ -754,15 +754,6 @@ function devel_exit($destination = NULL) {
 function devel_shutdown() {
   // Register the real shutdown function so it runs later than other shutdown functions.
   register_shutdown_function('devel_shutdown_real');
-}
-
-// Borrowed from drush.
-function devel_verify_cli() {
-  if (php_sapi_name() == 'cgi') {
-    return (is_numeric($_SERVER['argc']) && $_SERVER['argc'] > 0);
-  }
-
-  return (php_sapi_name() == 'cli');
 }
 
 function devel_page_alter($page) {
