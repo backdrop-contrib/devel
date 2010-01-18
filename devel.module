@@ -160,7 +160,6 @@ function devel_menu() {
     'title' => 'Dev load',
     'page callback' => 'devel_load_object',
     'page arguments' => array(1, 'node'),
-    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
@@ -169,7 +168,6 @@ function devel_menu() {
     'title' => 'Dev render',
     'page callback' => 'devel_render_object',
     'page arguments' => array('node', 1),
-    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
@@ -178,7 +176,6 @@ function devel_menu() {
     'title' => 'Dev load',
     'page callback' => 'devel_load_object',
     'page arguments' => array(1, 'comment'),
-    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
@@ -187,7 +184,6 @@ function devel_menu() {
     'title' => 'Dev render',
     'page callback' => 'devel_render_object',
     'page arguments' => array('comment', 1),
-    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
@@ -196,7 +192,6 @@ function devel_menu() {
     'title' => 'Dev load',
     'page callback' => 'devel_load_object',
     'page arguments' => array(1, 'user'),
-    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
@@ -205,7 +200,6 @@ function devel_menu() {
     'title' => 'Dev render',
     'page callback' => 'devel_render_object',
     'page arguments' => array('user', 1),
-    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
@@ -214,7 +208,6 @@ function devel_menu() {
     'title' => 'Dev load',
     'page callback' => 'devel_load_object',
     'page arguments' => array(2, 'term'),
-    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
@@ -223,7 +216,6 @@ function devel_menu() {
     'title' => 'Dev render',
     'page callback' => 'devel_render_term',
     'page arguments' => array(2),
-    'access callback' => 'user_access',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
@@ -1235,9 +1227,8 @@ function devel_load_object($object, $name = NULL) {
   return kdevel_print_object($object, '$'. $name .'->');
 }
 
-
 /**
- * Menu callback; prints the render structure of the a term.
+ * Menu callback; prints the render structure of a term.
  */
 function devel_render_term($term) {
   $build = array();
@@ -1262,8 +1253,8 @@ function devel_render_object($type, $object) {
   // not sure why menu system doesn't give us a reasonable title here.
   drupal_set_title($title);
   $function = $type .'_build_content';
-  $content = $function($object);
-  return kdevel_print_object($content, '$'. $type .'->');
+  $function($object);
+  return kdevel_print_object($object->content, '$'. $type .'->');
 }
 
 function devel_elements_page() {
