@@ -904,7 +904,7 @@ function devel_shutdown_query() {
 }
 
 function devel_query_enabled() {
-  return method_exists('Database', 'getLog') && variable_get('dev_query', FALSE);
+  return method_exists('Database', 'getLog') && variable_get('devel_query_display', FALSE);
 }
 
 function devel_code_coverage_enabled() {
@@ -912,7 +912,7 @@ function devel_code_coverage_enabled() {
 }
 
 function devel_query_summary($queries) {
-  if (variable_get('dev_query', FALSE) && is_array($queries)) {
+  if (variable_get('devel_query_display', FALSE) && is_array($queries)) {
     $sum = 0;
     foreach ($queries as $query) {
       $text[] = $query['query'];
@@ -1000,21 +1000,16 @@ function devel_is_compatible_optimizer() {
 function devel_admin_settings() {
   $form['queries'] = array('#type' => 'fieldset', '#title' => t('Query log'));
 
-  $description = t("Collect query info. If disabled, no query log functionality will work.");
+  $description = t('Display a log of the database queries needed to generate the current page, and the execution time for each. Also, queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.');
   if (!devel_is_compatible_optimizer()) {
     $description = t('You must disable or upgrade the php Zend Optimizer extension in order to enable this feature. The minimum required version is 3.2.8. Earlier versions of Zend Optimizer are <a href="!url">horribly buggy and segfault your Apache</a> ... ', array('!url' => url('http://drupal.org/node/126098'))) . $description;
   }
-  $form['queries']['dev_query'] = array('#type' => 'checkbox',
-    '#title' => t('Collect query info'),
-    '#default_value' => variable_get('dev_query', 0),
-    '#disabled' => !devel_is_compatible_optimizer() ? TRUE : FALSE,
-    '#description' => $description,
-  );
-
   $form['queries']['devel_query_display'] = array('#type' => 'checkbox',
     '#title' => t('Display query log'),
     '#default_value' => variable_get('devel_query_display', 0),
-    '#description' => t('Display a log of the database queries needed to generate the current page, and the execution time for each. Also, queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.'));
+    '#description' => $description,
+    '#disabled' => !devel_is_compatible_optimizer(),
+  );
   $form['queries']['devel_query_sort'] = array('#type' => 'radios',
     '#title' => t('Sort query log'),
     '#default_value' =>   variable_get('devel_query_sort', DEVEL_QUERY_SORT_BY_SOURCE),

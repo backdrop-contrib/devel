@@ -78,7 +78,7 @@ function performance_requirements($phase) {
     );
   }
 
-  if (variable_get('dev_query', 0)) {
+  if (variable_get('devel_query_display', FALSE)) {
     if (variable_get('performance_detail', 0) ||
         variable_get('performance_summary_db', 0) ||
         variable_get('performance_summary_apc', 0)) {

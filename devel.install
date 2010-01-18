@@ -28,7 +28,6 @@ function devel_install() {
  * Implementation of hook_uninstall().
  */
 function devel_uninstall() {
-  variable_del('dev_query');
   variable_del('devel_form_weights');
   variable_del('devel_execution');
   variable_del('dev_timer');
@@ -41,17 +40,6 @@ function devel_uninstall() {
   // Delete the development menu.
   $devel_menu = menu_load('devel');
   menu_delete($devel_menu);
-}
-
-/**
- * Implementation of hook_disable().
- */
-function devel_disable() {
-  // Query logging should probably not be set if devel.module is disabled.
-  if (variable_get('dev_query', 0)) {
-    variable_set('dev_query', 0);
-    drupal_set_message(t('Disabled query logging since devel module is disabled.'));
-  }
 }
 
 /**
@@ -71,4 +59,11 @@ function devel_update_7001() {
     ->execute();
   variable_set('menu_rebuild_needed', TRUE);
   return t('Devel module menu links will be rebuilt.');
+}
+
+/**
+ * Remove deprecated variable - dev_query
+ */
+function devel_update_7002() {
+  variable_del('dev_query'); // Sad trombone. http://drupalcode.org/viewvc/drupal/drupal/includes/database.mysql.inc?revision=1.2&view=markup
 }
