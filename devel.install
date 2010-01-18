@@ -62,8 +62,9 @@ function devel_update_7001() {
 }
 
 /**
- * Remove deprecated variable - dev_query
+ * Remove deprecated variables - dev_query, devel_code_coverage
  */
 function devel_update_7002() {
   variable_del('dev_query'); // Sad trombone. http://drupalcode.org/viewvc/drupal/drupal/includes/database.mysql.inc?revision=1.2&view=markup
+  variable_del('devel_code_coverage');
 }

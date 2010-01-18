@@ -494,10 +494,6 @@ function devel_start() {
     Database::startLog('devel');;
   }
 
-  if (devel_code_coverage_enabled()) {
-    xdebug_start_code_coverage();
-  }
-
   // We need user_access() in the shutdown function. make sure it gets loaded.
   // Also prime the drupal_get_filename() static with user.module's location to
   // avoid a stray query.
@@ -847,18 +843,6 @@ function devel_shutdown_real() {
         // theme() may not be available. not t() either.
         $output .= t_safe($msg, $args);
       }
-
-      // Code coverage reporting.
-      if (devel_code_coverage_enabled()) {
-        $mode = variable_get('devel_code_coverage', FALSE);
-        $coverage = xdebug_get_code_coverage();
-        if ($mode == 1) {
-          $output .= dpr(array_keys($coverage), TRUE);
-        }
-        else {
-          $output .= dpr($coverage, TRUE);
-        }
-      }
     }
 
     if ($output) {
@@ -905,10 +889,6 @@ function devel_shutdown_query() {
 
 function devel_query_enabled() {
   return method_exists('Database', 'getLog') && variable_get('devel_query_display', FALSE);
-}
-
-function devel_code_coverage_enabled() {
-  return function_exists('xdebug_get_code_coverage') && variable_get('devel_code_coverage', FALSE);
 }
 
 function devel_query_summary($queries) {
@@ -1036,14 +1016,6 @@ function devel_admin_settings() {
     '#title' => t('Display memory usage'),
     '#default_value' => variable_get('dev_mem', 0),
     '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called.'),
-  );
-  $form['devel_code_coverage'] = array(
-    '#type' => 'radios',
-    '#title' => t('Code Coverage'),
-    '#disabled' => !function_exists('xdebug_start_code_coverage'),
-    '#default_value' => variable_get('devel_code_coverage', 0),
-    '#options' => array(t('Disabled'), t('Files only'), 'Files and lines'),
-    '#description' => t('Show the files (and optionally the lines in those files) which were loaded by PHP to fulfill this request. In general, fewer files is better since parsing files costs significant performance. Requires <a href="http://xdebug.org">xdebug</a>.'),
   );
   $form['devel_redirect_page'] = array('#type' => 'checkbox',
     '#title' => t('Display redirection page'),
