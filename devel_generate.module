@@ -95,8 +95,14 @@ function devel_generate_content_form() {
   }
   else {
     $types = node_type_get_types();
+    $suffix = '';
     foreach ($types as $type) {
-      $options[$type->type] = t($type->name);
+      if (module_exists('comment')) {
+        $default = variable_get('comment_' . $type->type, COMMENT_NODE_OPEN);
+        $map = array(t('Hidden'), t('Closed'), t('Open'));
+        $suffix = '<small>. ' . t('Comments: ') . $map[$default]. '</small>';
+      }
+      $options[$type->type] = t($type->name) . $suffix;
     }
   }
   // we cannot currently generate valid polls.
@@ -140,7 +146,7 @@ function devel_generate_content_form() {
   $form['max_comments'] = array(
     '#type' => module_exists('comment') ? 'textfield' : 'value',
     '#title' => t('Maximum number of comments per node.'),
-    '#description' => t('You must also enable comments for the node types you are generating.'),
+    '#description' => t('You must also enable comments for the content types you are generating. Note that some nodes will randomly receive zero comments. Some will receive the max.'),
     '#default_value' => 0,
     '#size' => 3,
     '#access' => module_exists('comment'),
