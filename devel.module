@@ -1424,7 +1424,8 @@ function devel_query_table($queries, $counts) {
   $i = 0;
   $api = variable_get('devel_api_url', 'api.drupal.org');
   foreach ($queries as $query) {
-    $function = $query['caller']['function'];
+    $function = !empty($query['caller']['class']) ? $query['caller']['class'] . '::' : '';
+    $function .= $query['caller']['function'];
     $count = isset($counts[$query['query']]) ? $counts[$query['query']] : 0;
 
     $diff = round($query['time'] * 1000, 2);
