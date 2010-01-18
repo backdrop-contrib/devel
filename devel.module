@@ -337,13 +337,14 @@ function devel_init() {
       // See http://www.firephp.org/.
       // Support Libraries API - http://drupal.org/project/libraries
       if (module_exists('libraries')) {
-        $path = libraries_get_path('FirePHPCore') . '/lib/FirePHPCore/fb.php';
+        $path = libraries_get_path('FirePHPCore') . '/lib/FirePHPCore/';
       }
       else {
-        $path = './'. drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/fb.php';
+        $path = './'. drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/';
       }
-      if (file_exists($path)) {
-        include_once $path;
+      if (file_exists($path .'fb.php')) {
+        include_once $path .'fb.php';
+        include_once $path .'FirePHP.class.php';
       }
       // Add CSS for query log if should be displayed.
       if (variable_get('devel_query_display', 0)) {
@@ -396,6 +397,49 @@ function dfb() {
   }
 }
 
+/**
+ * Calls dfb() to output a backtrace.
+ */
+function dfbt($label) {
+  dfb($label, FirePHP::TRACE);
+}
+
+/**
+ * Implements hook_watchdog().
+ */
+function devel_watchdog(array $log_entry) {
+  if (class_exists('FirePHP')) {
+    switch ($log_entry['severity']) {
+      case WATCHDOG_EMERG:
+      case WATCHDOG_ALERT:
+      case WATCHDOG_CRITICAL:
+      case WATCHDOG_ERROR:
+        $type = FirePHP::ERROR;
+        break;
+      case WATCHDOG_WARNING:
+        $type = FirePHP::WARN;
+        break;
+      case WATCHDOG_NOTICE:
+      case WATCHDOG_INFO:
+        $type = FirePHP::INFO;
+        break;
+      case WATCHDOG_DEBUG:
+      DEFAULT:
+        $type = FirePHP::LOG;
+    }
+  }
+  else {
+    $type = 'watchdog';
+  }
+  $watchdog = array(
+    'type' => $log_entry['type'],
+    'message' => decode_entities(strtr($log_entry['message'], $log_entry['variables'])),
+  );
+  if (isset($log_entry['link'])) {
+    $watchdog['link'] = $log_entry['link'];
+  }
+  dfb($watchdog, $type);
+}
 
 function devel_set_handler($handler) {
   switch ($handler) {
@@ -970,7 +1014,7 @@ function devel_admin_settings() {
    '#default_value' => variable_get('devel_rebuild_theme_registry', FALSE),
   );
 
-  return system_settings_form($form);
+  return system_settings_form($form, $b);
 }
 
 /**
