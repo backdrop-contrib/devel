@@ -484,7 +484,7 @@ function devel_generate_content_add_node(&$results) {
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
   $type = node_type_get_type($node);
-  $node->title[LANGUAGE_NONE][0]['value'] = $type->has_title ? devel_create_greeking(mt_rand(1, $results['title_length']), TRUE) : '';
+  $node->title = $type->has_title ? devel_create_greeking(mt_rand(1, $results['title_length']), TRUE) : '';
   $node->language = LANGUAGE_NONE;
   $node->revision = mt_rand(0,1);
   $node->promote = mt_rand(0, 1);
