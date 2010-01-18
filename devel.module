@@ -951,13 +951,22 @@ function devel_admin_settings() {
     '#description' => $description,
     '#disabled' => !devel_is_compatible_optimizer(),
   );
-  $form['queries']['devel_query_sort'] = array('#type' => 'radios',
+  $form['queries']['settings'] = array(
+    '#type' => 'container',
+      '#states' => array(
+        // Hide the query log settings when not displaying query log.
+        'invisible' => array(
+          'input[name="devel_query_display"]' => array('checked' => FALSE),
+        ),
+      ),
+  );
+  $form['queries']['settings']['devel_query_sort'] = array('#type' => 'radios',
     '#title' => t('Sort query log'),
     '#default_value' =>   variable_get('devel_query_sort', DEVEL_QUERY_SORT_BY_SOURCE),
     '#options' => array(t('by source'), t('by duration')),
     '#description' => t('The query table can be sorted in the order that the queries were executed or by descending duration.'),
   );
-  $form['queries']['devel_execution'] = array('#type' => 'textfield',
+  $form['queries']['settings']['devel_execution'] = array('#type' => 'textfield',
     '#title' => t('Slow query highlighting'),
     '#default_value' => variable_get('devel_execution', 5),
     '#size' => 4,
