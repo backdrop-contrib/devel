@@ -27,6 +27,8 @@ function devel_help($section) {
     case 'devel/variable':
       $api = variable_get('devel_api_url', 'api.drupal.org');
       return '<p>'. t('This is a list of the variables and their values currently stored in variables table and the <code>$conf</code> array of your settings.php file. These variables are usually accessed with <a href="@variable-get-doc">variable_get()</a> and <a href="@variable-set-doc">variable_set()</a>. Variables that are too long can slow down your pages.', array('@variable-get-doc' => "http://$api/api/HEAD/function/variable_get", '@variable-set-doc' => "http://$api/api/HEAD/function/variable_set")) .'</p>';
+    case 'devel/reinstall':
+      return t('Warning - will delete your module tables and variables.');
   }
 }
 
@@ -1032,9 +1034,6 @@ function devel_reinstall($form, &$form_state) {
     '#value' => t('Reinstall'),
     '#type' => 'submit',
   );
-  if (empty($form_state['post'])) {
-    drupal_set_message(t('Warning - will delete your module tables and variables.'), 'error');
-  }
   return $form;
 }
 
@@ -1042,18 +1041,12 @@ function devel_reinstall($form, &$form_state) {
  * Process reinstall menu form submissions.
  */
 function devel_reinstall_submit($form, &$form_state) {
-  require_once './includes/install.inc';
+  // require_once './includes/install.inc';
   $modules = array_filter($form_state['values']['list']);
-  foreach ($modules as $module) {
-    module_load_install($module);
-    $versions = drupal_get_schema_versions($module);
-    drupal_set_installed_schema_version($module, SCHEMA_UNINSTALLED);
-    module_invoke($module, 'uninstall');
-    _drupal_install_module($module);
-    module_invoke($module, 'enable');
-    drupal_get_schema(NULL, TRUE);
-    drupal_set_message(t('Uninstalled and installed the %name module.', array('%name' => $module)));
-  }
+  module_disable($modules, FALSE);
+  drupal_uninstall_modules($modules);
+  module_enable($modules, FALSE);
+  drupal_set_message(t('Uninstalled and installed: %names.', array('%names' => implode(', ', $modules))));
 }
 
 // Menu callback.
