@@ -1014,7 +1014,7 @@ function devel_admin_settings() {
    '#default_value' => variable_get('devel_rebuild_theme_registry', FALSE),
   );
 
-  return system_settings_form($form, $b);
+  return system_settings_form($form);
 }
 
 /**
