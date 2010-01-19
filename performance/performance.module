@@ -180,7 +180,7 @@ function performance_shutdown() {
   $params['query_count'] = $query_count;
   $params['query_timer'] = $query_timer;
 
-  $anon = (!empty($data['anon'])) ? t('Yes') : t('No');
+  $anon = (!empty($data['anon']))? 'Yes' : 'No';
 
   $header = array(
     'path' => $path,
