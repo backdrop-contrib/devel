@@ -76,6 +76,13 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'menu_name' => 'devel',
   );
+  $items['devel/menu/item'] = array(
+    'title' => 'Menu item',
+    'description' => 'Details about a given menu item.',
+    'page callback' => 'devel_menu_item',
+    'access arguments' => array('access devel information'),
+    'menu_name' => 'devel',
+  );
   $items['devel/variable'] = array(
     'title' => 'Variable editor',
     'description' => 'Edit and delete site variables.',
@@ -236,9 +243,14 @@ function devel_menu_need_destination() {
  *
  **/
 function devel_menu_link_alter(&$item) {
-  if (in_array($item['link_path'], devel_menu_need_destination())) {
+  if (in_array($item['link_path'], devel_menu_need_destination()) || $item['link_path'] == 'devel/menu/item') {
     $item['options']['alter'] = TRUE;
   }
+}
+
+function devel_menu_item() {
+  $item = menu_get_item($_GET['path']);
+  return kdevel_print_object($item);
 }
 
 /**
@@ -249,6 +261,9 @@ function devel_menu_link_alter(&$item) {
 function devel_translated_menu_link_alter(&$item) {
   if (in_array($item['href'], devel_menu_need_destination())) {
     $item['localized_options']['query'] = drupal_get_destination();
+  }
+  elseif ($item['href'] == 'devel/menu/item') {
+    $item['localized_options']['query'] = array('path' => $_GET['q']);
   }
 }
 
