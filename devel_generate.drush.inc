@@ -11,12 +11,12 @@
  */
 function devel_generate_drush_help($section) {
   switch ($section) {
-    case 'drush:generate users':
-      return dt('Usage: drush generate users <number_users>. Specify --kill if you want to delete the users first.');
-    case 'drush:generate taxonomy':
-      return dt('Usage: drush generate tax <number_vocab> <number_terms>. Specify --kill if you want to delete all taxonomy first.');
-    case 'drush:generate content':
-      return dt('Usage: drush generate content <number_nodes> <number_comments>. Specify --kill if you want to delete all content first.');
+    case 'drush:generate-users':
+      return dt('Usage: drush generate-users <number_users>. Specify --kill if you want to delete the users first.');
+    case 'drush:generate-taxonomy':
+      return dt('Usage: drush generate-taxonomy <number_vocab> <number_terms>. Specify --kill if you want to delete all taxonomy first.');
+    case 'drush:generate-content':
+      return dt('Usage: drush generate-content <number_nodes> <number_comments>. Specify --kill if you want to delete all content first.');
   }
 }
 
@@ -24,8 +24,7 @@ function devel_generate_drush_help($section) {
  * Implementation of hook_drush_command().
  */
 function devel_generate_drush_command() {
-  $items['generate users'] = array(
-    'callback' => 'drush_generate_users',
+  $items['generate-users'] = array(
     'description' => 'Creates users.',
     'arguments' => array(
       'number_users' => 'Number of users to generate.',
@@ -34,9 +33,9 @@ function devel_generate_drush_command() {
       'kill' => 'Specify \'kill\' to delete all users before generating new ones.',
       'roles' => 'A comma delimited list of role IDs which should be granted to the new users. No need to specify authenticated user role.',
     ),
+    'aliases' => array('genu'),
   );
-  $items['generate taxonomy'] = array(
-    'callback' => 'drush_generate_tax',
+  $items['generate-taxonomy'] = array(
     'description' => 'Creates taxonomy.',
     'arguments' => array(
       'n' => 'Vocabulary ID into which new terms will be inserted.',
@@ -44,10 +43,10 @@ function devel_generate_drush_command() {
     'options' => array(
       'kill' => 'Specify \'kill\' to delete all terms in specified vocab before generating.'
     ),
-    
+    'aliases' => array('gent'),
+
   );
-  $items['generate content'] = array(
-    'callback' => 'drush_generate_nodescontent',
+  $items['generate-content'] = array(
     'description' => 'Creates content.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN, // Various D7 code assumes we have a uid.
     'drupal dependencies' => array('devel_generate'),
@@ -60,6 +59,7 @@ function devel_generate_drush_command() {
       'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
       'add-upload' => 'Add an attached file to generated nodes.',
     ),
+    'aliases' => array('genc'),
   );
   return $items;
 }
@@ -68,7 +68,7 @@ function devel_generate_drush_command() {
 /**
  * Command callback. Generate a number of users.
  */
-function drush_generate_users($num_users = NULL) {
+function drush_devel_generate_users($num_users = NULL) {
   if (drush_generate_is_number($num_users) == FALSE) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of users.'));
   }
@@ -81,7 +81,7 @@ function drush_generate_users($num_users = NULL) {
 /**
  * Command callback. Generate a number of taxonomy.
  */
-function drush_generate_tax($num_vocab = NULL, $num_terms = NULL) {
+function drush_devel_generate_taxonomy($num_vocab = NULL, $num_terms = NULL) {
   if (drush_generate_is_number($num_vocab) == FALSE) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid vocabulary ID.'));
   }
@@ -96,7 +96,7 @@ function drush_generate_tax($num_vocab = NULL, $num_terms = NULL) {
 /**
  * Command callback. Generate a number of content.
  */
-function drush_generate_nodescontent($num_nodes = NULL, $max_comments = NULL) {
+function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   if (drush_generate_is_number($num_nodes) == FALSE) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of nodes'));
   }
@@ -126,14 +126,14 @@ function drush_generate_nodescontent($num_nodes = NULL, $max_comments = NULL) {
 //////////////////////////////////////////////////////////////////////////////
 // Helper functions
 
-// verify if param is a number
+// Verify if param is a number.
 function drush_generate_is_number($number) {
   if ($number == NULL) return FALSE;
   if (!is_numeric($number)) return FALSE;
   return TRUE;
 }
 
-// include devel_generate.inc
+// Include devel_generate.inc.
 function drush_generate_include_devel() {
   $path = drupal_get_path('module', 'devel_generate');
   require_once($path .'/devel_generate.inc');
