@@ -149,6 +149,20 @@ function devel_menu() {
     'type' => MENU_CALLBACK,
     'menu_name' => 'devel',
   );
+  $items['devel/explain'] = array(
+    'title' => 'Explain query',
+    'page callback' => 'devel_querylog_explain',
+    'description' => 'Run an EXPLAIN on a given query. Used by query log',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK
+  );
+  $items['devel/arguments'] = array(
+    'title' => 'Arguments query',
+    'page callback' => 'devel_querylog_arguments',
+    'description' => 'Return a giben query, with arguments instead of placeholders. Used by query log',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK
+  );
   $items['devel/run-cron'] = array(
     'title' => 'Run cron',
     'page callback' => 'system_run_cron',
@@ -267,7 +281,8 @@ function devel_menu_need_destination() {
 
 /**
  * An implementation of hook_menu_link_alter(). Flag this link as needing alter at display time.
- * This is more robust that setting alter in hook_menu(). See devel_translated_menu_link_alter().
+ * This is more robust that setting alter in hook_menu().
+ * @see devel_translated_menu_link_alter().
  *
  **/
 function devel_menu_link_alter(&$item) {
@@ -392,6 +407,7 @@ function devel_init() {
       // Add CSS for query log if should be displayed.
       if (variable_get('devel_query_display', 0)) {
         drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
+        drupal_add_js(drupal_get_path('module', 'devel'). '/devel.js');
       }
     }
   }
@@ -476,7 +492,7 @@ function devel_watchdog(array $log_entry) {
   }
   $watchdog = array(
     'type' => $log_entry['type'],
-    'message' => decode_entities(strtr($log_entry['message'], $log_entry['variables'])),
+    'message' => decode_entities(strtr($log_entry['message'], (array)$log_entry['variables'])),
   );
   if (isset($log_entry['link'])) {
     $watchdog['link'] = $log_entry['link'];
@@ -504,7 +520,7 @@ function devel_silent() {
   // isset($_GET['q']) is needed on IIS when calling the front page. q is not set.
   // Don't interfere with private files/images.
   return
-    drupal_is_cli() ||
+    function_exists('drupal_is_cli') && drupal_is_cli() ||
     strpos($_SERVER['HTTP_USER_AGENT'], 'ApacheBench') !== FALSE ||
     !empty($_REQUEST['XDEBUG_PROFILE']) ||
     isset($GLOBALS['devel_shutdown']) ||
@@ -882,6 +898,9 @@ function devel_shutdown_query() {
       $output .= $txt;
       $output .= '</div>';
       $output .= devel_query_table($queries, $counts);
+
+      // Save all queries to a file in temp dir. Retrieved via AJAX.
+      devel_query_put_contents($queries);
     }
     else {
       $output .= $txt . '</div>' . dprint_r($queries, TRUE);
@@ -889,6 +908,31 @@ function devel_shutdown_query() {
   }
 
   return $output;
+}
+
+// Write the variables information to the a file. It will be retrieved on demand via AJAX.
+function devel_query_put_contents($queries) {
+  $request_id = mt_rand(1, 1000000);
+  $path = "temporary://devel_querylog";
+
+  // Create the devel_querylog within the temp folder, if needed.
+  file_prepare_directory($path, FILE_CREATE_DIRECTORY);
+  $path .= "/$request_id.txt";
+  $path = file_stream_wrapper_uri_normalize($path);
+
+  // Occassionally wipe the querylog dir so that files don't accumulate.
+  if (mt_rand(1, 1000) == 401) {
+    devel_empty_dir($path);
+  }
+
+  // Save queries as a serialized array.
+  file_put_contents($path, serialize($queries));
+  $settings['devel'] = array(
+    // A random string that is sent to the browser. It enables the AJAX to retrieve queries from this request.
+    'request_id' => $request_id,
+    'queries' => $queries
+  );
+  print '<script type="text/javascript">jQuery.extend(Drupal.settings, '.  json_encode($settings) .");</script>\n";
 }
 
 function devel_query_enabled() {
@@ -1102,6 +1146,54 @@ function devel_execute_form_submit($form, &$form_state) {
   ob_start();
   print eval($form_state['values']['code']);
   dsm(ob_get_clean());
+}
+
+// A menu callback. Called by the AJAX link in query log.
+function devel_querylog_explain($request_id, $qid) {
+  if (!is_numeric($request_id)) {
+    return MENU_ACCESS_DENIED;
+  }
+
+  $path = "temporary://devel_querylog/$request_id.txt";
+  $path = file_stream_wrapper_uri_normalize($path);
+  $queries = unserialize(file_get_contents($path));
+  $query = $queries[$qid];
+  $result = db_query('EXPLAIN ' . $query['query'], $query['args'])->fetchAllAssoc('id');
+  $i = 1;
+  foreach ($result as $row) {
+    $row = (array)$row;
+    if ($i == 1) {
+      $header = array_keys($row);
+    }
+    $rows[] = array_values($row);
+    $i++;
+  }
+  // Print and return nothing thus avoiding page wrapper.
+  $output = theme('table', array('header' => $header, 'rows' => $rows));
+  print $output;
+  $GLOBALS['devel_shutdown'] = FALSE;
+}
+
+// A menu callback. Called by the AJAX link in query log.
+function devel_querylog_arguments($request_id, $qid) {
+  if (!is_numeric($request_id)) {
+    return MENU_ACCESS_DENIED;
+  }
+
+  $path = "temporary://devel_querylog/$request_id.txt";
+  $path = file_stream_wrapper_uri_normalize($path);
+  $queries = unserialize(file_get_contents($path));
+  $query = $queries[$qid];
+  $conn = Database::getConnection();
+  $quoted = array();
+  foreach ((array)$query['args'] as $key => $val) {
+    $quoted[$key] = $conn->quote($val);
+  }
+  $output = strtr($query['query'], $quoted);
+
+  // print and return nothing thus avoiding page wrapper.
+  print $output;
+  $GLOBALS['devel_shutdown'] = FALSE;
 }
 
 /**
@@ -1516,7 +1608,7 @@ function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FA
  */
 function devel_query_table($queries, $counts) {
   $version = devel_get_core_version(VERSION);
-  $header = array ('ms', '#', 'where', 'query', 'target');
+  $header = array ('ms', '#', 'where', 'ops', 'query', 'target');
   $i = 0;
   $api = variable_get('devel_api_url', 'api.drupal.org');
   foreach ($queries as $query) {
@@ -1538,10 +1630,18 @@ function devel_query_table($queries, $counts) {
       $cell[$i][] = $count;
     }
     $cell[$i][] = l($function, "http://$api/api/$version/function/$function");
-    $cell[$i][] = check_plain($query['query']);
+    $ops[] = l('P', '', array('attributes' => array('title' => 'Show placeholders', 'id' => "dev-args-$i", 'class' => 'dev-placeholders', 'qid' => $i)));
+    $ops[] = l('A', '', array('attributes' => array('title' => 'Show arguments', 'id' => "dev-args-$i", 'class' => 'dev-arguments', 'qid' => $i)));
+    $ops[] = l('E', '', array('attributes' => array('title' => 'Show EXPLAIN', 'id' => "dev-args-$i", 'class' => 'dev-explain', 'qid' => $i)));
+    $cell[$i][] = implode(' ', $ops);
+    // 3 divs for each variation of the query. Last 2 are hidden by default.
+    $placeholders = '<div class="dev-placeholders">' . check_plain($query['query']) . "</div>\n";
+    $args = '<div class="dev-arguments" style="display: none;"></div>' . "\n";
+    $explain = '<div class="dev-explain" style="display: none;"></div>' . "\n";
+    $cell[$i][] = "<div id=\"dev-query-$i\">" . $placeholders . $args . $explain . "</div>\n";
     $cell[$i][] = $query['target'];
     $i++;
-    unset($diff, $count);
+    unset($diff, $count, $ops);
   }
   if (variable_get('devel_query_sort', DEVEL_QUERY_SORT_BY_SOURCE)) {
     usort($cell, '_devel_table_sort');
@@ -1768,6 +1868,15 @@ function ddebug_backtrace() {
       dprint_r($rich_trace);
     }
   }
+}
+
+// Delete all files in a dir. http://www.plus2net.com/php_tutorial/php-files-delete.php
+function devel_empty_dir($dir) {
+  $handle = opendir($dir);
+  while (($file = readdir($handle)) !== FALSE) {
+    @unlink($dir.'/'.$file);
+  }
+  closedir($handle);
 }
 
 /*

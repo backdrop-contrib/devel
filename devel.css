@@ -20,7 +20,7 @@ div.dev-query {
   color:#333;
   padding:.5em;
   }
-  
+
 div.dev-query .marker {
   color: #f00;
   font-weight: bold;
@@ -44,7 +44,7 @@ div.devel-querylog .marker {
   color: #f00;
   font-weight: bold;
 }
-  
+
 div.devel-querylog-header {
   border-top:3px solid #ccc;
   background:#fff;
@@ -79,19 +79,24 @@ div.devel-querylog div.cell {
   div.devel-querylog div.cell-3 {
     position:absolute;
     left:10em;
-    width:14em;
+    width:4em;
     }
 
-  div.devel-querylog-even div.cell-4,
-  div.devel-querylog-odd div.cell-4 {
-    max-height:18em;
+  div.devel-querylog div.cell-4 {
+    position:absolute;
+    left:16em;
+    width:9em;
+    }
+
+  div.devel-querylog-even div.cell-5,
+  div.devel-querylog-odd div.cell-5 {
+    #max-height:18em;
     font-family: 'Andale Mono', monospace;
     }
 
-  div.devel-querylog div.cell-5 {
+  div.devel-querylog div.cell-6 {
     position:absolute;
     right:0em;
     top:0em;
     width:9em;
     }
-
