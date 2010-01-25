@@ -1158,7 +1158,7 @@ function devel_querylog_explain($request_id, $qid) {
   $path = file_stream_wrapper_uri_normalize($path);
   $queries = unserialize(file_get_contents($path));
   $query = $queries[$qid];
-  $result = db_query('EXPLAIN ' . $query['query'], $query['args'])->fetchAllAssoc('id');
+  $result = db_query('EXPLAIN ' . $query['query'], $query['args'])->fetchAllAssoc('table');
   $i = 1;
   foreach ($result as $row) {
     $row = (array)$row;
