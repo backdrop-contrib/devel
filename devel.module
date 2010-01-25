@@ -1630,15 +1630,18 @@ function devel_query_table($queries, $counts) {
       $cell[$i][] = $count;
     }
     $cell[$i][] = l($function, "http://$api/api/$version/function/$function");
-    $ops[] = l('P', '', array('attributes' => array('title' => 'Show placeholders', 'id' => "dev-args-$i", 'class' => 'dev-placeholders', 'qid' => $i)));
-    $ops[] = l('A', '', array('attributes' => array('title' => 'Show arguments', 'id' => "dev-args-$i", 'class' => 'dev-arguments', 'qid' => $i)));
-    $ops[] = l('E', '', array('attributes' => array('title' => 'Show EXPLAIN', 'id' => "dev-args-$i", 'class' => 'dev-explain', 'qid' => $i)));
+    $ops[] = l('P', '', array('attributes' => array('title' => 'Show placeholders', 'class' => 'dev-placeholders', 'qid' => $i)));
+    $ops[] = l('A', '', array('attributes' => array('title' => 'Show arguments', 'class' => 'dev-arguments', 'qid' => $i)));
+    $ops[] = l('E', '', array('attributes' => array('title' => 'Show EXPLAIN', 'class' => 'dev-explain', 'qid' => $i)));
     $cell[$i][] = implode(' ', $ops);
     // 3 divs for each variation of the query. Last 2 are hidden by default.
     $placeholders = '<div class="dev-placeholders">' . check_plain($query['query']) . "</div>\n";
     $args = '<div class="dev-arguments" style="display: none;"></div>' . "\n";
     $explain = '<div class="dev-explain" style="display: none;"></div>' . "\n";
-    $cell[$i][] = "<div id=\"dev-query-$i\">" . $placeholders . $args . $explain . "</div>\n";
+    $cell[$i][] = array(
+      'id' => "devel-query-$i",
+      'data' => $placeholders . $args . $explain,
+    );
     $cell[$i][] = $query['target'];
     $i++;
     unset($diff, $count, $ops);

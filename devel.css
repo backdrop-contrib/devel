@@ -1,5 +1,5 @@
 .dev-query, .dev-timer, .dev-memory-usage {
-  padding-top: 2em;
+  padding: 1em;
 }
 
 .devel-obj-output .field {
@@ -18,7 +18,7 @@ div.dev-query {
   background:#fff;
   border-top:3px solid #ccc;
   color:#333;
-  padding:.5em;
+  /*padding:.5em;*/
   }
 
 div.dev-query .marker {
@@ -33,9 +33,9 @@ div.devel-querylog {
   color:#333;
   border-bottom:1px solid #eee;
   font-size:11px;
-  line-height:1.5em;
-  padding-left:25em;
-  padding-right:10em;
+  line-height:100%;
+  padding-left:30em;
+  padding-right:2em;
   position:relative;
   overflow:hidden;
   }
@@ -67,30 +67,30 @@ div.devel-querylog div.cell {
   div.devel-querylog div.cell-1 {
     position:absolute;
     left:0px;
-    width:5em;
+    width:4em;
     }
 
   div.devel-querylog div.cell-2 {
     position:absolute;
-    left:6em;
+    left:4em;
     width:3em;
     }
 
   div.devel-querylog div.cell-3 {
     position:absolute;
-    left:10em;
-    width:4em;
+    left:6em;
+    width:19em;
     }
 
   div.devel-querylog div.cell-4 {
     position:absolute;
-    left:16em;
-    width:9em;
+    left:26em;
+    width:4em;
     }
 
   div.devel-querylog-even div.cell-5,
   div.devel-querylog-odd div.cell-5 {
-    #max-height:18em;
+    /*max-height:18em;*/
     font-family: 'Andale Mono', monospace;
     }
 
@@ -98,5 +98,5 @@ div.devel-querylog div.cell {
     position:absolute;
     right:0em;
     top:0em;
-    width:9em;
+    /*width:9em;*/
     }
