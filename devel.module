@@ -917,14 +917,14 @@ function devel_query_put_contents($queries) {
 
   // Create the devel_querylog within the temp folder, if needed.
   file_prepare_directory($path, FILE_CREATE_DIRECTORY);
-  $path .= "/$request_id.txt";
-  $path = file_stream_wrapper_uri_normalize($path);
 
   // Occassionally wipe the querylog dir so that files don't accumulate.
   if (mt_rand(1, 1000) == 401) {
     devel_empty_dir($path);
   }
 
+  $path .= "/$request_id.txt";
+  $path = file_stream_wrapper_uri_normalize($path);
   // Save queries as a serialized array.
   file_put_contents($path, serialize($queries));
   $settings['devel'] = array(
@@ -1875,11 +1875,9 @@ function ddebug_backtrace() {
 
 // Delete all files in a dir. http://www.plus2net.com/php_tutorial/php-files-delete.php
 function devel_empty_dir($dir) {
-  $handle = opendir($dir);
-  while (($file = readdir($handle)) !== FALSE) {
-    @unlink($dir.'/'.$file);
+  foreach (new DirectoryIterator($dir) as $fileInfo) {
+    unlink($fileInfo->getPathname());
   }
-  closedir($handle);
 }
 
 /*
