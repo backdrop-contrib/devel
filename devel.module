@@ -171,7 +171,9 @@ function devel_menu() {
     'file path' => drupal_get_path('module', 'system'),
     'menu_name' => 'devel',
   );
-  $items['admin/config/development/devel'] = array(
+
+  // Duplicate path in 2 different menus. See http://drupal.org/node/601788.
+  $items['devel/settings'] = array(
     'title' => 'Devel settings',
     'description' =>  'Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the <a href="' . url('admin/structure/block') . '">block administration</a> page.',
     'page callback' => 'drupal_get_form',
@@ -179,6 +181,14 @@ function devel_menu() {
     'access arguments' => array('administer site configuration'),
     'menu_name' => 'devel',
   );
+  $items['admin/config/development/devel'] = array(
+    'title' => 'Devel settings',
+    'description' =>  'Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the <a href="' . url('admin/structure/block') . '">block administration</a> page.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('devel_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+
   $items['node/%node/devel'] = array(
     'title' => 'Devel',
     'page callback' => 'devel_load_object',
@@ -790,22 +800,20 @@ function devel_switch_user_form_submit($form, &$form_state) {
   $form_state['redirect'] = 'devel/switch/'. $form_state['values']['username'];
 }
 
-// An implementation of hook_exit().
-function devel_exit($destination = NULL) {
+// An implementation of hook_drupal_goto_alter().
+function devel_drupal_goto_alter($path, $options, $http_response_code) {
   global $user;
 
-  if (isset($destination) && !devel_silent()) {
+  if (isset($path) && !devel_silent()) {
     // The page we are leaving is a drupal_goto(). Present a redirection page
     // so that the developer can see the intermediate query log.
     // We don't want to load user module here, so keep function_exists() call.
     if (isset($user) && function_exists('user_access') && user_access('access devel information') && variable_get('devel_redirect_page', 0)) {
+      $destination = function_exists('url') ? url($path, $options) : $path;
       $output = t_safe('<p>The user is being redirected to <a href="@destination">@destination</a>.</p>', array('@destination' => $destination));
-      drupal_set_page_content($output);
-      $page = element_info('page');
-      print drupal_render_page($page);
+      drupal_deliver_page($output);
 
       // Don't allow the automatic redirect to happen.
-      drupal_page_footer();
       exit();
     }
     else {
