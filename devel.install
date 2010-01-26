@@ -2,9 +2,9 @@
 // $Id$
 
 /**
- * Implementation of hook_install()
+ * Implementation of hook_enable()
  */
-function devel_install() {
+function devel_enable() {
   $t = get_t();
 
   // New module weights in core: put devel as the very last in the chain.
