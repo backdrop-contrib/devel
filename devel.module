@@ -840,7 +840,7 @@ function devel_page_alter($page) {
  * See devel_shutdown() which registers this function as a shutdown function. Displays developer information in the footer.
  */
 function devel_shutdown_real() {
-  global $memory_init, $user;
+  global $user;
   $output = $txt = '';
 
   // Set $GLOBALS['devel_shutdown'] = FALSE in order to supress the
@@ -861,16 +861,9 @@ function devel_shutdown_real() {
     }
 
     if (isset($user) && user_access('access devel information')) {
-      if (devel_query_enabled()) {
-        $output .= devel_shutdown_query();
-      }
-      if (variable_get('dev_mem', FALSE)) {
-        $memory_shutdown = memory_get_usage();
-        $args = array('@memory_boot' => round($memory_init / 1024 / 1024, 2), '@memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2), '@memory_peak' => round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2));
-        $msg = '<div class="dev-memory-usage"><h3>Memory usage:</h3> Memory used at: devel_boot()=<strong>@memory_boot</strong> MB, devel_shutdown()=<strong>@memory_shutdown</strong> MB, PHP peak usage=<strong>@memory_peak</strong> MB.</div>';
-        // theme() may not be available. not t() either.
-        $output .= t_safe($msg, $args);
-      }
+      $queries = Database::getLog('devel', 'default');
+      $output .= devel_shutdown_summary($queries);
+      $output .= devel_shutdown_query($queries);
     }
 
     if ($output) {
@@ -882,37 +875,60 @@ function devel_shutdown_real() {
   }
 }
 
-function devel_shutdown_query() {
+function devel_shutdown_summary($queries) {
+  $sum = 0;
   $output = '';
-  $queries = Database::getLog('devel', 'default');
   list($counts, $query_summary) = devel_query_summary($queries);
-  // Query log off, timer on.
+
   if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
+    // Query log off, timer on.
     $output .= '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
   }
-
-  // Query log on.
-  $sum = 0;
-  if (variable_get('devel_query_display', FALSE)) {
+  elseif (variable_get('devel_query_display', FALSE)) {
+    // Query log on.
     $output .= '<div class="dev-query">';
     $output .= $query_summary;
     // calling theme() during shutdown is very bad if registry gets rebuilt like when making a change on  admin/build/modules
     // so we check for presence of theme registry before calling theme()
     if (function_exists('theme_get_registry') && theme_get_registry()) {
-      $txt = t_safe(' Queries taking longer than @threshold ms are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
+      $txt = t_safe(' Queries exceeding @threshold ms are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
       if (variable_get('dev_timer', 0)) {
         $txt .= devel_timer();
       }
       $output .= $txt;
+      $output .= devel_shutdown_memory();
       $output .= '</div>';
-      $output .= devel_query_table($queries, $counts);
+    }
+  }
 
-      // Save all queries to a file in temp dir. Retrieved via AJAX.
-      devel_query_put_contents($queries);
-    }
-    else {
-      $output .= $txt . '</div>' . dprint_r($queries, TRUE);
-    }
+  return $output;
+}
+
+function devel_shutdown_memory() {
+  global $memory_init;
+
+  if (variable_get('dev_mem', FALSE)) {
+    $memory_shutdown = memory_get_usage();
+    $args = array('@memory_boot' => round($memory_init / 1024 / 1024, 2), '@memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2), '@memory_peak' => round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2));
+    $msg = '<span class="dev-memory-usages"> Memory used at: devel_boot()=<strong>@memory_boot</strong> MB, devel_shutdown()=<strong>@memory_shutdown</strong> MB, PHP peak=<strong>@memory_peak</strong> MB.</span>';
+    // theme() may not be available. not t() either.
+    return t_safe($msg, $args);
+  }
+}
+
+function devel_shutdown_query($queries) {
+  $output = '';
+
+  if (function_exists('theme_get_registry') && theme_get_registry()) {
+    // Safe to call theme('table).
+    list($counts, $query_summary) = devel_query_summary($queries);
+    $output .= devel_query_table($queries, $counts);
+
+    // Save all queries to a file in temp dir. Retrieved via AJAX.
+    devel_query_put_contents($queries);
+  }
+  else {
+    $output .= $txt . '</div>' . dprint_r($queries, TRUE);
   }
 
   return $output;
@@ -955,7 +971,7 @@ function devel_query_summary($queries) {
       $sum += $query['time'];
     }
     $counts = array_count_values($text);
-    return array($counts, t_safe('Executed @queries queries in @time milliseconds.', array('@queries' => count($queries), '@time' => round($sum * 1000, 2))));
+    return array($counts, t_safe('Executed @queries queries in @time ms.', array('@queries' => count($queries), '@time' => round($sum * 1000, 2))));
   }
 }
 
