@@ -899,7 +899,7 @@ function devel_shutdown_query() {
     // calling theme() during shutdown is very bad if registry gets rebuilt like when making a change on  admin/build/modules
     // so we check for presence of theme registry before calling theme()
     if (function_exists('theme_get_registry') && theme_get_registry()) {
-      $txt = t_safe(' Queries taking longer than @threshold ms and queries executed more than once, are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
+      $txt = t_safe(' Queries taking longer than @threshold ms are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
       if (variable_get('dev_timer', 0)) {
         $txt .= devel_timer();
       }
@@ -1631,12 +1631,7 @@ function devel_query_table($queries, $counts) {
     else {
       $cell[$i][] = $diff;
     }
-    if ($count > 1) {
-      $cell[$i][] = array ('data' => $count, 'class' => 'marker');
-    }
-    else {
-      $cell[$i][] = $count;
-    }
+    $cell[$i][] = $count;
     $cell[$i][] = l($function, "http://$api/api/$version/function/$function");
     $ops[] = l('P', '', array('attributes' => array('title' => 'Show placeholders', 'class' => 'dev-placeholders', 'qid' => $i)));
     $ops[] = l('A', '', array('attributes' => array('title' => 'Show arguments', 'class' => 'dev-arguments', 'qid' => $i)));
