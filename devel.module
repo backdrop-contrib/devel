@@ -1640,7 +1640,10 @@ function devel_query_table($queries, $counts) {
     $cell[$i][] = l($function, "http://$api/api/$version/function/$function");
     $ops[] = l('P', '', array('attributes' => array('title' => 'Show placeholders', 'class' => 'dev-placeholders', 'qid' => $i)));
     $ops[] = l('A', '', array('attributes' => array('title' => 'Show arguments', 'class' => 'dev-arguments', 'qid' => $i)));
-    $ops[] = l('E', '', array('attributes' => array('title' => 'Show EXPLAIN', 'class' => 'dev-explain', 'qid' => $i)));
+    // EXPLAIN only valid for select queries.
+    if (strpos($query['query'], 'UPDATE') === FALSE && strpos($query['query'], 'INSERT') === FALSE && strpos($query['query'], 'DELETE') === FALSE) {
+      $ops[] = l('E', '', array('attributes' => array('title' => 'Show EXPLAIN', 'class' => 'dev-explain', 'qid' => $i)));
+    }
     $cell[$i][] = implode(' ', $ops);
     // 3 divs for each variation of the query. Last 2 are hidden by default.
     $placeholders = '<div class="dev-placeholders">' . check_plain($query['query']) . "</div>\n";
