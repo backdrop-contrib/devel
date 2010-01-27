@@ -831,26 +831,21 @@ function devel_shutdown_summary($queries) {
   $output = '';
   list($counts, $query_summary) = devel_query_summary($queries);
 
-  if (!variable_get('devel_query_display', 0) && variable_get('dev_timer', 0)) {
-    // Query log off, timer on.
-    $output .= '<div class="dev-timer">'. devel_timer() .' '. $query_summary. '</div>';
-  }
-  elseif (variable_get('devel_query_display', FALSE)) {
+  $output .= '<div class="dev-query">';
+
+  if (variable_get('devel_query_display', FALSE)) {
     // Query log on.
-    $output .= '<div class="dev-query">';
     $output .= $query_summary;
-    // calling theme() during shutdown is very bad if registry gets rebuilt like when making a change on  admin/build/modules
-    // so we check for presence of theme registry before calling theme()
-    if (function_exists('theme_get_registry') && theme_get_registry()) {
-      $txt = t_safe(' Queries exceeding @threshold ms are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
-      if (variable_get('dev_timer', 0)) {
-        $txt .= devel_timer();
-      }
-      $output .= $txt;
-      $output .= devel_shutdown_memory();
-      $output .= '</div>';
-    }
+    $output .= t_safe(' Queries exceeding @threshold ms are <span class="marker">highlighted</span>.', array('@threshold' => variable_get('devel_execution', 5)));
   }
+
+  if (variable_get('dev_timer', 0)) {
+    $output .= devel_timer();
+  }
+
+  $output .= devel_shutdown_memory();
+
+  $output .= '</div>';
 
   return $output;
 }
