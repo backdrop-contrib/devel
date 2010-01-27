@@ -702,11 +702,6 @@ function devel_switch_user_list() {
   return $links;
 }
 
-function devel_phpinfo() {
-  print phpinfo();
-  drupal_exit();
-}
-
 function devel_switch_user_form() {
   $form['username'] = array(
     '#type' => 'textfield',

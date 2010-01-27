@@ -351,3 +351,8 @@ function devel_render_object($type, $object) {
 function devel_elements_page() {
   return kdevel_print_object(module_invoke_all('element_info'));
 }
+
+function devel_phpinfo() {
+  print phpinfo();
+  drupal_exit();
+}
