@@ -869,19 +869,20 @@ function devel_shutdown_memory() {
 
 function devel_shutdown_query($queries) {
   $output = '';
+  if (!empty($queries)) {
 
-  if (function_exists('theme_get_registry') && theme_get_registry()) {
-    // Safe to call theme('table).
-    list($counts, $query_summary) = devel_query_summary($queries);
-    $output .= devel_query_table($queries, $counts);
+    if (function_exists('theme_get_registry') && theme_get_registry()) {
+      // Safe to call theme('table).
+      list($counts, $query_summary) = devel_query_summary($queries);
+      $output .= devel_query_table($queries, $counts);
 
-    // Save all queries to a file in temp dir. Retrieved via AJAX.
-    devel_query_put_contents($queries);
+      // Save all queries to a file in temp dir. Retrieved via AJAX.
+      devel_query_put_contents($queries);
+    }
+    else {
+      $output .= $txt . '</div>' . dprint_r($queries, TRUE);
+    }
   }
-  else {
-    $output .= $txt . '</div>' . dprint_r($queries, TRUE);
-  }
-
   return $output;
 }
 
