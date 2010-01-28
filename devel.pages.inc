@@ -336,6 +336,15 @@ function devel_render_term($term) {
 }
 
 /**
+ * Menu callback; prints the loaded structure of the current node/user.
+ */
+function devel_load_object($object, $name = NULL) {
+  $title = isset($object->title) ? $object->title : $object->name;
+  drupal_set_title($title);
+  return kdevel_print_object($object, '$'. $name .'->');
+}
+
+/**
  * Menu callback; prints the render structure of the current object (currently node or user).
  */
 function devel_render_object($type, $object) {

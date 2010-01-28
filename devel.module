@@ -214,6 +214,7 @@ function devel_menu() {
     'page arguments' => array(1, 'node'),
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
+    'file' => 'devel.pages.inc',
     'weight' => 100,
   );
   $items['node/%node/devel/load'] = array(
@@ -221,6 +222,7 @@ function devel_menu() {
     'page callback' => 'devel_load_object',
     'page arguments' => array(1, 'node'),
     'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['node/%node/devel/render'] = array(
@@ -228,6 +230,7 @@ function devel_menu() {
     'page callback' => 'devel_render_object',
     'page arguments' => array('node', 1),
     'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
   );
@@ -237,6 +240,7 @@ function devel_menu() {
     'page arguments' => array(1, 'comment'),
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
+    'file' => 'devel.pages.inc',
     'weight' => 100,
   );
   $items['comment/%comment/devel/load'] = array(
@@ -245,6 +249,7 @@ function devel_menu() {
     'page arguments' => array(1, 'comment'),
     'access arguments' => array('access devel information'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'devel.pages.inc',
   );
   $items['comment/%comment/devel/render'] = array(
     'title' => 'Render',
@@ -252,6 +257,7 @@ function devel_menu() {
     'page arguments' => array('comment', 1),
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
+    'file' => 'devel.pages.inc',
     'weight' => 100,
   );
   $items['user/%user/devel'] = array(
@@ -260,6 +266,7 @@ function devel_menu() {
     'page arguments' => array(1, 'user'),
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
+    'file' => 'devel.pages.inc',
     'weight' => 100,
   );
   $items['user/%user/devel/load'] = array(
@@ -267,6 +274,7 @@ function devel_menu() {
     'page callback' => 'devel_load_object',
     'page arguments' => array(1, 'user'),
     'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['user/%user/devel/render'] = array(
@@ -274,6 +282,7 @@ function devel_menu() {
     'page callback' => 'devel_render_object',
     'page arguments' => array('user', 1),
     'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
   );
@@ -282,6 +291,7 @@ function devel_menu() {
     'page callback' => 'devel_load_object',
     'page arguments' => array(2, 'term'),
     'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
   );
@@ -290,6 +300,7 @@ function devel_menu() {
     'page callback' => 'devel_load_object',
     'page arguments' => array(2, 'term'),
     'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['taxonomy/term/%taxonomy_term/devel/render'] = array(
@@ -298,6 +309,7 @@ function devel_menu() {
     'page arguments' => array(2),
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
+    'file' => 'devel.pages.inc',
     'weight' => 100,
   );
 
@@ -1025,15 +1037,6 @@ function devel_switch_user($name = NULL) {
     $orig_user[] = $user;
   }
   drupal_goto();
-}
-
-/**
- * Menu callback; prints the loaded structure of the current node/user.
- */
-function devel_load_object($object, $name = NULL) {
-  $title = isset($object->title) ? $object->title : $object->name;
-  drupal_set_title($title);
-  return kdevel_print_object($object, '$'. $name .'->');
 }
 
 /**
