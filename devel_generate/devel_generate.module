@@ -157,13 +157,6 @@ function devel_generate_content_form() {
     '#default_value' => 4,
     '#size' => 10,
   );
-  $form['add_upload'] = array(
-    '#type' =>  'checkbox',
-    '#disabled' => !module_exists('upload'),
-    '#description' => t('Requires upload.module'),
-    '#title' => t('Add an upload to each node'),
-    '#default_value' => FALSE,
-  );
   $form['add_alias'] = array(
     '#type' => 'checkbox',
     '#disabled' => !module_exists('path'),
@@ -234,17 +227,6 @@ function devel_generate_taxonomy_form() {
 function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate');
   devel_generate_taxonomy_data($form_state['values']['num_vocab'], $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
-}
-
-// Modules that want to affect generated nodes may implement hook_node('presave'). See OG module or CCK.
-// A few implementations live here because core doesn't do bulk node generation.
-function devel_generate_node_presave(&$node) {
-  if (isset($node->devel_generate)) {
-    $results = $node->devel_generate;
-    if (!empty($results['add_upload'])) {
-      devel_generate_add_upload($node);
-    }
-  }
 }
 
 function devel_generate_node_insert(&$node) {

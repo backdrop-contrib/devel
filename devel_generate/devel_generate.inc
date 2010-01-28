@@ -148,7 +148,7 @@ function devel_generate_add_comments($node, $users, $max_comments, $title_length
     $comment->language = LANGUAGE_NONE;
     // Populate all core fields on behalf of field.module
     module_load_include('inc', 'devel_generate', 'devel_generate.fields');
-    cck_generate_fields($comment, 'comment', 'comment_node_' . $node->type);
+    devel_generate_fields($comment, 'comment', 'comment_node_' . $node->type);
     comment_save($comment);
   }
 }
@@ -499,7 +499,7 @@ function devel_generate_content_add_node(&$results) {
 
   // Populate all core fields on behalf of field.module
   module_load_include('inc', 'devel_generate', 'devel_generate.fields');
-  cck_generate_fields($node, 'node', $node->type);
+  devel_generate_fields($node, 'node', $node->type);
 
   // See devel_generate_nodeapi() for actions that happen before and after this save.
   node_save($node);

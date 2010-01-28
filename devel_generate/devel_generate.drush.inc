@@ -57,7 +57,6 @@ function devel_generate_drush_command() {
     'options' => array(
       'kill' => 'Specify \'kill\' to delete all content before generating new content.',
       'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
-      'add-upload' => 'Add an attached file to generated nodes.',
     ),
     'aliases' => array('genc'),
   );
@@ -116,11 +115,10 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   $values['values']['title_length'] = '8';
   $values['values']['num_nodes'] = $num_nodes;
   $values['values']['max_comments'] = $max_comments;
-  $values['values']['add_upload'] = drush_get_option('add-upload', FALSE);
   $values['values']['node_types'] = drupal_map_assoc(explode(',', drush_get_option('types', 'page,article')));
   drush_generate_include_devel();
   devel_generate_content($values);
-  drush_log(t('Generated @num_nodes nodes, @max_comments comments per node', array('@num_nodes' => (int)$num_nodes, '@max_comments' => (int)$max_comments)), 'success');
+  drush_log(t('Generated @num_nodes nodes, @max_comments comments (or less) per node.', array('@num_nodes' => (int)$num_nodes, '@max_comments' => (int)$max_comments)), 'success');
 }
 
 //////////////////////////////////////////////////////////////////////////////
