@@ -1,9 +1,0 @@
-; $Id$
-name = Devel generate
-description = Generate dummy users, nodes, and taxonomy terms.
-package = Development
-core = 7.x
-files[] = devel_generate.module
-files[] = devel_generate.inc
-files[] = devel_generate_batch.inc
-files[] = devel_generate.drush.inc
