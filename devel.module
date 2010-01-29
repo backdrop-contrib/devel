@@ -504,7 +504,7 @@ function devel_silent() {
     isset($GLOBALS['devel_shutdown']) ||
     strstr($_SERVER['PHP_SELF'], 'update.php') ||
     (isset($_GET['q']) && (
-      in_array($_GET['q'], array('upload/js', 'admin/content/node-settings/rebuild')) ||
+      in_array($_GET['q'], array( 'admin/content/node-settings/rebuild')) ||
       substr($_GET['q'], 0, strlen('system/files')) == 'system/files' ||
       substr($_GET['q'], 0, strlen('batch')) == 'batch')
     );
@@ -527,7 +527,6 @@ function devel_start() {
   }
 
   if (devel_query_enabled()) {
-    //TODO: How best to include this?
     @include_once DRUPAL_ROOT . '/includes/database/log.inc';
     Database::startLog('devel');;
   }
@@ -812,11 +811,12 @@ function devel_shutdown_real() {
   // text/javascript, etc).  This is is advised where applicable.
   if (!isset($GLOBALS['devel_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
     // Try not to break non html pages.
-    if (function_exists('drupal_get_header')) {
-      if ($headers = drupal_get_header()) {
+    if (function_exists('drupal_get_http_header')) {
+      $header = drupal_get_http_header('content-type');
+      if ($header) {
         $formats = array('xml', 'javascript', 'json', 'plain', 'image', 'application', 'csv', 'x-comma-separated-values');
         foreach ($formats as $format) {
-          if (strstr($headers['content-type'], $format)) {
+          if (strstr($header, $format)) {
             return;
           }
         }
