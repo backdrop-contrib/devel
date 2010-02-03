@@ -911,7 +911,6 @@ function devel_query_put_contents($queries) {
   $settings['devel'] = array(
     // A random string that is sent to the browser. It enables the AJAX to retrieve queries from this request.
     'request_id' => $request_id,
-    'queries' => $queries
   );
   print '<script type="text/javascript">jQuery.extend(Drupal.settings, '.  json_encode($settings) .");</script>\n";
 }
