@@ -271,17 +271,23 @@ function performance_log_summary_db($params = array()) {
       'num_accesses'    => 1,
       'bytes_max'       => $params['mem'],
       'bytes_avg'       => $params['mem'],
-      'ms_max'          => $params['timer'],
-      'ms_avg'          => $params['timer'],
-      'query_timer_max' => $params['query_count'],
-      'query_timer_avg' => $params['query_count'],
+      'ms_max'          => (int)$params['timer'],
+      'ms_avg'          => (int)$params['timer'],
+      'query_timer_max' => (int)$params['query_count'],
+      'query_timer_avg' => (int)$params['query_count'],
       'query_count_max' => $params['query_timer'],
       'query_count_avg' => $params['query_timer'],
       'path'            => $params['path'],
     );
+
+    try {
     db_insert('performance_summary')
       ->fields($fields)
       ->execute();
+    }
+    catch (Exception $e) {
+      echo $e->getMessage();
+    }
   }
 }
 
@@ -291,9 +297,9 @@ function performance_log_details($params = array()) {
   $fields = array(
    'timestamp'   => REQUEST_TIME,
    'bytes'       => $params['mem'],
-   'ms'          => $params['timer'],
+   'ms'          => (int)$params['timer'],
    'query_count' => $params['query_count'],
-   'query_timer' => $params['query_timer'],
+   'query_timer' => (int)$params['query_timer'],
    'anon'        => ($user->uid) ? 0 : 1,
    'path'        => $params['path'],
    'data'        => $params['data'],
@@ -303,7 +309,8 @@ function performance_log_details($params = array()) {
   db_insert('performance_detail')
     ->fields($fields)
     ->execute();
-  } catch (Exception $e) {
+  }
+  catch (Exception $e) {
     echo $e->getMessage();
   }
 }
