@@ -8,6 +8,9 @@
  * Copyright Khalid Baheyeldin 2008 of http://2bits.com
  */
 
+// Minimum APC shm memory size to require
+define('PERFORMANCE_MIN_MEMORY', 48);
+
 function performance_schema() {
   $schema = array();
 
@@ -101,12 +104,12 @@ function performance_requirements($phase) {
   }
 
   $shm_size = ini_get('apc.shm_size');
-  if ($shm_size < 48) {
+  if (function_exists('apc_fetch') && $shm_size < PERFORMANCE_MIN_MEMORY) {
     $requirements['performance_apc_mem'] = array(
       'title'       => t('Performance logging APC memory size'),
       'value'       => $shm_size,
       'severity'    => REQUIREMENT_WARNING,
-      'description' => t('APC has been configured for !size, which is less than the recommended 48 MB of memory. If you encounter errors when viewing the summary report, then try to increase that limit for APC.', array('!size' => $shm_size)),
+      'description' => t('APC has been configured for !size, which is less than the recommended !min_memory MB of memory. If you encounter errors when viewing the summary report, then try to increase that limit for APC.', array('!size' => 1*$shm_size, '!min_memory' => PERFORMANCE_MIN_MEMORY)),
     );
   }
 
