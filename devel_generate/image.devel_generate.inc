@@ -25,6 +25,8 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
   if (!isset($images[$extension][$min_resolution][$max_resolution]) || count($images[$extension][$min_resolution][$max_resolution]) <= DEVEL_GENERATE_IMAGE_MAX) {
     if ($path = devel_generate_image($extension, $min_resolution, $max_resolution)) {
       $source->uri = $path;
+      $source->uid = 1; // TODO: randomize? Use case specific.
+      $source->filemime = 'image/' . pathinfo($path, PATHINFO_EXTENSION);
       $destination = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'] . '/' . basename($path);
       $file = file_move($source, $destination);
       $images[$extension][$min_resolution][$max_resolution][$file->fid] = $file;

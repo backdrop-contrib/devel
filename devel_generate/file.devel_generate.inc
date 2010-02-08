@@ -16,6 +16,8 @@ function _file_devel_generate($object, $field, $instance, $bundle) {
   if (empty($file)) {
     if ($path = devel_generate_textfile()) {
       $source->uri = $path;
+      $source->uid = 1; // TODO: randomize? use case specific.
+      $source->filemime = 'text/plain';
       $destination = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'] . '/' . basename($path);
       $file = file_move($source, $destination);
     }
