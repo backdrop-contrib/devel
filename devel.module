@@ -799,6 +799,12 @@ function devel_page_alter($page) {
   }
 }
 
+// AJAX render reponses sometimers are sent as text/html so we have to catch them here
+// and disable our footer stuff.
+function devel_ajax_render_alter() {
+  $GLOBALS['devel_shutdown'] = FALSE;
+}
+
 /**
  * See devel_shutdown() which registers this function as a shutdown function. Displays developer information in the footer.
  */
