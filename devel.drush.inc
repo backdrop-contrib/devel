@@ -22,7 +22,7 @@ function devel_drush_command() {
 /**
  * Downloads
  */
-function drush_devel_download() {
+function devel_drush_download() {
   $args = func_get_args();
   if (isset($args[0])) {
     $path = $args[0];
