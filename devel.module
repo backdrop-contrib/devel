@@ -428,7 +428,7 @@ function merits_krumo($input) {
  * @return void
  */
 function dfb() {
-  if (function_exists('fb') && user_access('access devel information')) {
+  if (function_exists('fb') && user_access('access devel information') && !headers_sent()) {
     $args = func_get_args();
     call_user_func_array('fb', $args);
   }
