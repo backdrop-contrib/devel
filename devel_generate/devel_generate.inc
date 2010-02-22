@@ -38,6 +38,10 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
       $name = devel_generate_word(mt_rand(6, 12));
       $names[$name] = '';
     }
+
+    if (empty($roles)) {
+      $roles = array(DRUPAL_AUTHENTICATED_RID);
+    }
     foreach ($names as $name => $value) {
       $edit = array(
         'name'    => $name,
