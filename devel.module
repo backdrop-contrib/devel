@@ -400,16 +400,11 @@ function devel_init() {
   }
 }
 
-// return boolean. no need for cache here.
+// Return boolean. No need for cache here.
 function has_krumo() {
   // see README.txt or just download from http://krumo.sourceforge.net/
-  @include_once './'. drupal_get_path('module', 'devel') .'/krumo/class.krumo.php';
-  if (function_exists('krumo') && php_sapi_name() != 'cli') {
-    return TRUE;
-  }
-  else {
-    return FALSE;
-  }
+  @include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'devel') .'/krumo/class.krumo.php';
+  return function_exists('krumo') && !drupal_is_cli();
 }
 
 /**
