@@ -4,11 +4,13 @@
 define('DEVEL_GENERATE_IMAGE_MAX', 5);
 
 function image_devel_generate($object, $field, $instance, $bundle) {
-  if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {
-    return devel_generate_multiple('_image_devel_generate', $object, $field, $instance, $bundle);
-  }
-  else {
-    return _image_devel_generate($object, $field, $instance, $bundle);
+  if (function_exists('imagejpeg')) {
+    if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {
+      return devel_generate_multiple('_image_devel_generate', $object, $field, $instance, $bundle);
+    }
+    else {
+      return _image_devel_generate($object, $field, $instance, $bundle);
+    }
   }
 }
 

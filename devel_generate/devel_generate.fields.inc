@@ -51,14 +51,15 @@ function devel_generate_fields(&$object, $obj_type, $bundle) {
       }
       $function = $module . '_devel_generate';
       if (function_exists($function)) {
-        $result = $function($object, $field, $instance, $bundle); // $items, $teaser, $page
-        if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {
-          // Fields that handle their own multiples will add their own deltas.
-          $object_field = $result;
-        }
-        else {
-          // When multiples are handled by the content module, add a delta for each result.
-          $object_field[$i] = $result;
+        if ($result = $function($object, $field, $instance, $bundle)) {
+          if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {
+            // Fields that handle their own multiples will add their own deltas.
+            $object_field = $result;
+          }
+          else {
+            // When multiples are handled by the content module, add a delta for each result.
+            $object_field[$i] = $result;
+          }
         }
       }
     }
