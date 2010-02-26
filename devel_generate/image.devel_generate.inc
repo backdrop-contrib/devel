@@ -44,7 +44,7 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
 
   $object_field['fid'] = $file->fid;
   $object_field['alt'] = devel_create_greeking(4);
-  $object_field['title'] = devel_create_greeking(10);
+  $object_field['title'] = devel_create_greeking(4);
   return $object_field;
 }
 

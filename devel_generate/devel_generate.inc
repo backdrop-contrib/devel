@@ -368,6 +368,10 @@ function devel_create_greeking($words, $title = FALSE) {
     }
     $greeking = ucwords(implode(' ', $array));
   }
+
+  // Work around possible php garbage collection bug. Without an unset(), this
+  // function gets very expensive over many calls (php 5.2.11).
+  unset($dictionary);
   return $greeking;
 }
 
