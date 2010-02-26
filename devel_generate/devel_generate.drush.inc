@@ -57,6 +57,7 @@ function devel_generate_drush_command() {
     'options' => array(
       'kill' => 'Specify \'kill\' to delete all content before generating new content.',
       'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
+      'skip-fields' => 'A comma delimited list of fields to omit when generating random values',
     ),
     'aliases' => array('genc'),
   );
