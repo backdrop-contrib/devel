@@ -400,6 +400,15 @@ function devel_init() {
   }
 }
 
+function devel_set_message($msg, $type = NULL) {
+  if (function_exists('drush_log')) {
+    drush_log($msg, $type);
+  }
+  else {
+    drupal_set_message($msg, $type);
+  }
+}
+
 // Return boolean. No need for cache here.
 function has_krumo() {
   // see README.txt or just download from http://krumo.sourceforge.net/

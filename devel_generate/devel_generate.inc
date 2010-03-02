@@ -119,12 +119,18 @@ function devel_generate_content($form_state) {
   if (count($form_state['values']['node_types'])) {
     // Generate nodes.
     devel_generate_content_pre_node($form_state['values']);
-    for ($i = 1; $i <= $form_state['values']['num_nodes']; $i ++) {
+    $start = time();
+    for ($i = 1; $i <= $form_state['values']['num_nodes']; $i++) {
       devel_generate_content_add_node($form_state['values']);
+      if (function_exists('drush_log') && $i % drush_get_option('feedback', 1000) == 0) {
+        $now = time();
+        drush_log(dt('Completed 1000 nodes (!rate nodes/min)', array('!rate' => round(1000/($now-$start)*60))), 'ok');
+        $start = $now;
+      }
     }
   }
 
-  drupal_set_message(format_plural($form_state['values']['num_nodes'], '1 node created.', '@count nodes created'));
+  devel_set_message(format_plural($form_state['values']['num_nodes'], '1 node created.', 'Finished creating @count nodes'));
 }
 
 function devel_generate_add_comments($node, $users, $max_comments, $title_length = 8) {
