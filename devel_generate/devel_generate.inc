@@ -124,7 +124,7 @@ function devel_generate_content($form_state) {
       devel_generate_content_add_node($form_state['values']);
       if (function_exists('drush_log') && $i % drush_get_option('feedback', 1000) == 0) {
         $now = time();
-        drush_log(dt('Completed 1000 nodes (!rate nodes/min)', array('!rate' => round(1000/($now-$start)*60))), 'ok');
+        drush_log(dt('Completed !feedback nodes (!rate nodes/min)', array('!feedback' => drush_get_option('feedback', 1000), '!rate' => round(1000/($now-$start)*60))), 'ok');
         $start = $now;
       }
     }
