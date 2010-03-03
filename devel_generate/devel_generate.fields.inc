@@ -19,9 +19,7 @@ function devel_generate_fields(&$object, $obj_type, $bundle) {
   }
   foreach ($instances as $instance) {
     $field_name = $instance['field_name'];
-    $table_name = _field_sql_storage_tablename($field_name);
-    $revision_name = _field_sql_storage_revision_tablename($field_name);
-    $field = field_read_field($field_name);
+    $field = field_info_field($field_name);
 
     $object_field = array();
     // If module handles own multiples, then only call its hook once.
@@ -38,7 +36,7 @@ function devel_generate_fields(&$object, $obj_type, $bundle) {
           break;
       }
     }
-      for ($i = 0; $i <= $max; $i++) {
+    for ($i = 0; $i <= $max; $i++) {
       $module = $field_types[$field['type']]['module'];
 
       // Include any support file that might exist for this field.
