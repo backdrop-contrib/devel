@@ -40,7 +40,7 @@ function devel_generate_fields(&$object, $obj_type, $bundle) {
       $module = $field_types[$field['type']]['module'];
 
       // Include any support file that might exist for this field.
-      if (in_array($module, array('file', 'image', 'taxonomy', 'number', 'text', 'userreference', 'nodereference', 'comment'))) {
+      if (in_array($module, array('file', 'image', 'taxonomy', 'number', 'text', 'userreference', 'nodereference', 'comment', 'list'))) {
         // devel_generate implements on behalf of core and special friends.
         module_load_include('inc', 'devel_generate', "$module.devel_generate");
       }
