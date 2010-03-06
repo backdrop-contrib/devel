@@ -41,7 +41,8 @@ function devel_generate_drush_command() {
       'n' => 'Vocabulary ID into which new terms will be inserted.',
     ),
     'options' => array(
-      'kill' => 'Specify \'kill\' to delete all terms in specified vocab before generating.'
+      'kill' => 'Specify \'kill\' to delete all terms in specified vocab before generating.',
+      'feedback' => 'An integer representing interval for insertion rate logging. Defaults to 500',
     ),
     'aliases' => array('gent'),
 

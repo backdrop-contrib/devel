@@ -196,6 +196,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
   $terms = array();
 
   // Insert new data:
+  $start = time();
   for ($i = 1; $i <= $records; $i++) {
     $term = new stdClass();
     switch ($i % 2) {
@@ -214,8 +215,13 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
 
     $term->name = devel_generate_word(mt_rand(2, $maxlength));
     $term->description = "description of ". $term->name;
-    $term->weight = mt_rand(0,10);
+    $term->weight = mt_rand(0, 10);
     $status = taxonomy_term_save($term);
+    if (function_exists('drush_log') && $i % drush_get_option('feedback', 1000) == 0) {
+      $now = time();
+      drush_log(dt('Completed !feedback terms (!rate terms/min)', array('!feedback' => drush_get_option('feedback', 1000), '!rate' => round(1000/($now-$start)*60))), 'ok');
+      $start = $now;
+    }
     $output = NULL;
 
     if ($status) {
