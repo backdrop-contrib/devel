@@ -224,7 +224,8 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
     }
     $output = NULL;
 
-    if ($status) {
+    // Limit memory usage.
+    if ($status && count($terms) < 20) {
       $terms[] = $term->name;
     }
 
