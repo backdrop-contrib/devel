@@ -197,6 +197,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
 
   // Insert new data:
   $start = time();
+  $max = db_query('SELECT MAX(tid) FROM taxonomy_term_data')->fetchField();
   for ($i = 1; $i <= $records; $i++) {
     $term = new stdClass();
     switch ($i % 2) {
@@ -205,31 +206,48 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
         // dont set a parent. handled by taxonomy_save_term()
         // $term->parent = 0;
         break;
-      case 2:
       default:
-        $parent = db_query_range("SELECT t.tid, v.vid FROM {taxonomy_term_data} t INNER JOIN {taxonomy_vocabulary} v ON t.vid = v.vid ORDER BY RAND()", 0, 1)->fetchObject();
-        $term->parent = array($parent->tid);
-        $term->vid = $parent->vid;
+        while (TRUE) {
+          $candidate = mt_rand(1, $max);
+          $query = db_select('taxonomy_term_data', 't');
+          $query->innerJoin('taxonomy_vocabulary', 'v', 't.vid = v.vid');
+          $parent = $query
+                    ->fields('t', array('tid', 'vid'))
+                    ->fields('v', array('machine_name'))
+                    ->condition('v.vid', $vocs, 'IN')
+                    ->condition('t.tid', $candidate, '>=')
+                    ->range(0,1)
+                    ->execute()
+                    ->fetchAssoc();
+          if ($parent['tid']) {
+            break;
+          }
+        }
+        $term->parent = $parent['tid'];
+        // Slight speedup due to this property being set.
+        $term->vocabulary_machine_name = $parent['machine_name'];
+        $term->vid = $parent['vid'];
         break;
     }
 
     $term->name = devel_generate_word(mt_rand(2, $maxlength));
     $term->description = "description of ". $term->name;
     $term->weight = mt_rand(0, 10);
-    $status = taxonomy_term_save($term);
-    if (function_exists('drush_log') && $i % drush_get_option('feedback', 1000) == 0) {
-      $now = time();
-      drush_log(dt('Completed !feedback terms (!rate terms/min)', array('!feedback' => drush_get_option('feedback', 1000), '!rate' => round(1000/($now-$start)*60))), 'ok');
-      $start = $now;
-    }
-    $output = NULL;
+    if ($status = taxonomy_term_save($term)) {
+      $max += 1;
+      if (function_exists('drush_log') && $i % drush_get_option('feedback', 1000) == 0) {
+        $now = time();
+        drush_log(dt('Completed !feedback terms (!rate terms/min)', array('!feedback' => drush_get_option('feedback', 1000), '!rate' => round(1000/($now-$start)*60))), 'ok');
+        $start = $now;
+      }
 
-    // Limit memory usage.
-    if ($status && count($terms) < 20) {
-      $terms[] = $term->name;
-    }
+      // Limit memory usage.
+      if ($i < 20) {
+        $terms[] = $term->name;
+      }
 
-    unset($term);
+      unset($term);
+    }
   }
   return $terms;
 }
