@@ -196,8 +196,8 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
   $terms = array();
 
   // Insert new data:
-  $start = time();
   $max = db_query('SELECT MAX(tid) FROM taxonomy_term_data')->fetchField();
+  $start = time();
   for ($i = 1; $i <= $records; $i++) {
     $term = new stdClass();
     switch ($i % 2) {
@@ -235,9 +235,10 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
     $term->weight = mt_rand(0, 10);
     if ($status = taxonomy_term_save($term)) {
       $max += 1;
-      if (function_exists('drush_log') && $i % drush_get_option('feedback', 1000) == 0) {
+      $feedback = drush_get_option('feedback', 1000);
+      if (function_exists('drush_log') && $i % $feedback == 0) {
         $now = time();
-        drush_log(dt('Completed !feedback terms (!rate terms/min)', array('!feedback' => drush_get_option('feedback', 1000), '!rate' => round(1000/($now-$start)*60))), 'ok');
+        drush_log(dt('Completed !feedback terms (!rate terms/min)', array('!feedback' => $feedback, '!rate' => $feedback*60 / ($now-$start) )), 'ok');
         $start = $now;
       }
 
