@@ -197,6 +197,7 @@ function devel_generate_taxonomy_form() {
   $form['num_vocab'] = array(
     '#type' => 'textfield',
     '#title' => t('How many vocabularies would you like to generate?'),
+    '#description' => t('Terms will be generated from the new vocabularies and any existing vocabularies.'),
     '#default_value' => 3,
     '#size' => 10,
   );
@@ -208,13 +209,13 @@ function devel_generate_taxonomy_form() {
   );
   $form['title_length'] = array(
     '#type' => 'textfield',
-    '#title' => t('Max word length of term/vocab names'),
+    '#title' => t('Max word length of term/vocabulary names'),
     '#default_value' => 12,
     '#size' => 10,
   );
   $form['kill_taxonomy'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Delete existing terms and vocabularies before generating new content.'),
+    '#title' => t('Delete existing terms and vocabularies before generating new ones.'),
     '#default_value' => FALSE,
   );
   $form['submit'] = array(

@@ -1,9 +1,5 @@
 <?php
 // $Id$
-// If not in 'safe mode', increase the maximum execution time:
-if (!ini_get('safe_mode')) {
-  set_time_limit(240);
-}
 
 /**
  * Generate some random users.
@@ -20,9 +16,13 @@ if (!ini_get('safe_mode')) {
 function devel_create_users($num, $kill, $age = 0, $roles = array()) {
   $url = parse_url($GLOBALS['base_url']);
   if ($kill) {
-    // TODO: deal with cancel API
-    db_delete('users')->condition('uid', 1, '>')->execute();
-    drupal_set_message(t('Users deleted.'));
+    $uids = db_select('users', 'u')
+            ->fields('u', array('uid'))
+            ->condition('uid', 1, '>')
+            ->execute()
+            ->fetchAllAssoc('uid');
+    user_delete_multiple(array_keys($uids));
+    drupal_set_message(format_plural(count($uids), '1 user deleted', '@count users deleted.'));
   }
   // Determine if we should create user pictures.
   $pic_config = FALSE;
@@ -51,6 +51,12 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
         'created' => REQUEST_TIME - mt_rand(0, $age),
         'roles' => drupal_map_assoc($roles),
       );
+
+      // Populate all core fields on behalf of field.module
+      module_load_include('inc', 'devel_generate', 'devel_generate.fields');
+      $edit = (object) $edit;
+      devel_generate_fields($edit, 'user', 'user');
+      $edit = (array) $edit;
 
       $account = user_save(NULL, $edit);
 
@@ -199,10 +205,11 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
   $max = db_query('SELECT MAX(tid) FROM taxonomy_term_data')->fetchField();
   $start = time();
   for ($i = 1; $i <= $records; $i++) {
-    $term = new stdClass();
     switch ($i % 2) {
       case 1:
-        $term->vid = $vocs[array_rand($vocs)];
+        // Set vid and vocabulary_machine_name properties.
+        $vid = array_rand($vocs);
+        $term = $vocs[$vid];
         // dont set a parent. handled by taxonomy_save_term()
         // $term->parent = 0;
         break;
@@ -214,7 +221,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
           $parent = $query
                     ->fields('t', array('tid', 'vid'))
                     ->fields('v', array('machine_name'))
-                    ->condition('v.vid', $vocs, 'IN')
+                    ->condition('v.vid', array_keys($vocs), 'IN')
                     ->condition('t.tid', $candidate, '>=')
                     ->range(0,1)
                     ->execute()
@@ -232,14 +239,22 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
 
     $term->name = devel_generate_word(mt_rand(2, $maxlength));
     $term->description = "description of ". $term->name;
+    $term->format = filter_fallback_format();
     $term->weight = mt_rand(0, 10);
+
+    // Populate all core fields on behalf of field.module
+    module_load_include('inc', 'devel_generate', 'devel_generate.fields');
+    devel_generate_fields($term, 'term', $term->vocabulary_machine_name);
+
     if ($status = taxonomy_term_save($term)) {
       $max += 1;
-      $feedback = drush_get_option('feedback', 1000);
-      if (function_exists('drush_log') && $i % $feedback == 0) {
-        $now = time();
-        drush_log(dt('Completed !feedback terms (!rate terms/min)', array('!feedback' => $feedback, '!rate' => $feedback*60 / ($now-$start) )), 'ok');
-        $start = $now;
+      if (function_exists('drush_log')) {
+        $feedback = drush_get_option('feedback', 1000);
+        if ($i % $feedback == 0) {
+          $now = time();
+          drush_log(dt('Completed !feedback terms (!rate terms/min)', array('!feedback' => $feedback, '!rate' => $feedback*60 / ($now-$start) )), 'ok');
+          $start = $now;
+        }
       }
 
       // Limit memory usage.
@@ -254,8 +269,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
 }
 
 function devel_generate_get_vocabs() {
-  $vocs = array();
-  return db_query("SELECT vid FROM {taxonomy_vocabulary}")->fetchCol();
+  return db_query("SELECT vid, machine_name AS vocabulary_machine_name FROM {taxonomy_vocabulary}")->fetchAllAssoc('vid');
 }
 
 function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $kill) {
@@ -444,29 +458,6 @@ function devel_generate_add_statistics($node) {
   );
   $statistic['daycount'] = mt_rand(0, $statistic['totalcount']);
   db_insert('node_counter')->fields($statistic)->execute();
-}
-
-function devel_generate_add_upload(&$node) {
-  // Pick a random PNG to attach.
-  $files = file_scan_directory(DRUPAL_ROOT. '/misc', '/^.*\.png$/');
-  $source = $files[array_rand($files)];
-
-  // Setup the file object.
-  $file = new stdClass();
-  $file->uri = file_unmanaged_copy($source->uri);
-  $file->filename = $source->filename;
-  $file->filemime = 'image/png';
-  $file->uid = $node->uid;
-  $file->status = FILE_STATUS_PERMANENT;
-
-  // Data for upload.module.
-  $file->list = variable_get('upload_list_default', TRUE);
-  $file->description = $source->name . ' was here';
-  $file->weight = mt_rand(0,10);
-  $file->new = TRUE;
-
-  $file = file_save($file);
-  $node->files[$file->fid] = $file;
 }
 
 /**

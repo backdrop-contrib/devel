@@ -17,20 +17,23 @@ function _text_devel_generate($object, $field, $instance, $bundle) {
     $format = array_rand($formats);
   }
   else {
-    $format = 0;
+    $format = filter_fallback_format();
   }
+
   if ($instance['widget']['type'] != 'text_textfield') {
+    // Textarea handling
     $object_field['value'] = devel_create_content($format);
     if ($instance['widget']['type'] == 'text_textarea_with_summary' && !empty($instance['display_summary'])) {
       $object_field['summary'] = devel_create_content($format);
     }
   }
   else {
+    // Textfield handling.
     // Generate a value that respects max_length.
-    if (empty($field['max_length'])) {
-      $field['max_length'] = 12;
+    if (empty($field['settings']['max_length'])) {
+      $field['settings']['max_length'] = 12;
     }
-    $object_field['value'] = user_password($field['max_length']);
+    $object_field['value'] = user_password($field['settings']['max_length']);
   }
   $object_field['format'] = $format;
   return $object_field;
