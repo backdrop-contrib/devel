@@ -370,6 +370,19 @@ function devel_init() {
       // We want to include the class early so that anyone may call krumo() as needed. See http://krumo.sourceforge.net/
       has_krumo();
 
+      // Initialize XHProf.
+      if (extension_loaded('xhprof')) {
+        $path = variable_get('devel_xhprof_directory', '');
+        if ($path) {
+          include_once $path . '/xhprof_lib/utils/xhprof_lib.php';
+          include_once $path . '/xhprof_lib/utils/xhprof_runs.php';
+          if (variable_get('devel_xhprof_enabled', FALSE)) {
+            // @todo: consider a variable per-flag instead.
+            xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+          }
+        }
+      }
+
       // See http://www.firephp.org/.
       // Support Libraries API - http://drupal.org/project/libraries
       if (module_exists('libraries')) {
@@ -866,11 +879,28 @@ function devel_shutdown_summary($queries) {
     $output .= devel_timer();
   }
 
+  if (variable_get('devel_xhprof_enabled', FALSE)) {
+    $output .= devel_xhprof_output();
+  }
+
   $output .= devel_shutdown_memory();
 
   $output .= '</div>';
 
   return $output;
+}
+
+function devel_xhprof_output() {
+  $namespace = variable_get('site_name', '');  // namespace for your application
+  $xhprof_data = xhprof_disable();
+
+  $xhprof_runs = new XHProfRuns_Default();
+  $run_id = $xhprof_runs->save_run($xhprof_data, $namespace);
+  // @todo: render results from within Drupal.
+  $xhprof_url = variable_get('devel_xhprof_url', '');
+  if ($xhprof_url) {
+    return t('<a href="@xhprof">XHProf output</a>', array('@xhprof' => $xhprof_url . "/index.php?run=$run_id&source=$namespace"));
+  }
 }
 
 function devel_shutdown_memory() {

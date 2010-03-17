@@ -36,6 +36,51 @@ function devel_admin_settings() {
     '#maxlength' => 4,
     '#description' => t('Enter an integer in milliseconds. Any query which takes longer than this many milliseconds will be highlighted in the query log. This indicates a possibly inefficient query, or a candidate for caching.'),
   );
+
+  $form['xhprof'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'XHProf',
+    '#description' => t('XHProf is a php extension which is essential for profiling your Drupal site. It pinpoints slow functions, and also memory hogging functions.'),
+  );
+  $description = extension_loaded('xhprof') ? t('Profile requests with the xhprof php extension.') : '<span class="warning">' . t('You must enable the <a href="!url">xhprof php extension</a> to use this feature.', array('!url' => url('http://techportal.ibuildings.com/2009/12/01/profiling-with-xhprof/'))) . '</span>';
+  $form['xhprof']['devel_xhprof_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Enable profiling of all page views',
+    '#default_value' => variable_get('devel_xhprof_enabled', FALSE),
+    '#description' => $description,
+    '#disabled' => !extension_loaded('xhprof'),
+  );
+  $form['xhprof']['settings'] = array(
+    '#type' => 'container',
+    '#states' => array(
+      'invisible' => array(
+        'input[name="devel_xhprof_enabled"]' => array('checked' => FALSE),
+      ),
+    ),
+  );
+  $form['xhprof']['settings']['devel_xhprof_directory'] = array(
+    '#type' => 'textfield',
+    '#title' => 'xhprof directory',
+    '#description' => t('Location of the xhprof source code on your system, usually somewhere in /usr/local/share or /usr/share, include the leading forward slash.'),
+    '#default_value' => variable_get('devel_xhprof_directory', ''),
+    '#states' => array(
+      'invisible' => array(
+        'input[name="devel_xhprof_enabled"]' => array('checked' => FALSE),
+      ),
+    ),
+  );
+  $form['xhprof']['settings']['devel_xhprof_url'] = array(
+    '#type' => 'textfield',
+    '#title' => 'XHProf URL',
+    '#description' => t('Path to the publically accessible xhprof_html - required to display profiler reports. You will need to set this up outside Drupal, for example at http://xhprof.localhost/xhprof_html'),
+    '#default_value' => variable_get('devel_xhprof_url', ''),
+    '#states' => array(
+      'invisible' => array(
+        'input[name="devel_xhprof_enabled"]' => array('checked' => FALSE),
+      ),
+    ),
+  );
+
   $form['devel_api_url'] = array('#type' => 'textfield',
     '#title' => t('API Site'),
     '#default_value' => variable_get('devel_api_url', 'api.drupal.org'),
@@ -45,6 +90,7 @@ function devel_admin_settings() {
     '#default_value' => variable_get('dev_timer', 0),
     '#description' => t('Display page execution time in the query log box.'),
   );
+
   $form['dev_mem'] = array('#type' => 'checkbox',
     '#title' => t('Display memory usage'),
     '#default_value' => variable_get('dev_mem', 0),
