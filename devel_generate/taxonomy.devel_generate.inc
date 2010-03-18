@@ -18,10 +18,9 @@ function _taxonomy_devel_generate($object, $field, $instance, $bundle) {
   $max = db_query('SELECT MAX(tid) FROM taxonomy_term_data')->fetchField();
   $candidate = mt_rand(1, $max);
   $query = db_select('taxonomy_term_data', 't');
-  $query->innerJoin('taxonomy_vocabulary', 'v', 't.vid = v.vid');
   $tid = $query
             ->fields('t', array('tid'))
-            ->condition('v.vid', $field['settings']['allowed_values'][0]['vid'], '=')
+            ->condition('t.vid', $field['settings']['allowed_values'][0]['vid'], '=')
             ->condition('t.tid', $candidate, '>=')
             ->range(0,1)
             ->execute()
