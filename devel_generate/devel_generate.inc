@@ -130,7 +130,7 @@ function devel_generate_content($form_state) {
       devel_generate_content_add_node($form_state['values']);
       if (function_exists('drush_log') && $i % drush_get_option('feedback', 1000) == 0) {
         $now = time();
-        drush_log(dt('Completed !feedback nodes (!rate nodes/min)', array('!feedback' => drush_get_option('feedback', 1000), '!rate' => round(1000/($now-$start)*60))), 'ok');
+        drush_log(dt('Completed !feedback nodes (!rate nodes/min)', array('!feedback' => drush_get_option('feedback', 1000), '!rate' => (drush_get_option('feedback', 1000)*60)/($now-$start))), 'ok');
         $start = $now;
       }
     }
@@ -510,7 +510,6 @@ function devel_generate_content_add_node(&$results) {
 
   // Insert new data:
   $node->type = array_rand($results['node_types']);
-  module_load_include('inc', 'node', 'node.pages');
   node_object_prepare($node);
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
