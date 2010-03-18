@@ -14,6 +14,10 @@
  *  An array of role IDs that the users should receive.
  */
 function devel_create_users($num, $kill, $age = 0, $roles = array()) {
+  // Speedup password generation. See http://drupal.org/node/745706. Reduce if
+  // core starts allowing lower values.
+  $GLOBALS['conf']['password_count_log2'] = 7;
+
   $url = parse_url($GLOBALS['base_url']);
   if ($kill) {
     $uids = db_select('users', 'u')
