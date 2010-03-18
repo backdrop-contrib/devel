@@ -464,7 +464,7 @@ function dfbt($label) {
 function devel_watchdog(array $log_entry) {
   if (class_exists('FirePHP')) {
     switch ($log_entry['severity']) {
-      case WATCHDOG_EMERG:
+      case WATCHDOG_EMERGENCY:
       case WATCHDOG_ALERT:
       case WATCHDOG_CRITICAL:
       case WATCHDOG_ERROR:
