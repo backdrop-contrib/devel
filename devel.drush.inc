@@ -23,6 +23,27 @@ function devel_drush_command() {
     ),
     'aliases' => array('dre'),
   );
+  $items['fn-hook'] = array(
+    'description' => 'List implementations of a given hook and explore source of specified one.',
+    'arguments' => array(
+      'hook' => 'The name of the hook to explore.'
+    ),
+    'aliases' => array('fnh', 'hook'),
+  );
+  $items['fn-view'] = array(
+    'description' => 'Show the source of specified function.',
+    'arguments' => array(
+      'function' => 'The name of the function to view.',
+    ),
+    'options' => array(
+      '--pipe' => 'Output just the filename of the function',
+    ),
+    'examples' => array(
+      'drush fn-view book_perm' => 'View the function "book_perm"',
+      'vi `drush --pipe fn-view user_access`' => 'Edit the file that contains the function "user_access"',
+    ),
+    'aliases' => array('fnv'),
+  );
   return $items;
 }
 
@@ -91,5 +112,61 @@ function drush_devel_post_enable() {
   $modules = func_get_args();
   if (in_array('devel', $modules)) {
     drush_devel_download();
+  }
+}
+
+/**
+ * Command handler. Show hook implementations
+ */
+function drush_devel_fn_hook($hook) {
+  $hook_implementations = module_implements($hook);
+  if ($choice = drush_choice(array_combine($hook_implementations, $hook_implementations), 'Enter the number of the hook implementation you wish to view.')) {
+    return drush_devel_fn_view($choice . "_$hook");
+  }
+}
+
+/**
+ * Command handler.  Show source code of specified function.
+ */
+function drush_devel_fn_view($function_name) {
+  $func = new ReflectionFunction($function_name);
+  $func_info = array('!file' => $func->getFileName(), '!startline' => $func->getStartLine(), '!endline' => $func->getEndLine());
+  //drush_print_pipe(dt("!file -line !startline", $func_info));
+  drush_print_pipe($func->getFileName());
+  drush_print(dt("// file: !file, lines !startline-!endline", $func_info));
+
+  _drush_devel_print_function($func->getFileName(), $func->getStartLine(), $func->getEndLine());
+}
+
+/**
+ * Print the specified function, including any
+ * doxygen-style comments that come before it.
+ */
+function _drush_devel_print_function($file, $start_line, $end_line) {
+  $line_num = 0;
+  $doxygen = NULL;
+  $fp = fopen( $file, 'r' );
+
+  while (!feof($fp) && ($line_num < ($start_line - 1))) {
+    $line = fgets($fp);
+    ++$line_num;
+
+    if (substr($line,0,3) == '/**') {
+      $doxygen = $line;
+    }
+    elseif (isset($doxygen)) {
+      $doxygen .= $line;
+      if ($line_num + 1 == $start_line) {
+        drush_print(rtrim($doxygen));
+      }
+      if (strstr($line, '*/') !== FALSE) {
+        $doxygen = NULL;
+      }
+    }
+  }
+  while (!feof($fp) && ($line_num < $end_line)) {
+    $line = fgets($fp);
+    ++$line_num;
+    drush_print(rtrim($line));
   }
 }
