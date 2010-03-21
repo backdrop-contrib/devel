@@ -31,16 +31,17 @@ function devel_drush_command() {
     'aliases' => array('fnh', 'hook'),
   );
   $items['fn-view'] = array(
-    'description' => 'Show the source of specified function.',
+    'description' => 'Show the source of specified function or method.',
     'arguments' => array(
-      'function' => 'The name of the function to view.',
+      'function' => 'The name of the function or method to view.',
     ),
     'options' => array(
       '--pipe' => 'Output just the filename of the function',
     ),
     'examples' => array(
-      'drush fn-view book_perm' => 'View the function "book_perm"',
+      'fn-view drupal_set_breadcrumb' => 'View the source code for function "drupal_set_breadcrumb"',
       'vi `drush --pipe fn-view user_access`' => 'Edit the file that contains the function "user_access"',
+      'fn-view NodeController::load' => 'View the source code for method load in the class NodeController'
     ),
     'aliases' => array('fnv'),
   );
@@ -119,23 +120,39 @@ function drush_devel_post_enable() {
  * Command handler. Show hook implementations
  */
 function drush_devel_fn_hook($hook) {
-  $hook_implementations = module_implements($hook);
-  if ($choice = drush_choice(array_combine($hook_implementations, $hook_implementations), 'Enter the number of the hook implementation you wish to view.')) {
-    return drush_devel_fn_view($choice . "_$hook");
+  if ($hook_implementations = module_implements($hook)) {
+    if ($choice = drush_choice(array_combine($hook_implementations, $hook_implementations), 'Enter the number of the hook implementation you wish to view.')) {
+      return drush_devel_fn_view($choice . "_$hook");
+    }
+  }
+  else {
+    drush_log(dt('No implementations.'), 'ok');
   }
 }
 
 /**
- * Command handler.  Show source code of specified function.
+ * Command handler.  Show source code of specified function or method.
  */
 function drush_devel_fn_view($function_name) {
-  $func = new ReflectionFunction($function_name);
-  $func_info = array('!file' => $func->getFileName(), '!startline' => $func->getStartLine(), '!endline' => $func->getEndLine());
+  if (strpos($function_name, '::') === FALSE) {
+    if (!function_exists($function_name)) {
+      return drush_set_error(dt('Function not found'));
+    }
+    $reflect = new ReflectionFunction($function_name);
+  }
+  else {
+    list($class, $method) = explode('::', $function_name);
+    if (!method_exists($class, $method)) {
+      return drush_set_error(dt('Method not found'));
+    }
+    $reflect = new ReflectionMethod($class, $method);
+  }
+  $func_info = array('!file' => $reflect->getFileName(), '!startline' => $reflect->getStartLine(), '!endline' => $reflect->getEndLine());
   //drush_print_pipe(dt("!file -line !startline", $func_info));
-  drush_print_pipe($func->getFileName());
+  drush_print_pipe($reflect->getFileName());
   drush_print(dt("// file: !file, lines !startline-!endline", $func_info));
 
-  _drush_devel_print_function($func->getFileName(), $func->getStartLine(), $func->getEndLine());
+  _drush_devel_print_function($reflect->getFileName(), $reflect->getStartLine(), $reflect->getEndLine());
 }
 
 /**
