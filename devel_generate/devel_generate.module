@@ -254,3 +254,8 @@ function devel_generate_node_insert(&$node) {
     }
   }
 }
+
+function devel_generate_set_message($msg, $type = NULL) {
+  $function  = function_exists('drush_log') ? 'drush_log' : 'drupal_set_message';
+  $function($msg, $type);
+}

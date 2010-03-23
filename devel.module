@@ -414,12 +414,8 @@ function devel_init() {
 }
 
 function devel_set_message($msg, $type = NULL) {
-  if (function_exists('drush_log')) {
-    drush_log($msg, $type);
-  }
-  else {
-    drupal_set_message($msg, $type);
-  }
+  $function  = function_exists('drush_log') ? 'drush_log' : 'drupal_set_message';
+  $function($msg, $type);
 }
 
 // Return boolean. No need for cache here.

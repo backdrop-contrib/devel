@@ -136,7 +136,7 @@ function devel_generate_content($form_state) {
     }
   }
 
-  devel_set_message(format_plural($form_state['values']['num_nodes'], '1 node created.', 'Finished creating @count nodes'));
+  devel_generate_set_message(format_plural($form_state['values']['num_nodes'], '1 node created.', 'Finished creating @count nodes'));
 }
 
 function devel_generate_add_comments($node, $users, $max_comments, $title_length = 8) {
