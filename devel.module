@@ -481,9 +481,10 @@ function devel_watchdog(array $log_entry) {
   else {
     $type = 'watchdog';
   }
+  $function = function_exists('decode_entities') ? 'decode_entities' : 'html_entity_decode';
   $watchdog = array(
     'type' => $log_entry['type'],
-    'message' => decode_entities(strtr($log_entry['message'], (array)$log_entry['variables'])),
+    'message' => $function(strtr($log_entry['message'], (array)$log_entry['variables'])),
   );
   if (isset($log_entry['link'])) {
     $watchdog['link'] = $log_entry['link'];
