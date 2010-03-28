@@ -669,7 +669,7 @@ function devel_block_view($delta) {
 
 function devel_block_switch_user() {
   $links = devel_switch_user_list();
-  if (!empty($links)) {
+  if (!empty($links) || user_access('switch users')) {
     $block['subject'] = t('Switch user');
     $build['devel_links'] = array('#theme' => 'links', '#links' => $links);
     $build['devel_form'] = drupal_get_form('devel_switch_user_form');
