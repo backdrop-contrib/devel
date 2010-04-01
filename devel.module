@@ -370,19 +370,6 @@ function devel_init() {
       // We want to include the class early so that anyone may call krumo() as needed. See http://krumo.sourceforge.net/
       has_krumo();
 
-      // Initialize XHProf.
-      if (extension_loaded('xhprof')) {
-        $path = variable_get('devel_xhprof_directory', '');
-        if ($path) {
-          include_once $path . '/xhprof_lib/utils/xhprof_lib.php';
-          include_once $path . '/xhprof_lib/utils/xhprof_runs.php';
-          if (variable_get('devel_xhprof_enabled', FALSE)) {
-            // @todo: consider a variable per-flag instead.
-            xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
-          }
-        }
-      }
-
       // See http://www.firephp.org/.
       // Support Libraries API - http://drupal.org/project/libraries
       if (module_exists('libraries')) {
@@ -458,7 +445,7 @@ function dfbt($label) {
  * Implements hook_watchdog().
  */
 function devel_watchdog(array $log_entry) {
-  if (class_exists('FirePHP')) {
+  if (class_exists('FirePHP') && !drupal_is_cli()) {
     switch ($log_entry['severity']) {
       case WATCHDOG_EMERGENCY:
       case WATCHDOG_ALERT:
@@ -525,25 +512,34 @@ function devel_silent() {
     );
 }
 
+function devel_xhprof_enable() {
+  if (extension_loaded('xhprof') && variable_get('devel_xhprof_enabled', FALSE)) {
+    if ($path = variable_get('devel_xhprof_directory', '')) {
+      include_once $path . '/xhprof_lib/utils/xhprof_lib.php';
+      include_once $path . '/xhprof_lib/utils/xhprof_runs.php';
+      // @todo: consider a variable per-flag instead.
+      xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+    }
+  }
+}
+
 /**
  * Implementation of hook_boot(). Runs even for cached pages.
  */
 function devel_boot() {
+  // Initialize XHProf.
+  devel_xhprof_enable();
+
   if (!devel_silent()) {
-    devel_start();
-  }
-}
+    if (variable_get('dev_mem', 0)) {
+      global $memory_init;
+      $memory_init = memory_get_usage();
+    }
 
-// Kickoff our tricks. Put here all code which must run for cached pages too. Called from both devel_boot() and devel_init().
-function devel_start() {
-  if (variable_get('dev_mem', 0)) {
-    global $memory_init;
-    $memory_init = memory_get_usage();
-  }
-
-  if (devel_query_enabled()) {
-    @include_once DRUPAL_ROOT . '/includes/database/log.inc';
-    Database::startLog('devel');;
+    if (devel_query_enabled()) {
+      @include_once DRUPAL_ROOT . '/includes/database/log.inc';
+      Database::startLog('devel');;
+    }
   }
 
   // We need user_access() in the shutdown function. make sure it gets loaded.
@@ -805,6 +801,13 @@ function devel_drupal_goto_alter($path, $options, $http_response_code) {
 function devel_shutdown() {
   // Register the real shutdown function so it runs later than other shutdown functions.
   register_shutdown_function('devel_shutdown_real');
+
+  // Do this now so that we don't get cut off by drush_shutdown().
+  global $devel_run_id;
+  $devel_run_id = variable_get('devel_xhprof_enabled', FALSE) ? devel_shutdown_xhprof(): NULL;
+  if ($run_id && function_exists('drush_log')) {
+    drush_log('xhprof link: ' . devel_xhprof_link($run_id, 'url'), 'notice');
+  }
 }
 
 function devel_page_alter($page) {
@@ -830,7 +833,7 @@ function devel_shutdown_real() {
   // devel footer for a page.  Not necessary if your page outputs any
   // of the Content-type http headers tested below (e.g. text/xml,
   // text/javascript, etc).  This is is advised where applicable.
-  if (!isset($GLOBALS['devel_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
+  if (!devel_silent() && !isset($GLOBALS['devel_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
     // Try not to break non html pages.
     if (function_exists('drupal_get_http_header')) {
       $header = drupal_get_http_header('content-type');
@@ -846,7 +849,7 @@ function devel_shutdown_real() {
 
     if (isset($user) && user_access('access devel information')) {
       $queries = Database::getLog('devel', 'default');
-      $output .= devel_shutdown_summary($queries);
+      $output .= devel_shutdown_summary($queries, $run_id);
       $output .= devel_shutdown_query($queries);
     }
 
@@ -859,7 +862,7 @@ function devel_shutdown_real() {
   }
 }
 
-function devel_shutdown_summary($queries) {
+function devel_shutdown_summary($queries, $run_id = NULL) {
   $sum = 0;
   $output = '';
   list($counts, $query_summary) = devel_query_summary($queries);
@@ -877,7 +880,7 @@ function devel_shutdown_summary($queries) {
   }
 
   if (variable_get('devel_xhprof_enabled', FALSE)) {
-    $output .= devel_xhprof_output();
+    $output .= ' ' . devel_xhprof_link($GLOBALS['devel_run_id']);
   }
 
   $output .= devel_shutdown_memory();
@@ -887,16 +890,20 @@ function devel_shutdown_summary($queries) {
   return $output;
 }
 
-function devel_xhprof_output() {
+function devel_shutdown_xhprof() {
   $namespace = variable_get('site_name', '');  // namespace for your application
   $xhprof_data = xhprof_disable();
-
   $xhprof_runs = new XHProfRuns_Default();
-  $run_id = $xhprof_runs->save_run($xhprof_data, $namespace);
+  return $xhprof_runs->save_run($xhprof_data, $namespace);
+}
+
+function devel_xhprof_link($run_id, $type = 'link') {
   // @todo: render results from within Drupal.
   $xhprof_url = variable_get('devel_xhprof_url', '');
+  $namespace = variable_get('site_name', '');  // namespace for your application
   if ($xhprof_url) {
-    return t('<a href="@xhprof">XHProf output</a>', array('@xhprof' => $xhprof_url . "/index.php?run=$run_id&source=$namespace"));
+    $url  = $xhprof_url . "/index.php?run=$run_id&source=$namespace";
+    return $type == 'url' ? $url : t('<a href="@xhprof">XHProf output</a>. ', array('@xhprof' => $url));
   }
 }
 
@@ -1526,7 +1533,7 @@ function devel_empty_dir($dir) {
  **/
 function devel_rebuild_node_comment_statistics() {
   // Empty table
-  db_delete('node_comment_statistics');
+  db_truncate('node_comment_statistics')->execute();
 
   $sql = "INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (SELECT nid, c.timestamp, name, uid, comment_count FROM {comments} c INNER JOIN (SELECT MAX(timestamp) AS timestamp, COUNT(*) AS comment_count FROM {comments} WHERE status=%d GROUP BY nid) AS c2 ON c.timestamp=c2.timestamp)";
   db_query($sql, COMMENT_PUBLISHED);
