@@ -805,8 +805,8 @@ function devel_shutdown() {
   // Do this now so that we don't get cut off by drush_shutdown().
   global $devel_run_id;
   $devel_run_id = variable_get('devel_xhprof_enabled', FALSE) ? devel_shutdown_xhprof(): NULL;
-  if ($run_id && function_exists('drush_log')) {
-    drush_log('xhprof link: ' . devel_xhprof_link($run_id, 'url'), 'notice');
+  if ($devel_run_id && function_exists('drush_log')) {
+    drush_log('xhprof link: ' . devel_xhprof_link($devel_run_id, 'url'), 'notice');
   }
 }
 
