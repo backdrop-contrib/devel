@@ -60,6 +60,7 @@ function devel_generate_drush_command() {
       'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
       'feedback' => 'An integer representing interval for insertion rate logging. Defaults to 500',
       'skip-fields' => 'A comma delimited list of fields to omit when generating random values',
+      'languages' => 'A comma-separated list of language codes',
     ),
     'aliases' => array('genc'),
   );
@@ -104,6 +105,14 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   }
   if (!empty($max_comments) && drush_generate_is_number($max_comments) == FALSE) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of comments.'));
+  }
+
+  $add_language = drush_get_option('languages');
+  if (!empty($add_language)) {
+    $add_language = explode(',', str_replace(' ', '', $add_language));
+    // Intersect with the enabled languages to make sure the language args 
+    // passed are actually enabled.
+    $values['values']['add_language'] = array_flip(array_intersect($add_language, array_keys(locale_language_list())));
   }
 
   // Let's load user 1, seems to be needed for creating comments.

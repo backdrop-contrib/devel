@@ -515,12 +515,18 @@ function devel_generate_content_add_node(&$results) {
   $node->uid = $users[array_rand($users)];
   $type = node_type_get_type($node);
   $node->title = $type->has_title ? devel_create_greeking(mt_rand(1, $results['title_length']), TRUE) : '';
-  $node->language = LANGUAGE_NONE;
   $node->revision = mt_rand(0,1);
   $node->promote = mt_rand(0, 1);
   // Avoid NOTICE.
   if (!isset($results['time_range'])) {
     $results['time_range'] = 0;
+  }
+  if (isset($results['add_language']) && variable_get('language_content_type_' . $node->type, 0)) {
+    $languages = array_keys($results['add_language']);
+    $node->language = $languages[array_rand($languages)];
+  }
+  else {
+    $node->language = LANGUAGE_NONE;
   }
   $node->created = REQUEST_TIME - mt_rand(0, $results['time_range']);
 

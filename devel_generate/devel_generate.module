@@ -171,6 +171,21 @@ function devel_generate_content_form() {
     '#access' => module_exists('statistics'),
   );
 
+  unset($options);
+  $options[LANGUAGE_NONE] = t('Language neutral');
+  if (module_exists('locale')) {
+    $options += locale_language_list();
+  }
+  $form['add_language'] = array(
+    '#type' => 'select',
+    '#title' => t('Set language on nodes'),
+    '#multiple' => TRUE,
+    '#disabled' => !module_exists('locale'),
+    '#description' => t('Requires locale.module'),
+    '#options' => $options,
+    '#default_value' => LANGUAGE_NONE,
+  );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Do it!'),

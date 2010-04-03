@@ -61,14 +61,12 @@ function devel_generate_fields(&$object, $obj_type, $bundle) {
         }
       }
     }
-    // TODO Come back later and see if we need
-    // a valid language code or if 'none' is OK.
     // TODO: Completely overriding any existing $object->{$field['field_name']}
     // is necessary here because the forum module has a bug where it
     // initializes the property with incorrect data.
     // @see http://drupal.org/node/652176
     $object->{$field['field_name']} = array(
-      LANGUAGE_NONE => $object_field,
+      $object->language => $object_field,
     );
   }
 }
