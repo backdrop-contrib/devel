@@ -496,7 +496,7 @@ function devel_set_handler($handler) {
 }
 
 function devel_silent() {
-  // isset($_GET['q']) is needed on IIS when calling the front page. q is not set.
+  // isset($_GET['q']) is needed when calling the front page. q is not set.
   // Don't interfere with private files/images.
   return
     function_exists('drupal_is_cli') && drupal_is_cli() ||
@@ -507,8 +507,8 @@ function devel_silent() {
     (isset($_GET['q']) && (
       in_array($_GET['q'], array( 'admin/content/node-settings/rebuild')) ||
       substr($_GET['q'], 0, strlen('system/files')) == 'system/files' ||
-      substr($_GET['q'], 0, strlen('batch')) == 'batch') ||
-      substr($_GET['q'], 0, strlen('file/ajax')) == 'file/ajax'
+      substr($_GET['q'], 0, strlen('batch')) == 'batch' ||
+      substr($_GET['q'], 0, strlen('file/ajax')) == 'file/ajax')
     );
 }
 
