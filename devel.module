@@ -1535,10 +1535,10 @@ function devel_rebuild_node_comment_statistics() {
   // Empty table
   db_truncate('node_comment_statistics')->execute();
 
-  $sql = "INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (SELECT nid, c.timestamp, name, uid, comment_count FROM {comments} c INNER JOIN (SELECT MAX(timestamp) AS timestamp, COUNT(*) AS comment_count FROM {comments} WHERE status=%d GROUP BY nid) AS c2 ON c.timestamp=c2.timestamp)";
-  db_query($sql, COMMENT_PUBLISHED);
+  $sql = "INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (SELECT nid, c.created, name, uid, comment_count FROM {comment} c INNER JOIN (SELECT MAX(created) AS created, COUNT(*) AS comment_count FROM {comment} WHERE status=:published GROUP BY nid) AS c2 ON c.created=c2.created)";
+  db_query($sql, array(':published' => COMMENT_PUBLISHED));
 
   // Insert 0 count records into the node_comment_statistics for nodes that are missing. See comment_enable()
-  db_query_temporary("SELECT n.nid, n.changed, n.uid FROM {node} n LEFT JOIN {node_comment_statistics} c ON n.nid = c.nid WHERE c.comment_count IS NULL", 'missing_nids');
-  db_query("INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) SELECT n.nid, n.changed, NULL, n.uid, 0 FROM missing_nids n");
+  $table = db_query_temporary("SELECT n.nid, n.changed, n.uid FROM {node} n LEFT JOIN {node_comment_statistics} c ON n.nid = c.nid WHERE c.comment_count IS NULL");
+  db_query("INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) SELECT n.nid, n.changed, NULL, n.uid, 0 FROM $table n");
 }
