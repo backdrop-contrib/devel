@@ -1533,15 +1533,26 @@ function devel_rebuild_node_comment_statistics() {
   // Empty table
   db_truncate('node_comment_statistics')->execute();
 
+  // TODO: DBTNG.
   $sql = "
-    INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (
-      SELECT c.nid, c.created, name, uid, comment_count FROM {comment} c INNER JOIN (
-        SELECT c.nid, MAX(created) AS created, COUNT(*) AS comment_count FROM {comment} c WHERE status=:published GROUP BY c.nid
+    INSERT IGNORE INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (
+      SELECT c2.nid, c2.created, c2.name, c2.uid, comment_count FROM {comment} c INNER JOIN (
+        SELECT c.nid, MAX(c.created) AS created, c.uid, COUNT(*) AS comment_count FROM {comment} c WHERE status=:published GROUP BY c.nid
       ) AS c2 ON c.nid = c2.nid AND c.created=c2.created
     )";
   db_query($sql, array(':published' => COMMENT_PUBLISHED));
 
-  // Insert 0 count records into the node_comment_statistics for nodes that are missing. See comment_enable()
-  $table = db_query_temporary("SELECT n.nid, n.created, n.uid FROM {node} n LEFT JOIN {node_comment_statistics} c ON n.nid = c.nid WHERE c.comment_count IS NULL");
-  db_query("INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) SELECT n.nid, n.created, NULL, n.uid, 0 FROM $table n");
+  // Insert records into the node_comment_statistics for nodes that are missing.
+  $query = db_select('node', 'n');
+  $query->leftJoin('node_comment_statistics', 'ncs', 'ncs.nid = n.nid');
+  $query->addField('n', 'changed', 'last_comment_timestamp');
+  $query->addField('n', 'uid', 'last_comment_uid');
+  $query->addField('n', 'nid');
+  $query->addExpression('0', 'comment_count');
+  $query->addExpression('NULL', 'last_comment_name');
+  $query->isNull('ncs.comment_count');
+
+  db_insert('node_comment_statistics')
+    ->from($query)
+    ->execute();
 }
