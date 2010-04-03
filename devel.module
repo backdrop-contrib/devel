@@ -1525,9 +1525,7 @@ function devel_empty_dir($dir) {
 
 
 /**
- * Update node_comment_statistics table for nodes with comments.
- * TODO: if 2 comments have exact same timestamp, the function can get wrong uid and name fields.
- * Handles when comment timestamps have been manually set in admin
+ * Regenerate the data in node_comment_statistics table.
  *
  * @return void
  **/
@@ -1535,7 +1533,12 @@ function devel_rebuild_node_comment_statistics() {
   // Empty table
   db_truncate('node_comment_statistics')->execute();
 
-  $sql = "INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (SELECT nid, c.created, name, uid, comment_count FROM {comment} c INNER JOIN (SELECT MAX(created) AS created, COUNT(*) AS comment_count FROM {comment} WHERE status=:published GROUP BY nid) AS c2 ON c.created=c2.created)";
+  $sql = "
+    INSERT INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (
+      SELECT c.nid, c.created, name, uid, comment_count FROM {comment} c INNER JOIN (
+        SELECT c.nid, MAX(created) AS created, COUNT(*) AS comment_count FROM {comment} c WHERE status=:published GROUP BY c.nid
+      ) AS c2 ON c.nid = c2.nid AND c.created=c2.created
+    )";
   db_query($sql, array(':published' => COMMENT_PUBLISHED));
 
   // Insert 0 count records into the node_comment_statistics for nodes that are missing. See comment_enable()
