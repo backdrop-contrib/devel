@@ -848,7 +848,7 @@ function devel_shutdown_real() {
 
     if (isset($user) && user_access('access devel information')) {
       $queries = Database::getLog('devel', 'default');
-      $output .= devel_shutdown_summary($queries, $run_id);
+      $output .= devel_shutdown_summary($queries);
       $output .= devel_shutdown_query($queries);
     }
 
@@ -861,7 +861,7 @@ function devel_shutdown_real() {
   }
 }
 
-function devel_shutdown_summary($queries, $run_id = NULL) {
+function devel_shutdown_summary($queries) {
   $sum = 0;
   $output = '';
   list($counts, $query_summary) = devel_query_summary($queries);
