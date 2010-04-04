@@ -655,8 +655,7 @@ function devel_block_view($delta) {
 
     case 'execute_php':
       if (user_access('execute php code')) {
-        $block['subject'] = t('Execute PHP');
-        $block['content'] = drupal_get_form('devel_execute_form');
+        $block['content'] = drupal_get_form('devel_execute_block_form');
       }
       break;
   }
@@ -1037,15 +1036,30 @@ function devel_is_compatible_optimizer() {
 /**
  * Generates the execute block form.
  */
+function devel_execute_block_form() {
+  $form['execute'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Execute PHP Code'),
+    '#collapsible' => TRUE,
+    '#collapsed' => (!isset($_SESSION['devel_execute_code'])),
+  );
+  $form['#submit'] = array('devel_execute_form_submit');
+  return array_merge_recursive($form, devel_execute_form());
+}
+
+/**
+ * Generates the execute form.
+ */
 function devel_execute_form() {
-  $form['code'] = array(
+  $form['execute']['code'] = array(
     '#type' => 'textarea',
     '#title' => t('PHP code to execute'),
-    '#description' => t('Enter some code. Do not use <code>&lt;?php ?&gt;</code> tags.')
+    '#description' => t('Enter some code. Do not use <code>&lt;?php ?&gt;</code> tags.'),
+    '#default_value' => (isset($_SESSION['devel_execute_code']) ? $_SESSION['devel_execute_code'] : ''),
   );
-  $form['op'] = array('#type' => 'submit', '#value' => t('Execute'));
+  $form['execute']['op'] = array('#type' => 'submit', '#value' => t('Execute'));
   $form['#redirect'] = FALSE;
-  $form['#skip_duplicate_check'] = TRUE;
+  unset($_SESSION['devel_execute_code']);
   return $form;
 }
 
@@ -1055,6 +1069,7 @@ function devel_execute_form() {
 function devel_execute_form_submit($form, &$form_state) {
   ob_start();
   print eval($form_state['values']['code']);
+  $_SESSION['devel_execute_code'] = $form_state['values']['code'];
   dsm(ob_get_clean());
 }
 
