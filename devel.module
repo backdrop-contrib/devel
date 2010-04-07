@@ -1540,7 +1540,8 @@ function devel_empty_dir($dir) {
 
 
 /**
- * Regenerate the data in node_comment_statistics table.
+ * Regenerate the data in node_comment_statistics table. Technique comes from
+ * http://www.artfulsoftware.com/infotree/queries.php?&bw=1280#101
  *
  * @return void
  **/
@@ -1548,11 +1549,13 @@ function devel_rebuild_node_comment_statistics() {
   // Empty table
   db_truncate('node_comment_statistics')->execute();
 
-  // TODO: DBTNG.
+  // TODO: DBTNG. Ignore keyword is Mysql only? Is only used in the rare case when
+  // two comments on the same node share same timestamp.
   $sql = "
-    INSERT IGNORE INTO {node_comment_statistics} (nid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (
-      SELECT c2.nid, c2.created, c2.name, c2.uid, comment_count FROM {comment} c INNER JOIN (
-        SELECT c.nid, MAX(c.created) AS created, c.uid, COUNT(*) AS comment_count FROM {comment} c WHERE status=:published GROUP BY c.nid
+    INSERT IGNORE INTO {node_comment_statistics} (nid, cid, last_comment_timestamp, last_comment_name, last_comment_uid, comment_count) (
+      SELECT c.nid, c.cid, c.created, c.name, c.uid, c2.comment_count FROM comment c
+      JOIN (
+        SELECT c.nid, MAX(c.created) AS created, COUNT(*) AS comment_count FROM comment c WHERE status=1 GROUP BY c.nid
       ) AS c2 ON c.nid = c2.nid AND c.created=c2.created
     )";
   db_query($sql, array(':published' => COMMENT_PUBLISHED));
