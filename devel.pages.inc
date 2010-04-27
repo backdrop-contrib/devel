@@ -264,7 +264,9 @@ function devel_variable_form() {
 function devel_variable_form_submit($form, &$form_state) {
   $deletes = array_filter($form_state['values']['variables']);
   array_walk($deletes, 'variable_del');
-  drupal_set_message(format_plural(count($deletes), 'One variable deleted.', '@count variables deleted.'));
+  if (count($deletes)) {
+    drupal_set_message(format_plural(count($deletes), 'One variable deleted.', '@count variables deleted.'));
+  }
 }
 
 function devel_variable_edit($form, &$form_state, $name) {
