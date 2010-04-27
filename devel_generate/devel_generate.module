@@ -115,13 +115,13 @@ function devel_generate_content_form() {
 
   $form['node_types'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Which node types do you want to create?'),
+    '#title' => t('Content types'),
     '#options' => $options,
     '#default_value' => array_keys($options),
   );
   $form['kill_content'] = array(
     '#type' => 'checkbox',
-    '#title' => t('<strong>Delete all content</strong> in these node types before generating new content.'),
+    '#title' => t('<strong>Delete all content</strong> in these content types before generating new content.'),
     '#default_value' => FALSE,
   );
   $form['num_nodes'] = array(
@@ -188,7 +188,7 @@ function devel_generate_content_form() {
 
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Do it!'),
+    '#value' => t('Generate'),
   );
   $form['#redirect'] = FALSE;
 
