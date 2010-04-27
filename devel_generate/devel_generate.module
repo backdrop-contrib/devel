@@ -211,14 +211,14 @@ function devel_generate_content_form_submit($form_id, &$form_state) {
 function devel_generate_taxonomy_form() {
   $form['num_vocab'] = array(
     '#type' => 'textfield',
-    '#title' => t('How many vocabularies would you like to generate?'),
+    '#title' => t('Number of vocabularies?'),
     '#description' => t('Terms will be generated from the new vocabularies and any existing vocabularies.'),
     '#default_value' => 3,
     '#size' => 10,
   );
   $form['num_terms'] = array(
     '#type' => 'textfield',
-    '#title' => t('How many terms would you like to generate?'),
+    '#title' => t('Number of terms?'),
     '#default_value' => 50,
     '#size' => 10,
   );
@@ -235,7 +235,7 @@ function devel_generate_taxonomy_form() {
   );
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Do it!'),
+    '#value' => t('Generate'),
   );
   return $form;
 }
