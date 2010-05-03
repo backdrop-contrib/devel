@@ -759,7 +759,7 @@ function devel_doc_function_form_submit($form, &$form_state) {
   $version = $form_state['values']['version'];
   $function = $form_state['values']['function'];
   $api = variable_get('devel_api_url', 'api.drupal.org');
-  $form_state['redirect'] =   "http://$api/api/$version/function/$function";
+  $form_state['redirect'] =   "http://$api/api/function/$function/$version";
 }
 
 function devel_switch_user_form_validate($form, &$form_state) {
