@@ -7,7 +7,17 @@
  * Copyright Khalid Baheyeldin 2008 of http://2bits.com
  */
 
-define('PERFORMANCE_KEY', 'dru-perf:' . $_SERVER['HTTP_HOST'] . ':');
+define('PERFORMANCE_KEY',          'dru-perf:'. $_SERVER['HTTP_HOST'] .':');
+define('PERFORMANCE_MEMCACHE_BIN', 'cache_performance');
+
+function performance_memcache_enabled() {
+  global $conf;
+
+  if (function_exists('dmemcache_set') && isset($conf['memcache_bins']['cache_performance'])) {
+    return TRUE;
+  }
+  return FALSE;
+}
 
 function performance_menu() {
   $items = array();
@@ -26,6 +36,14 @@ function performance_menu() {
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('performance_clear_apc_confirm'),
     'access arguments' => array('administer performance logging'),
+  );
+
+  $items['admin/settings/performance_logging/memcache_clear'] = array(
+    'title'            => 'Clear Memcache',
+    'description'      => 'Clears performance statistics collected in Memcache.',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('performance_clear_memcache_confirm'),
+    'access arguments' => array('access administration pages'),
   );
 
   $items['admin/reports/performance_logging_summary'] = array(
@@ -103,6 +121,20 @@ function performance_settings() {
     '#options'       => $options,
     '#disabled'      => $disabled,
     '#description'   => t('Log summary data, such as average and maximum page generation times and memory usage to APC, if installed. The summary will be stored in APC memory, and hence there is no load on the database. This logging to APC is suitable for most live sites, unless the number of unique page accesses is excessively high.'),
+  );
+
+  $disabled = TRUE;
+  if (performance_memcache_enabled()) {
+    $disabled = FALSE;
+  }
+
+  $form['mode']['performance_summary_memcache'] = array(
+    '#type'          => 'select',
+    '#title'         => t('Summary logging (Memcached)'),
+    '#default_value' => variable_get('performance_summary_memcache', 0),
+    '#options'       => $options,
+    '#disabled'      => $disabled,
+    '#description'   => t('Log summary data, such as average and maximum page generation times and memory usage to Memcached, if installed. The summary will be stored in Memcached memory, and hence there is no load on the database. This logging to Memcached is suitable for most live sites, unless the number of unique page accesses is excessively high.'),
   );
 
   $form['other'] = array(
@@ -208,6 +240,12 @@ function performance_shutdown() {
       performance_log_summary_apc($params);
     }
   }
+
+  if (variable_get('performance_summary_memcache', 0)) {
+    if (performance_memcache_enabled()) {
+      performance_log_summary_memcache($params);
+    }
+  }
 }
 
 function performance_log_summary_apc($params = array()) {
@@ -243,6 +281,51 @@ function performance_log_summary_apc($params = array()) {
     );
   }
   apc_store($key, $data);
+}
+
+function performance_log_summary_memcache($params = array()) {
+  $key = PERFORMANCE_KEY . $params['path'];
+  if ($cache = cache_get($key, PERFORMANCE_MEMCACHE_BIN)) {
+    $type = 'existing';
+    $values = $cache->data;
+    $values = array(
+      'path'            => $params['path'],
+      'last_access'     => time(),
+      'bytes_max'       => max($params['mem'], $values['bytes_max']),
+      'bytes_avg'       => ($values['bytes_avg'] + $params['mem']) / 2,
+      'ms_max'          => max($params['timer'], $values['ms_max']),
+      'ms_avg'          => ($values['ms_avg'] + $params['timer']) / 2,
+      'query_timer_max' => max($params['query_timer'], $values['query_timer_max']),
+      'query_timer_avg' => ($values['query_timer_avg'] + $params['query_timer']) / 2,
+      'query_count_max' => max($params['query_count'], $values['query_count_max']),
+      'query_count_avg' => ($values['query_count_avg'] + $params['query_count']) / 2,
+      'num_accesses'    => $values['num_accesses'] + 1,
+    );
+  }
+  else {
+    $type = 'new';
+    // It is a new key
+    $values = array(
+      'path'            => $params['path'],
+      'bytes_max'       => $params['mem'],
+      'bytes_avg'       => $params['mem'],
+      'ms_max'          => $params['timer'],
+      'ms_avg'          => $params['timer'],
+      'query_timer_max' => $params['query_timer'],
+      'query_timer_avg' => $params['query_timer'],
+      'query_count_max' => $params['query_count'],
+      'query_count_avg' => $params['query_count'],
+      'num_accesses'    => 1,
+      'last_access'     => time(),
+    );
+
+    if ($keys_cache = cache_get(PERFORMANCE_KEY, PERFORMANCE_MEMCACHE_BIN)) {
+      $keys_values = $keys_cache->data;
+    }
+    $keys_values[$key] = 1;
+    cache_set(PERFORMANCE_KEY, $keys_values, PERFORMANCE_MEMCACHE_BIN, CACHE_PERMANENT);
+  }
+  cache_set($key, $values, PERFORMANCE_MEMCACHE_BIN, CACHE_PERMANENT);
 }
 
 function performance_log_summary_db($params = array()) {
@@ -335,36 +418,24 @@ function performance_apc_list_all() {
  * @return int
  */
 function performance_summary_sort($x, $y) {
-
-  $epsilon = 1E-8; // arbitrary (mostly)
-
-  $column = $x['sql']; // N.B.: === $y['sql']
-  // These arrays only contain integer and float values, so can use "-"
-  $diff = $x[$column] - $y[$column];
-
-  // Specific floating-point equality test
-  if (gettype($x[$column]) == 'float') {
-    if (abs($diff) < $epsilon) {
-      return 0;
-    }
-  }
-
-  if ($diff === 0) { // Will never happen for floats
-    return 0;
-  }
-  else {
-    $ret = ($diff < 0) ? -1 : 1;
-    if ($x['sort'] == 'desc') {
-      $ret = - $ret;
-    }
-    return $ret;
-  }
+  // This function does not work
+  return;
 }
 
 function performance_view_summary() {
+  global
+    $pager_page_array,  // array of element-keyed current page - 1
+    $pager_total,       // array of element-keyed total number of pages
+    $pager_total_items, // array of element-keyed total number of data rows
+    $pager_limits;      // array of element-keyed number of rows per page
+
   $sum = array();
+  $data_list = array();
+  $rows = array();
+
   $sum[] = variable_get('performance_summary_db', 0);
   $sum[] = variable_get('performance_summary_apc', 0);
+  $sum[] = variable_get('performance_summary_memcache', 0);
   $go = array_sum($sum);
 
   if (!$go) {
@@ -396,7 +467,33 @@ function performance_view_summary() {
 
   $data_list = array();
   $pager_height = 50;
-  if (variable_get('performance_summary_apc', 0) && function_exists('apc_cache_info')) {
+
+  if (variable_get('performance_summary_memcache', 0) && function_exists('dmemcache_set')) {
+    $tablesort = tablesort_init($header);
+    // Get the data from memcache
+    if ($keys_cache = cache_get(PERFORMANCE_KEY)) {
+      if ($keys_cache->data) {
+        foreach ($keys_cache->data as $key => $v) {
+          $cache = cache_get($key);
+          $data_list[] = $cache->data;
+        }
+      }
+    }
+    usort($data_list, 'performance_summary_sort');
+
+    // Set up pager since this is not done automatically when not using DB
+    $page = isset($_GET['page']) ? $_GET['page'] : 0; // unsafe
+    $page = sprintf('%d', $page); // now safe
+
+    $pager_page_array  = array(0 => $page);
+    $pager_total_items = array(0 => count($data_list));
+    $pager_limits      = array(0 => $pager_height);
+    $pager_total       = array(0 => ceil($pager_total_items[0] / $pager_limits[0]));
+
+    // Extract the data subset we need
+    $data_list = array_slice($data_list, $page * $pager_height, $pager_height);
+  }
+  else if (variable_get('performance_summary_apc', 0) && function_exists('apc_cache_info')) {
     $tablesort = tablesort_init($header);
 
     // Get the data from the APC cache
@@ -405,15 +502,12 @@ function performance_view_summary() {
     }
     usort($data_list, 'performance_summary_sort');
 
+    // FIXME: This section o code is duplicated from the above memcache case.
+    // This is ugly, and should be changed.
+
     // Set up pager since this is not done automatically when not using DB
     $page = isset($_GET['page']) ? $_GET['page'] : 0; // unsafe
     $page = sprintf('%d', $page); // now safe
-
-    global
-      $pager_page_array,  // array of element-keyed current page - 1
-      $pager_total,       // array of element-keyed total number of pages
-      $pager_total_items, // array of element-keyed total number of data rows
-      $pager_limits;      // array of element-keyed number of rows per page
 
     $pager_page_array  = array(0 => $page);
     $pager_total_items = array(0 => count($data_list));
@@ -648,6 +742,42 @@ function performance_clear_apc_confirm_submit($form_id, &$form) {
 
   drupal_set_message(t('Performance statistics collected in APC has been cleared.'), 'status', FALSE);
   drupal_goto('admin/config/development/performance');
+}
+
+function performance_clear_memcache_confirm() {
+  $form['confirm'] = array(
+    '#value' => t('Confirm Memcache clear'),
+  );
+  return confirm_form(
+    $form,
+    t('Are you sure you want to clear the Memcache statistics for this site?'),
+    'admin/settings/performance_logging',
+    t('This will clear all the collected performance statistics stored in Memcache. This action cannot be undone.'),
+    t('Clear'),
+    t('Cancel'));
+}
+
+function performance_clear_memcache_confirm_submit($form, &$form_state) {
+  if (!performance_memcache_enabled()) {
+    drupal_set_message(t('Memcache is not enabled. Nothing to do ...'), 'status', FALSE);
+    drupal_goto('admin/settings/performance');
+    return;
+  }
+
+  // We have to iterate over all entries and delete them, reaching down 
+  // the API stack and calling dmemcache_delete directly.
+  // This is suboptimal, but there is no other alternative
+  if ($keys_cache = cache_get(PERFORMANCE_KEY, PERFORMANCE_MEMCACHE_BIN)) {
+    if ($keys_cache->data) {
+      foreach ($keys_cache->data as $key => $v) {
+        dmemcache_delete($key, PERFORMANCE_MEMCACHE_BIN);
+      }
+      dmemcache_delete(PERFORMANCE_KEY, PERFORMANCE_MEMCACHE_BIN);
+    }
+  }
+
+  drupal_set_message(t('Performance statistics collected in Memcache has been cleared.'), 'status', FALSE);
+  drupal_goto('admin/settings/performance');
 }
 
 /**
