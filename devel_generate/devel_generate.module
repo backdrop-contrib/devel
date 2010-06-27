@@ -245,7 +245,7 @@ function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
   devel_generate_taxonomy_data($form_state['values']['num_vocab'], $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
 }
 
-function devel_generate_node_insert(&$node) {
+function devel_generate_node_insert($node) {
   if (isset($node->devel_generate)) {
     $results = $node->devel_generate;
 
