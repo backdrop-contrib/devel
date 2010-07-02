@@ -507,7 +507,8 @@ function devel_generate_content_pre_node(&$results) {
  */
 function devel_generate_content_add_node(&$results) {
   global $language;
-  $node = new StdClass();
+  $node = new stdClass();
+  $node->nid = NULL;
 
   // Insert new data:
   $node->type = array_rand($results['node_types']);
