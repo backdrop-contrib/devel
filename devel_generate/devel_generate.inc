@@ -44,6 +44,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
     }
     foreach ($names as $name => $value) {
       $edit = array(
+        'uid'     => NULL,
         'name'    => $name,
         'pass'    => NULL, // No password avoids user_hash_password() which is expensive.
         'mail'    => $name . '@' . $url['host'],
