@@ -81,6 +81,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
         // Create an empty, managed file where we want the user's picture to
         // be so we can have GD overwrite it with the image.
         $picture_directory =  variable_get('file_default_scheme', 'public') . '://' . variable_get('user_picture_path', 'pictures');
+        file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
         $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '.png');
         $file = file_save_data('', $destination);
 
