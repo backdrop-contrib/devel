@@ -29,8 +29,10 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
       $source->uri = $path;
       $source->uid = 1; // TODO: randomize? Use case specific.
       $source->filemime = 'image/' . pathinfo($path, PATHINFO_EXTENSION);
-      $destination = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'] . '/' . basename($path);
-      $file = file_move($source, $destination);
+      $destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
+      file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
+      $destination = $destination_dir . '/' . basename($path);
+      $file = file_move($source, $destination, FILE_CREATE_DIRECTORY);
       $images[$extension][$min_resolution][$max_resolution][$file->fid] = $file;
     }
     else {
@@ -56,7 +58,7 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
 function devel_generate_image($extension = 'png', $min_resolution, $max_resolution) {
   if ($tmp_file = drupal_tempnam('temporary://', 'imagefield_')) {
     $destination = $tmp_file . '.' . $extension;
-    file_unmanaged_move($tmp_file, $destination);
+    file_unmanaged_move($tmp_file, $destination, FILE_CREATE_DIRECTORY);
 
     $min = explode('x', $min_resolution);
     $max = explode('x', $max_resolution);
