@@ -866,8 +866,6 @@ function devel_shutdown_summary($queries) {
   $output = '';
   list($counts, $query_summary) = devel_query_summary($queries);
 
-  $output .= '<div class="dev-query">';
-
   if (variable_get('devel_query_display', FALSE)) {
     // Query log on.
     $output .= $query_summary;
@@ -884,9 +882,9 @@ function devel_shutdown_summary($queries) {
 
   $output .= devel_shutdown_memory();
 
-  $output .= '</div>';
-
-  return $output;
+  if ($output) {
+    return '<div class="dev-query">' . $output . '</div>';
+  }
 }
 
 function devel_shutdown_xhprof() {
