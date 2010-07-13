@@ -58,8 +58,8 @@ function devel_node_access_menu() {
     // we have to create the 'devel' menu ourselves
     $menu = array(
       'menu_name'   => 'devel',
-      'title'       => t('Development'),
-      'description' => t('Development link'),
+      'title'       => 'Development',
+      'description' => 'Development link',
     );
     menu_save($menu);
 
@@ -199,7 +199,7 @@ function dna_visible_nodes($nid = NULL) {
   if ($nid) {
     $nids[$nid] = $nid;
   }
-  else if (empty($nids) && arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == NULL) {
+  elseif (empty($nids) && arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == NULL) {
     // show DNA information on node/NID even if access is denied (IF the user has the 'view devel_node_access information' permission)!
     return array(arg(1));
   }
@@ -444,7 +444,7 @@ function _devel_node_access_ng_alter(&$grants, $account, $op) {
     foreach ($data as $realm => $gids) {
       foreach  ($gids as $gid => $history) {
         if ($history['cur'] && array_search($gid, $grants[$realm]) === FALSE) {
-          $data[$realm][$gid]['cur'] = false;
+          $data[$realm][$gid]['cur'] = FALSE;
           $data[$realm][$gid]['chg'][] = 'removed by ' . $module;
         }
       }
@@ -456,6 +456,9 @@ function _devel_node_access_ng_alter(&$grants, $account, $op) {
   return $data;
 }
 
+/**
+ * Implements hook_block_info().
+ */
 function devel_node_access_block_info() {
   $blocks['dna_node'] = array(
     'info'   => t('Devel Node Access'),
@@ -471,6 +474,9 @@ function devel_node_access_block_info() {
   return $blocks;
 }
 
+/**
+ * Implements hook_block_view().
+ */
 function devel_node_access_block_view($delta) {
   global $user;
   global $theme_key;
@@ -1091,7 +1097,7 @@ function _devel_node_access_explain_access($op, $node, $account = NULL) {
  */
 function _devel_node_access_get_grant_list($nid, $ng_alter_data) {
   //dpm($ng_alter_data, "_devel_node_access_get_grant_list($nid,");
-  $ng_alter_data = array_merge(array('all'=> array(0 => array('cur' => TRUE, 'ori' => array('all')))), $ng_alter_data);
+  $ng_alter_data = array_merge(array('all' => array(0 => array('cur' => TRUE, 'ori' => array('all')))), $ng_alter_data);
   $items = array();
   if (count($ng_alter_data)) {
     foreach ($ng_alter_data as $realm => $gids) {
@@ -1124,7 +1130,7 @@ function _devel_node_access_get_grant_list($nid, $ng_alter_data) {
         }
         $gs[] = $g;
       }
-      $items[] = $realm . ': '  . implode(', ', $gs);
+      $items[] = $realm . ': ' . implode(', ', $gs);
     }
     if (!empty($items)) {
       return theme('item_list', array('items' => $items, 'type' => 'ul'));
