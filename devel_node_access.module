@@ -616,10 +616,11 @@ function devel_node_access_block_view($delta) {
           }
 
           // check for grants in the node_access table that aren't returned by node_access_acquire_grants()
-          $found = FALSE;
+
           if (isset($active_grants[$nid])) {
             foreach ($active_grants[$nid] as $realm => $active_grants_realm) {
               foreach ($active_grants_realm as $gid => $active_grant) {
+                $found = FALSE;
                 $count_nonempty_grants = 0;
                 foreach ($acquired_grants_nid as $priority => $acquired_grants_nid_priority) {
                   if (isset($acquired_grants_nid_priority[$realm][$gid])) {
