@@ -931,7 +931,7 @@ function devel_node_access_block_view($delta) {
         }
         if (count($rows)) {
           $output = theme('table', array(
-            'headers'    => $headers,
+            'header'     => $headers,
             'rows'       => $rows,
             'attributes' => array('style' => 'text-align: left'),
           ));
