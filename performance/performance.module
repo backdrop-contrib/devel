@@ -174,7 +174,8 @@ function performance_boot() {
 function performance_shutdown() {
   $queries = Database::getLog('performance', 'default');
 
-  if ($_GET['q']) {
+//  if ($_GET['q']) {
+  if (isset($_GET['q']) && ($_GET['q'])) {
     // q= has a value, use that for the path
     $path = $_GET['q'];
   }
