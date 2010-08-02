@@ -116,7 +116,7 @@ function devel_admin_settings() {
     $form['devel_error_handler']['#options'][DEVEL_ERROR_HANDLER_BACKTRACE] = t('Backtrace');
   }
 
-  $options = drupal_map_assoc(array('default', 'blue', 'green', 'orange', 'schablon.com', 'disabled'));
+  $options = drupal_map_assoc(array('default', 'blue', 'green', 'orange', 'white', 'disabled'));
   $form['devel_krumo_skin'] = array(
     '#type' => 'radios',
     '#title' => t('Krumo display'),

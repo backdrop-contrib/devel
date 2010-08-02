@@ -68,3 +68,12 @@ function devel_update_7002() {
   variable_del('dev_query'); // Sad trombone. http://drupalcode.org/viewvc/drupal/drupal/includes/database.mysql.inc?revision=1.2&view=markup
   variable_del('devel_code_coverage');
 }
+
+/**
+ * As per issue #813132: change schablon.com to white for krumo.
+ */
+function devel_update_7003() {
+  if (variable_get('devel_krumo_skin', 'white') == 'schablon.com') {
+    variable_set('devel_krumo_skin', 'white');
+  }
+}
