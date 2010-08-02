@@ -319,17 +319,18 @@ function devel_create_content($type = NULL) {
 
   $output = "";
   switch($type % 3) {
-    case 1: // html
-      for ($i = 1; $i <= $nparas; $i++) {
-        $output .= devel_create_para(mt_rand(10,60),1);
-      }
-      break;
-
-    case 2: // brs only
-      for ($i = 1; $i <= $nparas; $i++) {
-        $output .= devel_create_para(mt_rand(10,60),2);
-      }
-      break;
+    // MW: This appears undesireable. Was giving <p> in text fields
+    // case 1: // html
+    //       for ($i = 1; $i <= $nparas; $i++) {
+    //         $output .= devel_create_para(mt_rand(10,60),1);
+    //       }
+    //       break;
+    // 
+    //     case 2: // brs only
+    //       for ($i = 1; $i <= $nparas; $i++) {
+    //         $output .= devel_create_para(mt_rand(10,60),2);
+    //       }
+    //       break;
 
     default: // plain text
       for ($i = 1; $i <= $nparas; $i++) {
