@@ -17,6 +17,8 @@ function devel_generate_drush_help($section) {
       return dt('Usage: drush generate-taxonomy <number_vocab> <number_terms>. Specify --kill if you want to delete all taxonomy first.');
     case 'drush:generate-content':
       return dt('Usage: drush generate-content <number_nodes> <number_comments>. Specify --kill if you want to delete all content first.');
+    case 'drush:generate-menus':
+      return dt('Usage: drush generate-menus <number_menus> <number_links> <max_depth> <max_width>. Specify --kill if you want to delete all menus and links first.');
   }
 }
 
@@ -63,6 +65,21 @@ function devel_generate_drush_command() {
       'languages' => 'A comma-separated list of language codes',
     ),
     'aliases' => array('genc'),
+  );
+  $items['generate-menus'] = array(
+    'description' => 'Creates menus and menu items.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN, // Various D7 code assumes we have a uid.
+    'drupal dependencies' => array('devel_generate'),
+    'arguments' => array(
+      'number_menus' => 'Number of menus to generate. Defaults to 2.',
+      'number_links' => 'Number of links to generate. Defaults to 50.',
+      'max_depth' => 'Max link depth. Defaults to 3',
+      'max_width' => 'Max width of first level of links. Defaults to 8.',
+    ),
+    'options' => array(
+      'kill' => 'Specify \'kill\' to delete all previously generated menus and links before generating new menus and links.',
+    ),
+    'aliases' => array('genm'),
   );
   return $items;
 }
@@ -133,6 +150,34 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   drush_log(t('Generated @num_nodes nodes, @max_comments comments (or less) per node.', array('@num_nodes' => (int)$num_nodes, '@max_comments' => (int)$max_comments)), 'success');
 }
 
+/**
+ * Command callback. Generate a number of menus and menu links.
+ */
+function drush_devel_generate_menus($number_menus = 2, $number_links = 50, $max_depth = 3, $max_width = 8) {
+  if (drush_generate_is_number($number_menus) == FALSE) {
+    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of menus'));
+  }
+  if (drush_generate_is_number($number_links) == FALSE) {
+    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of links'));
+  }
+  if (drush_generate_is_number($max_depth) == FALSE || $max_depth > 9 || $max_depth < 1) {
+    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid maximum link depth. Use a value between 1 and 9'));
+  }  
+  if (drush_generate_is_number($max_width) == FALSE || $max_width < 1) {
+    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid maximum menu width. Use a positive numeric value.'));
+  }
+
+  global $user;
+  $user_one = user_load(1);
+  $user = $user_one;
+  drupal_save_session(FALSE);
+
+  $kill = drush_get_option('kill');
+  drush_generate_include_devel();
+  $link_types = drupal_map_assoc(array('node', 'front', 'external'));
+  devel_generate_menu_data($number_menus, array(), $number_links, 12, $link_types, $max_depth, $max_width, $kill);
+  drush_log(t('Generated @number_menus menus, @number_links links.', array('@number_menus' => (int)$number_menus, '@number_links' => (int)$number_links)), 'success');
+}
 //////////////////////////////////////////////////////////////////////////////
 // Helper functions
 
