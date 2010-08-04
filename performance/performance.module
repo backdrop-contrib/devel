@@ -549,7 +549,7 @@ function performance_view_summary() {
 
     if ($data->num_accesses > $threshold) {
       $shown++;
-      $row_data[] = $data->path;
+      $row_data[] = check_plain($data->path);
       $row_data[] = format_date($data->last_access, 'small');
       $row_data[] = $data->num_accesses;
       $row_data[] = number_format($data->bytes_max/1024/1024, 2);
@@ -648,7 +648,7 @@ function performance_view_details() {
     $row_data = array();
     $row_data[] = $data->pid;
     $row_data[] = format_date($data->timestamp, 'small');
-    $row_data[] = $data->path;
+    $row_data[] = check_plain($data->path);
     $row_data[] = number_format($data->bytes/1024/1024, 2);
     $row_data[] = $data->ms;
     $row_data[] = ($data->anon) ? t('Yes') : t('No');
