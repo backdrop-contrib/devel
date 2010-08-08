@@ -1426,11 +1426,11 @@ function dpm($input, $name = NULL) {
 }
 
 /**
- * Var_dump() a variable to the 'message' area of the page. Uses drupal_set_message()
+ * drupal_var_export() a variable to the 'message' area of the page. Uses drupal_set_message()
  */
 function dvm($input, $name = NULL) {
   if (user_access('access devel information')) {
-    $export = dprint_r($input, TRUE, $name, 'var_dump', FALSE);
+    $export = dprint_r($input, TRUE, $name, 'drupal_var_export', FALSE);
     drupal_set_message($export);
   }
 }
@@ -1455,10 +1455,10 @@ function kpr($input, $return = FALSE, $name = NULL) {
 }
 
 /**
- * Like dpr, but uses var_dump() instead
+ * Like dpr, but uses drupal_var_export() instead
  */
 function dvr($input, $return = FALSE, $name = NULL) {
-  return dprint_r($input, $return, $name, 'var_dump', FALSE);
+  return dprint_r($input, $return, $name, 'drupal_var_export', FALSE);
 }
 
 function kprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') {
@@ -1483,9 +1483,16 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', 
     if ($name) {
       $name .= ' => ';
     }
-    ob_start();
-    $function($input);
-    $output = ob_get_clean();
+    if ($function == 'drupal_var_export') {
+      include_once DRUPAL_ROOT . '/includes/utility.inc';
+      $output = drupal_var_export($input);
+    }
+    else {
+      ob_start();
+      $function($input);
+      $output = ob_get_clean();
+    }
+    
     if ($check) {
       $output = check_plain($output);
     }
