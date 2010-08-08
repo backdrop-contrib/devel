@@ -192,7 +192,10 @@ function devel_theme_registry() {
 // Menu callback.
 function devel_field_info_page() {
   $info = field_info_fields();
-  return kprint_r($info, TRUE);
+  $output = kprint_r($info, TRUE, t('Fields'));
+  $info = field_info_instances();
+  $output .= kprint_r($info, TRUE, t('Instances'));
+  return $output;
 }
 
 /**
