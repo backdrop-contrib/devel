@@ -123,6 +123,14 @@ function devel_menu() {
     'file' => 'devel.pages.inc',
     'menu_name' => 'devel',
   );
+  $items['devel/entity/info'] = array(
+    'title' => 'Entity info',
+    'description' => 'View entity information across the whole site.',
+    'page callback' => 'devel_entity_info_page',
+    'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
+    'menu_name' => 'devel',
+  );
   $items['devel/field/info'] = array(
     'title' => 'Field info',
     'description' => 'View fields information across the whole site.',

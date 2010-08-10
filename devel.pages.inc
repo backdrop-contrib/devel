@@ -189,6 +189,13 @@ function devel_theme_registry() {
   return kprint_r($hooks, TRUE);
 }
 
+// Menu callback. $entity_type argument not currently used in the UI.
+function devel_entity_info_page($entity_type = NULL) {
+  $info = entity_get_info($entity_type);
+  ksort($info);
+  return kprint_r($info, TRUE);
+}
+
 // Menu callback.
 function devel_field_info_page() {
   $info = field_info_fields();
