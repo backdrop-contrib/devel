@@ -687,8 +687,8 @@ function devel_switch_user_list() {
     $list_size = variable_get('devel_switch_user_list_size', 10);
     $dest = drupal_get_destination();
     // Try to find at least $list_size users that can switch.
-    $roles = user_roles(1, 'switch users');
-    if (isset($roles[2])) {
+    $roles = user_roles(TRUE, 'switch users');
+    if (isset($roles[DRUPAL_AUTHENTICATED_RID])) {
       // If authenticated users have this permission, just grab
       // the last $list_size users, since there won't be records in
       // {user_roles} and every user on the system can switch.
@@ -709,6 +709,7 @@ function devel_switch_user_list() {
         'query' => $dest,
         'attributes' => array('title' => t('This user can switch back.')),
         'html' => TRUE,
+        'last_access' => $user->access,
       );
     }
     $num_links = count($links);
@@ -716,19 +717,27 @@ function devel_switch_user_list() {
       // If we don't have enough, add distinct uids until we hit $list_size.
       $users = db_query_range('SELECT uid, name, access FROM {users} WHERE uid > 0 AND uid NOT IN ('. implode(',', array_keys($links)) .') ORDER BY access DESC', 0, $list_size - $num_links);
       foreach ($users as $user) {
-        if (count($links) >= $list_size) {
-          break;
-        }
         $links[$user->uid] = array(
           'title' => $user->name ? $user->name : 'anon',
           'href' => 'devel/switch/'. $user->name,
           'query' => $dest,
-          'attributes' => array('title' => t('Caution: this user will be unable switch back.')),
+          'attributes' => array('title' => t('Caution: this user will be unable to switch back.')),
+          'last_access' => $user->access,
         );
       }
+      uasort($links, '_devel_switch_user_list_cmp');
     }
   }
   return $links;
+}
+
+/**
+ * Comparison helper function for uasort() in devel_switch_user_list().
+ *
+ * Sorts the Switch User links by the user's last access timestamp.
+ */
+function _devel_switch_user_list_cmp($a, $b) {
+  return $b['last_access'] - $a['last_access'];
 }
 
 function devel_switch_user_form() {
@@ -1500,7 +1509,7 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', 
       $function($input);
       $output = ob_get_clean();
     }
-    
+
     if ($check) {
       $output = check_plain($output);
     }
