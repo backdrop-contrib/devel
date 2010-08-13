@@ -330,7 +330,7 @@ function devel_menu_need_destination() {
 
 /**
  * An implementation of hook_menu_link_alter(). Flag this link as needing alter at display time.
- * This is more robust that setting alter in hook_menu().
+ * This is more robust than setting alter in hook_menu().
  * @see devel_translated_menu_link_alter().
  *
  **/
