@@ -89,7 +89,10 @@ function devel_generate_multiple($function, $object, $field, $instance, $bundle)
         break;
     }
     for ($i = 0; $i <= $max; $i++) {
-      $object_field[$i] = $function($object, $field, $instance, $bundle);
+      $result = $function($object, $field, $instance, $bundle);
+      if (!empty($result)) {
+        $object_field[$i] = $result;
+      }
     }
   }
   return $object_field;
