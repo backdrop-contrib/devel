@@ -1042,7 +1042,7 @@ function _devel_node_access_explain_access($op, $node, $account = NULL) {
   );
   if (!empty($denied_by)) {
     $variables += array(
-      '%module' => $denied_by[0],
+      '%module' => $denied_by[0] . (count($denied_by) > 1 ? '+' : ''),
     );
     return array(
       FALSE,
@@ -1054,7 +1054,7 @@ function _devel_node_access_explain_access($op, $node, $account = NULL) {
   }
   if (!empty($allowed_by)) {
     $variables += array(
-      '%module'                       => $allowed_by[0],
+      '%module' => $allowed_by[0] . (count($allowed_by) > 1 ? '+' : ''),
       '!view_own_unpublished_content' => t('view own unpublished content'),
     );
     return array(
