@@ -1092,23 +1092,22 @@ function devel_execute_form_submit($form, &$form_state) {
  * Switch from original user to another user and back.
  * We don't call session_save_session() because we really want to change users. Usually unsafe!
  *
- * @param $name The username to switch to.
+ * @param $name The username to switch to, or NULL to log out.
  */
 function devel_switch_user($name = NULL) {
   global $user;
-  static $orig_user = array();
 
-  if (isset($name)) {
-    $user = user_load_by_name($name);
+  if ($user->uid) {
+    module_invoke_all('user_logout', $user);
   }
-  // Retrieve the initial user. Can be called multiple times.
-  elseif (count($orig_user)) {
-    $user = array_shift($orig_user);
-    array_unshift($orig_user, $user);
+  if (isset($name) && $account = user_load_by_name($name)) {
+    $user = $account;
+    drupal_session_regenerate();
+    $edit = array();
+    user_module_invoke('login', $edit, $user);
   }
-  // Store the initial user.
-  else {
-    $orig_user[] = $user;
+  elseif ($user->uid) {
+    session_destroy();
   }
   drupal_goto();
 }
