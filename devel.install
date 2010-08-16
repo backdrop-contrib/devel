@@ -36,6 +36,8 @@ function devel_uninstall() {
   variable_del('devel_api_url');
   variable_del('dev_mem');
   variable_del('devel_error_handler');
+  variable_del('devel_switch_user_list_size');
+  variable_del('devel_switch_user_include_anon');
 
   // Delete the development menu.
   $devel_menu = menu_load('devel');

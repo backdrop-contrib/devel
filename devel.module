@@ -644,6 +644,11 @@ function devel_block_configure($delta) {
       '#size' => '3',
       '#maxlength' => '4',
     );
+    $form['devel_switch_user_include_anon'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Include %anonymous', array('%anonymous' => format_username(array(uid => 0)))),
+      '#default_value' => variable_get('devel_switch_user_include_anon', FALSE),
+    );
     return $form;
   }
 }
@@ -651,6 +656,7 @@ function devel_block_configure($delta) {
 function devel_block_save($delta, $edit = array()) {
   if ($delta == 'switch_user') {
     variable_set('devel_switch_user_list_size', $edit['devel_switch_user_list_size']);
+    variable_set('devel_switch_user_include_anon', $edit['devel_switch_user_include_anon']);
   }
 }
 
@@ -682,9 +688,14 @@ function devel_block_switch_user() {
 }
 
 function devel_switch_user_list() {
+  global $user;
+
   $links = array();
   if (user_access('switch users')) {
     $list_size = variable_get('devel_switch_user_list_size', 10);
+    if ($include_anon = ($user->uid && variable_get('devel_switch_user_include_anon', FALSE))) {
+      --$list_size;
+    }
     $dest = drupal_get_destination();
     // Try to find at least $list_size users that can switch.
     $roles = user_roles(TRUE, 'switch users');
@@ -692,7 +703,7 @@ function devel_switch_user_list() {
       // If authenticated users have this permission, just grab
       // the last $list_size users, since there won't be records in
       // {user_roles} and every user on the system can switch.
-      $users = db_query_range("SELECT DISTINCT u.uid, u.name, u.access FROM {users} u WHERE u.uid > 0 ORDER BY u.access DESC", 0, $list_size);
+      $accounts = db_query_range("SELECT DISTINCT u.uid, u.name, u.access FROM {users} u WHERE u.uid > 0 ORDER BY u.access DESC", 0, $list_size);
     }
     else {
       $where = array('u.uid = 1');
@@ -700,32 +711,46 @@ function devel_switch_user_list() {
         $where[] = 'r.rid IN ('. implode(',', array_keys($roles)) .')';
       }
       $where_sql = implode(' OR ', $where);
-      $users = db_query_range("SELECT DISTINCT u.uid, u.name, u.access FROM {users} u LEFT JOIN {users_roles} r ON u.uid = r.uid WHERE $where_sql ORDER BY u.access DESC", 0, $list_size);
+      $accounts = db_query_range("SELECT DISTINCT u.uid, u.name, u.access FROM {users} u LEFT JOIN {users_roles} r ON u.uid = r.uid WHERE $where_sql ORDER BY u.access DESC", 0, $list_size);
     }
-    foreach ($users as $user) {
-      $links[$user->uid] = array(
-        'title' => drupal_placeholder(array('text' => $user->name)),
-        'href' => 'devel/switch/'. $user->name,
+    foreach ($accounts as $account) {
+      $links[$account->uid] = array(
+        'title' => drupal_placeholder(array('text' => $account->name)),
+        'href' => 'devel/switch/'. $account->name,
         'query' => $dest,
         'attributes' => array('title' => t('This user can switch back.')),
         'html' => TRUE,
-        'last_access' => $user->access,
+        'last_access' => $account->access,
       );
     }
     $num_links = count($links);
     if ($num_links < $list_size) {
       // If we don't have enough, add distinct uids until we hit $list_size.
-      $users = db_query_range('SELECT uid, name, access FROM {users} WHERE uid > 0 AND uid NOT IN ('. implode(',', array_keys($links)) .') ORDER BY access DESC', 0, $list_size - $num_links);
-      foreach ($users as $user) {
-        $links[$user->uid] = array(
-          'title' => $user->name ? $user->name : 'anon',
-          'href' => 'devel/switch/'. $user->name,
+      $accounts = db_query_range('SELECT uid, name, access FROM {users} WHERE uid > 0 AND uid NOT IN ('. implode(',', array_keys($links)) .') ORDER BY access DESC', 0, $list_size - $num_links);
+      foreach ($accounts as $account) {
+        $links[$account->uid] = array(
+          'title' => $account->name ? $account->name : 'anon',
+          'href' => 'devel/switch/'. $account->name,
           'query' => $dest,
           'attributes' => array('title' => t('Caution: this user will be unable to switch back.')),
-          'last_access' => $user->access,
+          'last_access' => $account->access,
         );
       }
       uasort($links, '_devel_switch_user_list_cmp');
+    }
+    if ($include_anon) {
+      $link = array(
+        'title' => check_plain(format_username(array(uid => 0))),
+        'href' => 'devel/switch',
+        'query' => $dest,
+        'attributes' => array('title' => t('Caution: the anonymous user will be unable to switch back.')),
+      );
+      if (user_access('switch users', user_load(0))) {
+        $link['title'] = drupal_placeholder(array('text' => $link['title']));
+        $link['attributes'] = array('title' => t('This user can switch back.'));
+        $link['html'] = TRUE;
+      }
+      $links[] = $link;
     }
   }
   return $links;
