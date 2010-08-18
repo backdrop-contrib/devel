@@ -715,7 +715,7 @@ function devel_switch_user_list() {
     }
     foreach ($accounts as $account) {
       $links[$account->uid] = array(
-        'title' => drupal_placeholder(array('text' => $account->name)),
+        'title' => drupal_placeholder($account->name),
         'href' => 'devel/switch/'. $account->name,
         'query' => $dest,
         'attributes' => array('title' => t('This user can switch back.')),
@@ -740,13 +740,13 @@ function devel_switch_user_list() {
     }
     if ($include_anon) {
       $link = array(
-        'title' => check_plain(format_username(array(uid => 0))),
+        'title' => check_plain(format_username(array('uid' => 0))),
         'href' => 'devel/switch',
         'query' => $dest,
         'attributes' => array('title' => t('Caution: the anonymous user will be unable to switch back.')),
       );
-      if (user_access('switch users', user_load(0))) {
-        $link['title'] = drupal_placeholder(array('text' => $link['title']));
+      if (user_access('switch users', drupal_anonymous_user())) {
+        $link['title'] = drupal_placeholder($link['title']);
         $link['attributes'] = array('title' => t('This user can switch back.'));
         $link['html'] = TRUE;
       }
