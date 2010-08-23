@@ -205,7 +205,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
   $terms = array();
 
   // Insert new data:
-  $max = db_query('SELECT MAX(tid) FROM taxonomy_term_data')->fetchField();
+  $max = db_query('SELECT MAX(tid) FROM {taxonomy_term_data}')->fetchField();
   $start = time();
   for ($i = 1; $i <= $records; $i++) {
     switch ($i % 2) {
@@ -468,7 +468,7 @@ function devel_create_content($type = NULL) {
     //         $output .= devel_create_para(mt_rand(10,60),1);
     //       }
     //       break;
-    // 
+    //
     //     case 2: // brs only
     //       for ($i = 1; $i <= $nparas; $i++) {
     //         $output .= devel_create_para(mt_rand(10,60),2);

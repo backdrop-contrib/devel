@@ -15,7 +15,7 @@ function _taxonomy_devel_generate($object, $field, $instance, $bundle) {
   // TODO: For free tagging vocabularies that do not already have terms, this
   // will not result in any tags being added.
   // Insert new data:
-  $max = db_query('SELECT MAX(tid) FROM taxonomy_term_data WHERE vid = :vid', array(':vid' =>$field['settings']['allowed_values'][0]['vid'] ))->fetchField();
+  $max = db_query('SELECT MAX(tid) FROM {taxonomy_term_data} WHERE vid = :vid', array(':vid' => $field['settings']['allowed_values'][0]['vid']))->fetchField();
   $candidate = mt_rand(1, $max);
   $query = db_select('taxonomy_term_data', 't');
   $tid = $query
