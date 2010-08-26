@@ -45,6 +45,11 @@ function devel_drush_command() {
     ),
     'aliases' => array('fnv'),
   );
+  $items['devel-token'] = array(
+    'description' => dt('List available tokens'),
+    'aliases' => array('token'),
+    'core' => array(7), // Remove once 3.0 is released.
+  );
   return $items;
 }
 
@@ -162,6 +167,21 @@ function drush_devel_fn_view($function_name) {
 
   _drush_devel_print_function($reflect->getFileName(), $reflect->getStartLine(), $reflect->getEndLine());
 }
+
+/**
+ * Command callback. List available tokens.
+ */
+function drush_devel_token() {
+  $rows[] = array(dt('Group'), dt('Token'), dt('Name'));
+  $all = token_info();
+  foreach ($all['tokens'] as $group => $tokens) {
+    foreach ($tokens as $key => $token) {
+      $rows[] = array($group, $key, $token['name']);
+    }
+  }
+  drush_print_table($rows, TRUE);
+}
+
 
 /**
  * Print the specified function, including any
