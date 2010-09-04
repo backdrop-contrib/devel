@@ -794,6 +794,13 @@ function devel_node_access_block_view($delta) {
             }
           }
 
+          // fix up the main row cells with the proper class (needed for Bartik)
+          foreach ($row as $key => $value) {
+            if (!is_array($value)) {
+              $row[$key] = array('data' => $value);
+            }
+            $row[$key]['class'] = array($class);
+          }
           // add the main row
           $will_append = empty($history['current']) && !empty($history['changes']);
           $rows[] = array(
