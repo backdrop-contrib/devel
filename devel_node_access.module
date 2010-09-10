@@ -46,23 +46,18 @@ function devel_node_access_help($path, $arg) {
 function devel_node_access_menu() {
   $items = array();
 
-  // add this to the custom menu 'devel' created by devel module.
-  $items['devel/node_access/summary'] = array(
-    'title'            => 'Node_access summary',
-    'page callback'    => 'dna_summary',
-    'access arguments' => array(DNA_ACCESS_VIEW),
-    'menu_name'        => 'devel',
-  );
-
   if (!module_exists('devel')) {
-    // we have to create the 'devel' menu ourselves
-    $menu = array(
-      'menu_name'   => 'devel',
-      'title'       => 'Development',
-      'description' => 'Development link',
-    );
-    menu_save($menu);
+    if (!menu_load('devel')) {
+      // we have to create the 'devel' menu ourselves
+      $menu = array(
+        'menu_name'   => 'devel',
+        'title'       => 'Development',
+        'description' => 'Development link',
+      );
+      menu_save($menu);
+    }
 
+    // we have to create the 'Devel settings' menu item ourselves
     $items['admin/config/development/devel'] = array(
       'title'            => 'Devel settings',
       'description'      => 'Helper pages and blocks to assist Drupal developers and admins with node_access. The devel blocks can be managed via the <a href="' . url('admin/structure/block') . '">block administration</a> page.',
@@ -70,7 +65,18 @@ function devel_node_access_menu() {
       'page arguments'   => array('devel_node_access_admin_settings'),
       'access arguments' => array('administer site configuration'),
     );
+    $items['devel/settings'] = $items['admin/config/development/devel'] + array(
+      'menu_name' => 'devel',
+    );
   }
+
+  // add this to the custom menu 'devel' created by the devel module.
+  $items['devel/node_access/summary'] = array(
+    'title'            => 'Node_access summary',
+    'page callback'    => 'dna_summary',
+    'access arguments' => array(DNA_ACCESS_VIEW),
+    'menu_name'        => 'devel',
+  );
 
   return $items;
 }
