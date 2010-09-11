@@ -100,9 +100,9 @@ function devel_querylog_explain($request_id, $qid) {
 
   $path = "temporary://devel_querylog/$request_id.txt";
   $path = file_stream_wrapper_uri_normalize($path);
-  $queries = unserialize(file_get_contents($path));
+  $queries = json_decode(file_get_contents($path));
   $query = $queries[$qid];
-  $result = db_query('EXPLAIN ' . $query['query'], $query['args'])->fetchAllAssoc('table');
+  $result = db_query('EXPLAIN ' . $query->query, (array)$query->args)->fetchAllAssoc('table');
   $i = 1;
   foreach ($result as $row) {
     $row = (array)$row;
@@ -126,14 +126,14 @@ function devel_querylog_arguments($request_id, $qid) {
 
   $path = "temporary://devel_querylog/$request_id.txt";
   $path = file_stream_wrapper_uri_normalize($path);
-  $queries = unserialize(file_get_contents($path));
+  $queries = json_decode(file_get_contents($path));
   $query = $queries[$qid];
   $conn = Database::getConnection();
   $quoted = array();
-  foreach ((array)$query['args'] as $key => $val) {
+  foreach ((array)$query->args as $key => $val) {
     $quoted[$key] = $conn->quote($val);
   }
-  $output = strtr($query['query'], $quoted);
+  $output = strtr($query->query, $quoted);
 
   // print and return nothing thus avoiding page wrapper.
   print $output;
