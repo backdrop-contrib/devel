@@ -98,7 +98,11 @@ function devel_node_access_form_alter(&$form, $form_state, $form_id) {
       '#type'          => 'checkbox',
       '#title'         => t('Debug mode'),
       '#default_value' => variable_get('devel_node_access_debug_mode', FALSE),
-      '#description'   => t('Debug mode verifies the grant records in the node_access table against those that would be set by running !Rebuild_permissions, and displays them all; this can cause considerable overhead.', array('!Rebuild_permissions' => l('[' . $tr('Rebuild permissions') . ']', 'admin/reports/status/rebuild'))),
+      '#description'   => t('Debug mode verifies the grant records in the node_access table against those that would be set by running !Rebuild_permissions, and displays them all; this can cause considerable overhead.<br />For even more information enable the <a href="@link">%DNAbU block</a>, too.', array(
+        '!Rebuild_permissions' => l('[' . $tr('Rebuild permissions') . ']', 'admin/reports/status/rebuild'),
+        '%DNAbU' => t('Devel Node Access by User'),
+        '@link' => url('admin/structure/block/list'),
+      )),
     );
     // push the Save button down
     $form['actions']['#weight'] = 10;
@@ -492,7 +496,7 @@ function devel_node_access_block_view($delta) {
       ':theme' => $theme_key,
     ))->fetchField();
     if (!$block1_visible) {
-      $hint = t('For per-user access permissions enable the <a href="@block">%DNAbU block</a>.', array('@block' => url('admin/structure/block'), '%DNAbU' => t('Devel Node Access by User')));
+      $hint = t('For per-user access permissions enable the <a href="@link">%DNAbU block</a>.', array('@link' => url('admin/structure/block'), '%DNAbU' => t('Devel Node Access by User')));
     }
   }
 
