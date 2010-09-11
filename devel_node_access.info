@@ -6,3 +6,4 @@ dependencies[] = menu
 core = 7.x
 files[] = devel_node_access.module
 files[] = devel_node_access.install
+configure = admin/config/development/devel
