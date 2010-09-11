@@ -2,7 +2,7 @@
 // $Id$
 
 /**
- * Implementation of hook_enable()
+ * Implements hook_enable().
  */
 function devel_enable() {
   $t = get_t();
@@ -25,7 +25,7 @@ function devel_enable() {
 }
 
  /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function devel_uninstall() {
   variable_del('devel_form_weights');
@@ -38,6 +38,7 @@ function devel_uninstall() {
   variable_del('devel_error_handler');
   variable_del('devel_switch_user_list_size');
   variable_del('devel_switch_user_include_anon');
+  variable_del('devel_switch_user_show_form');
 
   // Delete the development menu.
   $devel_menu = menu_load('devel');

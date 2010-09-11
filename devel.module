@@ -637,17 +637,22 @@ function devel_block_info() {
  */
 function devel_block_configure($delta) {
   if ($delta == 'switch_user') {
-    $form['devel_switch_user_list_size'] = array(
+    $form['list_size'] = array(
       '#type' => 'textfield',
       '#title' => t('Number of users to display in the list'),
       '#default_value' => variable_get('devel_switch_user_list_size', 10),
       '#size' => '3',
       '#maxlength' => '4',
     );
-    $form['devel_switch_user_include_anon'] = array(
+    $form['include_anon'] = array(
       '#type' => 'checkbox',
       '#title' => t('Include %anonymous', array('%anonymous' => format_username(drupal_anonymous_user()))),
       '#default_value' => variable_get('devel_switch_user_include_anon', FALSE),
+    );
+    $form['show_form'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow entering any user name'),
+      '#default_value' => variable_get('devel_switch_user_show_form', TRUE),
     );
     return $form;
   }
@@ -655,8 +660,9 @@ function devel_block_configure($delta) {
 
 function devel_block_save($delta, $edit = array()) {
   if ($delta == 'switch_user') {
-    variable_set('devel_switch_user_list_size', $edit['devel_switch_user_list_size']);
-    variable_set('devel_switch_user_include_anon', $edit['devel_switch_user_include_anon']);
+    variable_set('devel_switch_user_list_size', $edit['list_size']);
+    variable_set('devel_switch_user_include_anon', $edit['include_anon']);
+    variable_set('devel_switch_user_show_form', $edit['show_form']);
   }
 }
 
@@ -681,7 +687,9 @@ function devel_block_switch_user() {
   if (!empty($links) || user_access('switch users')) {
     $block['subject'] = t('Switch user');
     $build['devel_links'] = array('#theme' => 'links', '#links' => $links);
-    $build['devel_form'] = drupal_get_form('devel_switch_user_form');
+    if (variable_get('devel_switch_user_show_form', TRUE)) {
+      $build['devel_form'] = drupal_get_form('devel_switch_user_form');
+    }
     $block['content'] = $build;
     return $block;
   }
