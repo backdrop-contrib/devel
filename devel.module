@@ -378,18 +378,24 @@ function devel_init() {
       // We want to include the class early so that anyone may call krumo() as needed. See http://krumo.sourceforge.net/
       has_krumo();
 
-      // See http://www.firephp.org/.
-      // Support Libraries API - http://drupal.org/project/libraries
-      if (module_exists('libraries')) {
+      // See http://www.firephp.org/HQ/Install.htm
+      $path = NULL;
+      if (@include_once('fb.php')) {
+        // FirePHPCore is in include_path. Probably a PEAR installation.
+        $path = '';
+      }
+      elseif (module_exists('libraries')) {
+        // Support Libraries API - http://drupal.org/project/libraries
         $path = libraries_get_path('FirePHPCore') . '/lib/FirePHPCore/';
       }
       else {
         $path = './'. drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/';
       }
-      if (file_exists($path .'fb.php')) {
-        include_once $path .'fb.php';
-        include_once $path .'FirePHP.class.php';
+      if (file_exists($path . 'fb.php')) {
+        include_once $path . 'fb.php';
+        include_once $path . 'FirePHP.class.php';
       }
+
       // Add CSS for query log if should be displayed.
       if (variable_get('devel_query_display', 0)) {
         drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
