@@ -393,7 +393,6 @@ function devel_init() {
       }
       if (file_exists($path . 'fb.php')) {
         include_once $path . 'fb.php';
-        include_once $path . 'FirePHP.class.php';
       }
 
       // Add CSS for query log if should be displayed.
