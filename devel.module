@@ -560,7 +560,7 @@ function devel_boot() {
   // avoid a stray query.
   drupal_get_filename('module', 'user', 'modules/user/user.module');
   drupal_load('module', 'user');
-  register_shutdown_function('devel_shutdown');
+  drupal_register_shutdown_function('devel_shutdown');
 }
 
 function backtrace_error_handler($errno, $message, $filename, $line) {
@@ -854,7 +854,7 @@ function devel_drupal_goto_alter($path, $options, $http_response_code) {
  */
 function devel_shutdown() {
   // Register the real shutdown function so it runs later than other shutdown functions.
-  register_shutdown_function('devel_shutdown_real');
+  drupal_register_shutdown_function('devel_shutdown_real');
 
   // Do this now so that we don't get cut off by drush_shutdown().
   global $devel_run_id;
