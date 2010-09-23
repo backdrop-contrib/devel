@@ -1332,7 +1332,7 @@ function devel_query_table($queries, $counts) {
       $cell[$i][] = $diff;
     }
     $cell[$i][] = $count;
-    $cell[$i][] = l($function, "http://$api/api/$version/function/$function");
+    $cell[$i][] = l($function, "http://$api/api/function/$function/$version");
     $ops[] = l('P', '', array('attributes' => array('title' => 'Show placeholders', 'class' => 'dev-placeholders', 'qid' => $i)));
     $ops[] = l('A', '', array('attributes' => array('title' => 'Show arguments', 'class' => 'dev-arguments', 'qid' => $i)));
     // EXPLAIN only valid for select queries.
