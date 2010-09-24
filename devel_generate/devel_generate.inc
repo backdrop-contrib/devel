@@ -485,22 +485,18 @@ function devel_create_content($type = NULL) {
 }
 
 function devel_create_para($words, $type = 0) {
-  $output = "";
+  $output = '';
   switch ($type) {
     case 1:
-      $output .= "<p>";
-      $output .= devel_create_greeking($words);
-      $output = trim($output) ."</p>";
+      $output .= "<p>" . devel_create_greeking($words)  . "</p>";
       break;
 
     case 2:
-      $output .= devel_create_greeking($words);
-      $output = trim($output) ."<br />";
+      $output .= devel_create_greeking($words) . "<br />";
       break;
 
     default:
       $output .= devel_create_greeking($words);
-      $output = trim($output);
   }
   return $output;
 }
@@ -538,7 +534,7 @@ function devel_create_greeking($word_count, $title = FALSE) {
     "zelus");
   $dictionary_flipped = array_flip($dictionary);
 
-  $greeking = "";
+  $greeking = '';
 
   if (!$title) {
     $words_remaining = $word_count;
@@ -546,7 +542,7 @@ function devel_create_greeking($word_count, $title = FALSE) {
       $sentence_length = mt_rand(3, 10);
       $words = array_rand($dictionary_flipped, $sentence_length);
       $sentence = implode(' ', $words);
-      $sentence = ucfirst($sentence) . '. ';
+      $greeking .= ucfirst($sentence) . '. ';
       $words_remaining -= $sentence_length;
     }
   }
