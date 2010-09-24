@@ -162,7 +162,7 @@ function devel_generate_add_comments($node, $users, $max_comments, $title_length
         $comment->pid = 0;
     }
 
-    $comment->subject = devel_create_greeking(mt_rand(1, $title_length), TRUE);
+    $comment->subject = devel_create_greeking(mt_rand(2, $title_length), TRUE);
     $comment->uid = $users[array_rand($users)];
     $comment->language = LANGUAGE_NONE;
     // Populate all core fields on behalf of field.module
@@ -505,7 +505,7 @@ function devel_create_para($words, $type = 0) {
   return $output;
 }
 
-function devel_create_greeking($words, $title = FALSE) {
+function devel_create_greeking($word_count, $title = FALSE) {
   $dictionary = array("abbas", "abdo", "abico", "abigo", "abluo", "accumsan",
     "acsi", "ad", "adipiscing", "aliquam", "aliquip", "amet", "antehabeo",
     "appellatio", "aptent", "at", "augue", "autem", "bene", "blandit",
@@ -536,36 +536,30 @@ function devel_create_greeking($words, $title = FALSE) {
     "veniam", "venio", "vereor", "vero", "verto", "vicis", "vindico",
     "virtus", "voco", "volutpat", "vulpes", "vulputate", "wisi", "ymo",
     "zelus");
+  $dictionary_flipped = array_flip($dictionary);
 
   $greeking = "";
 
   if (!$title) {
-    while ($words > 0) {
-      $sentence_length = mt_rand(3,10);
-
-      $greeking .= ucfirst($dictionary[array_rand($dictionary)]);
-      for ($i = 1; $i < $sentence_length; $i++) {
-        $greeking .= " " . $dictionary[array_rand($dictionary)];
-      }
-
-      $greeking .= ". ";
-      $words -= $sentence_length;
+    $words_remaining = $word_count;
+    while ($words_remaining > 0) {
+      $sentence_length = mt_rand(3, 10);
+      $words = array_rand($dictionary_flipped, $sentence_length);
+      $sentence = implode(' ', $words);
+      $sentence = ucfirst($sentence) . '. ';
+      $words_remaining -= $sentence_length;
     }
   }
   else {
-    // use different method for titles
-    $title_length = $words;
-    $array = array();
-    for ($i = 0; $i < $words; $i++) {
-      $array[] = $dictionary[array_rand($dictionary)];
-    }
-    $greeking = ucwords(implode(' ', $array));
+    // Use slightly different method for titles.
+    $words = array_rand($dictionary_flipped, $word_count);
+    $greeking = ucwords(implode(' ', $words));
   }
 
   // Work around possible php garbage collection bug. Without an unset(), this
   // function gets very expensive over many calls (php 5.2.11).
-  unset($dictionary);
-  return $greeking;
+  unset($dictionary, $dictionary_flipped);
+  return trim($greeking);
 }
 
 function devel_generate_add_terms(&$node) {
@@ -662,7 +656,7 @@ function devel_generate_content_add_node(&$results) {
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
   $type = node_type_get_type($node);
-  $node->title = $type->has_title ? devel_create_greeking(mt_rand(1, $results['title_length']), TRUE) : '';
+  $node->title = $type->has_title ? devel_create_greeking(mt_rand(2, $results['title_length']), TRUE) : '';
   $node->revision = mt_rand(0,1);
   $node->promote = mt_rand(0, 1);
   // Avoid NOTICE.

@@ -127,7 +127,7 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   $add_language = drush_get_option('languages');
   if (!empty($add_language)) {
     $add_language = explode(',', str_replace(' ', '', $add_language));
-    // Intersect with the enabled languages to make sure the language args 
+    // Intersect with the enabled languages to make sure the language args
     // passed are actually enabled.
     $values['values']['add_language'] = array_flip(array_intersect($add_language, array_keys(locale_language_list())));
   }
@@ -141,7 +141,7 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   if (drush_get_option('kill')) {
     $values['values']['kill_content'] = 1;
   }
-  $values['values']['title_length'] = '8';
+  $values['values']['title_length'] = 6;
   $values['values']['num_nodes'] = $num_nodes;
   $values['values']['max_comments'] = $max_comments;
   $values['values']['node_types'] = drupal_map_assoc(explode(',', drush_get_option('types', 'page,article')));
@@ -162,7 +162,7 @@ function drush_devel_generate_menus($number_menus = 2, $number_links = 50, $max_
   }
   if (drush_generate_is_number($max_depth) == FALSE || $max_depth > 9 || $max_depth < 1) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid maximum link depth. Use a value between 1 and 9'));
-  }  
+  }
   if (drush_generate_is_number($max_width) == FALSE || $max_width < 1) {
     drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid maximum menu width. Use a positive numeric value.'));
   }
