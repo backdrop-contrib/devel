@@ -201,7 +201,7 @@ function devel_generate_vocabs($records, $maxlength = 12, $types = array('page',
   return $vocs;
 }
 
-function devel_generate_terms($records, $vocs, $maxlength = 12) {
+function devel_generate_terms($records, $vocabs, $maxlength = 12) {
   $terms = array();
 
   // Insert new data:
@@ -211,20 +211,22 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
     switch ($i % 2) {
       case 1:
         // Set vid and vocabulary_machine_name properties.
-        $vid = array_rand($vocs);
-        $term = $vocs[$vid];
-        // dont set a parent. handled by taxonomy_save_term()
+        $vocab = $vocabs[array_rand($vocabs)];
+        $term->vid = $vocab->vid;
+        $term->vocabulary_machine_name = $vocab->machine_name;
+        // Don't set a parent. Handled by taxonomy_save_term()
         // $term->parent = 0;
         break;
       default:
         while (TRUE) {
+          // Keep trying to find a random parent.
           $candidate = mt_rand(1, $max);
           $query = db_select('taxonomy_term_data', 't');
           $query->innerJoin('taxonomy_vocabulary', 'v', 't.vid = v.vid');
           $parent = $query
                     ->fields('t', array('tid', 'vid'))
                     ->fields('v', array('machine_name'))
-                    ->condition('v.vid', array_keys($vocs), 'IN')
+                    ->condition('v.vid', array_keys($vocabs), 'IN')
                     ->condition('t.tid', $candidate, '>=')
                     ->range(0,1)
                     ->execute()
@@ -260,7 +262,7 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
         }
       }
 
-      // Limit memory usage.
+      // Limit memory usage. Only report first 20 created terms.
       if ($i < 20) {
         $terms[] = $term->name;
       }
@@ -271,27 +273,42 @@ function devel_generate_terms($records, $vocs, $maxlength = 12) {
   return $terms;
 }
 
-function devel_generate_get_vocabs() {
-  return db_query("SELECT vid, machine_name AS vocabulary_machine_name FROM {taxonomy_vocabulary}")->fetchAllAssoc('vid');
+// TODO: use taxonomy_get_entries once that exists.
+function devel_generate_get_terms($vids) {
+  return db_select('taxonomy_term_data', 'td')
+           ->fields('td', array('tid'))
+           ->condition('vid', $vids, 'IN')
+           ->orderBy('tid', 'ASC')
+           ->execute()
+           ->fetchCol('tid');
 }
 
-function devel_generate_taxonomy_data($num_vocab, $num_terms, $title_length, $kill) {
+function devel_generate_term_data($vocabs, $num_terms, $title_length, $kill) {
+  if ($kill) {
+    foreach (devel_generate_get_terms(array_keys($vocabs)) as $tid) {
+      taxonomy_term_delete($tid);
+    }
+    drupal_set_message(t('Deleted existing terms.'));
+  }
+
+  $new_terms = devel_generate_terms($num_terms, $vocabs, $title_length);
+  if (!empty($new_terms)) {
+    drupal_set_message(t('Created the following new terms: !terms', array('!terms' => theme('item_list', array('items' => $new_terms)))));
+  }
+}
+
+function devel_generate_vocab_data($num_vocab, $title_length, $kill) {
 
   if ($kill) {
     foreach (taxonomy_get_vocabularies() as $vid => $vocab) {
       taxonomy_vocabulary_delete($vid);
     }
-    drupal_set_message(t('Deleted existing vocabularies and terms.'));
+    drupal_set_message(t('Deleted existing vocabularies.'));
   }
 
   $new_vocs = devel_generate_vocabs($num_vocab, $title_length);
   if (!empty($new_vocs)) {
     drupal_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => theme('item_list', array('items' => $new_vocs)))));
-  }
-  $vocs = devel_generate_get_vocabs();
-  $new_terms = devel_generate_terms($num_terms, $vocs, $title_length);
-  if (!empty($new_terms)) {
-    drupal_set_message(t('Created the following new terms: !terms', array('!terms' => theme('item_list', array('items' => $new_terms)))));
   }
 }
 

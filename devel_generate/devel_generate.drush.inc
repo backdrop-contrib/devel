@@ -7,22 +7,6 @@
  */
 
 /**
- * Implementation of hook_drush_help().
- */
-function devel_generate_drush_help($section) {
-  switch ($section) {
-    case 'drush:generate-users':
-      return dt('Usage: drush generate-users <number_users>. Specify --kill if you want to delete the users first.');
-    case 'drush:generate-taxonomy':
-      return dt('Usage: drush generate-taxonomy <number_vocab> <number_terms>. Specify --kill if you want to delete all taxonomy first.');
-    case 'drush:generate-content':
-      return dt('Usage: drush generate-content <number_nodes> <number_comments>. Specify --kill if you want to delete all content first.');
-    case 'drush:generate-menus':
-      return dt('Usage: drush generate-menus <number_menus> <number_links> <max_depth> <max_width>. Specify --kill if you want to delete all menus and links first.');
-  }
-}
-
-/**
  * Implementation of hook_drush_command().
  */
 function devel_generate_drush_command() {
@@ -32,22 +16,33 @@ function devel_generate_drush_command() {
       'number_users' => 'Number of users to generate.',
     ),
     'options' => array(
-      'kill' => 'Specify \'kill\' to delete all users before generating new ones.',
+      'kill' => 'Delete all users before generating new ones.',
       'roles' => 'A comma delimited list of role IDs which should be granted to the new users. No need to specify authenticated user role.',
     ),
     'aliases' => array('genu'),
   );
-  $items['generate-taxonomy'] = array(
-    'description' => 'Creates taxonomy.',
+  $items['generate-terms'] = array(
+    'description' => 'Creates terms in specified vocabulary.',
     'arguments' => array(
-      'n' => 'Vocabulary ID into which new terms will be inserted.',
+      'machine_name' => 'Vocabulary machine name into which new terms will be inserted.',
+      'num_terms' => 'Number of terms to insert. Defaults to 10.',
     ),
     'options' => array(
-      'kill' => 'Specify \'kill\' to delete all terms in specified vocab before generating.',
+      'kill' => 'Delete all terms in specified vocabulary before generating.',
       'feedback' => 'An integer representing interval for insertion rate logging. Defaults to 500',
     ),
     'aliases' => array('gent'),
 
+  );
+  $items['generate-vocabs'] = array(
+    'description' => 'Creates vocabularies.',
+    'arguments' => array(
+      'num_vocabs' => 'Number of vocabularies to create. Defaults to 1.',
+    ),
+    'options' => array(
+      'kill' => 'Delete all vocabularies before generating.',
+    ),
+    'aliases' => array('genv'),
   );
   $items['generate-content'] = array(
     'description' => 'Creates content.',
@@ -58,7 +53,7 @@ function devel_generate_drush_command() {
       'maximum_comments' => 'Maximum number of comments to generate.',
     ),
     'options' => array(
-      'kill' => 'Specify \'kill\' to delete all content before generating new content.',
+      'kill' => 'Delete all content before generating new content.',
       'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
       'feedback' => 'An integer representing interval for insertion rate logging. Defaults to 500',
       'skip-fields' => 'A comma delimited list of fields to omit when generating random values',
@@ -77,7 +72,7 @@ function devel_generate_drush_command() {
       'max_width' => 'Max width of first level of links. Defaults to 8.',
     ),
     'options' => array(
-      'kill' => 'Specify \'kill\' to delete all previously generated menus and links before generating new menus and links.',
+      'kill' => 'Delete all previously generated menus and links before generating new menus and links.',
     ),
     'aliases' => array('genm'),
   );
@@ -99,18 +94,33 @@ function drush_devel_generate_users($num_users = NULL) {
 }
 
 /**
- * Command callback. Generate a number of taxonomy.
+ * Command callback. Generate a number of terms in given vocabs.
  */
-function drush_devel_generate_taxonomy($num_vocab = NULL, $num_terms = NULL) {
-  if (drush_generate_is_number($num_vocab) == FALSE) {
-    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid vocabulary ID.'));
+function drush_devel_generate_terms($vname, $num_terms = 10) {
+  // Try to convert machine name to a vocab ID
+  if (!$vocab = taxonomy_vocabulary_machine_name_load($vname)) {
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid vocabulary name: !name', array('!name' => $vname)));
   }
   if (drush_generate_is_number($num_terms) == FALSE) {
-    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of terms.'));
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid number of terms: !num', array('!num' => $num_terms)));
+  }
+
+  drush_generate_include_devel();
+  $vocabs[$vocab->vid] = $vocab;
+  devel_generate_term_data($vocabs, $num_terms, '12', drush_get_option('kill'));
+  drush_log(dt('Generated @num_terms terms.', array('@num_terms' => $num_terms)), 'success');
+}
+
+/**
+ * Command callback. Generate a number of vocabularies.
+ */
+function drush_devel_generate_vocabs($num_vocab = 1) {
+  if (drush_generate_is_number($num_vocab) == FALSE) {
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid number of vocabularies: !num.', array('!num' => $num_vocab)));
   }
   drush_generate_include_devel();
-  devel_generate_taxonomy_data($num_vocab, $num_terms, '12', drush_get_option('kill'));
-  drush_log(t('Generated @num_vocab vocabulary, @num_terms terms', array('@num_vocab' => $num_vocab, '@num_terms' => $num_terms)), 'success');
+  devel_generate_vocab_data($num_vocab, '12', drush_get_option('kill'));
+  drush_log(dt('Generated @num_vocab vocabularies.', array('@num_vocab' => $num_vocab)), 'success');
 }
 
 /**

@@ -23,11 +23,18 @@ function devel_generate_menu() {
   );
   if (module_exists('taxonomy')) {
     $items['admin/config/development/generate/taxonomy'] = array(
-      'title' => 'Generate taxonomy',
-      'description' => 'Generate a given number of vocabularies and terms. Optionally delete current taxonomies.',
+      'title' => 'Generate terms',
+      'description' => 'Generate a given number of terms. Optionally delete current terms.',
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('devel_generate_taxonomy_form'),
-      'access arguments' => array('administer nodes'),
+      'page arguments' => array('devel_generate_term_form'),
+      'access arguments' => array('administer taxonomy'),
+    );
+    $items['admin/config/development/generate/vocabs'] = array(
+      'title' => 'Generate vocabularies',
+      'description' => 'Generate a given number of vocabularies. Optionally delete current vocabularies.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('devel_generate_vocab_form'),
+      'access arguments' => array('administer taxonomy'),
     );
   }
   $items['admin/config/development/generate/menu'] = array(
@@ -215,29 +222,34 @@ function devel_generate_content_form_submit($form_id, &$form_state) {
   }
 }
 
-function devel_generate_taxonomy_form() {
-  $form['num_vocab'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Number of vocabularies?'),
-    '#description' => t('Terms will be generated from the new vocabularies and any existing vocabularies.'),
-    '#default_value' => 3,
-    '#size' => 10,
+function devel_generate_term_form() {
+  $options = array();
+  foreach (taxonomy_get_vocabularies() as $vid => $vocab) {
+    $options[$vid] = $vocab->machine_name;
+  }
+  $form['vids'] = array(
+    '#type' => 'select',
+    '#multiple' => TRUE,
+    '#title' => t('Vocabularies'),
+    '#required' => TRUE,
+    '#options' => $options,
+    '#description' => t('Restrict terms to these vocabularies.'),
   );
   $form['num_terms'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of terms?'),
-    '#default_value' => 50,
+    '#default_value' => 10,
     '#size' => 10,
   );
   $form['title_length'] = array(
     '#type' => 'textfield',
-    '#title' => t('Max word length of term/vocabulary names'),
+    '#title' => t('Max word length of term names'),
     '#default_value' => 12,
     '#size' => 10,
   );
   $form['kill_taxonomy'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Delete existing terms and vocabularies before generating new ones.'),
+    '#title' => t('Delete existing terms in specified vocabularies before generating new terms.'),
     '#default_value' => FALSE,
   );
   $form['submit'] = array(
@@ -247,9 +259,40 @@ function devel_generate_taxonomy_form() {
   return $form;
 }
 
-function devel_generate_taxonomy_form_submit($form_id, &$form_state) {
+function devel_generate_vocab_form() {
+  $form['num_vocabs'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of vocabularies?'),
+    '#default_value' => 1,
+    '#size' => 10,
+  );
+  $form['title_length'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Max word length of vocabulary names'),
+    '#default_value' => 12,
+    '#size' => 10,
+  );
+  $form['kill_taxonomy'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete existing vocabularies before generating new ones.'),
+    '#default_value' => FALSE,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Generate'),
+  );
+  return $form;
+}
+
+function devel_generate_term_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate');
-  devel_generate_taxonomy_data($form_state['values']['num_vocab'], $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
+  $vocabs = taxonomy_vocabulary_load_multiple($form_state['values']['vids']);
+  devel_generate_term_data($vocabs, $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
+}
+
+function devel_generate_vocab_form_submit($form_id, &$form_state) {
+  module_load_include('inc', 'devel_generate');
+  devel_generate_vocab_data($form_state['values']['num_vocabs'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
 }
 
 function devel_generate_node_insert($node) {
