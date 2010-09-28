@@ -635,8 +635,7 @@ function devel_generate_content_pre_node(&$results) {
 }
 
 /**
- * Create one node.  This is used by both the batch and non-batch branches of
- * the code.
+ * Create one node. Used by both batch and non-batch code branches.
  *
  * @param $num
  *   array of options obtained from devel_generate_content_form.
