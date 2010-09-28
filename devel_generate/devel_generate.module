@@ -83,7 +83,7 @@ function devel_generate_users_form() {
 
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Do it!'),
+    '#value' => t('Generate'),
   );
   return $form;
 }

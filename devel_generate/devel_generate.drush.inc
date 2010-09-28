@@ -3,7 +3,7 @@
 
 /**
  * @file
- *  Generate content, taxonomy, and users via drush framework.
+ *  Generate content, taxonomy, menu, and users via drush framework.
  */
 
 /**
@@ -11,7 +11,7 @@
  */
 function devel_generate_drush_command() {
   $items['generate-users'] = array(
-    'description' => 'Creates users.',
+    'description' => 'Create users.',
     'arguments' => array(
       'number_users' => 'Number of users to generate.',
     ),
@@ -22,10 +22,10 @@ function devel_generate_drush_command() {
     'aliases' => array('genu'),
   );
   $items['generate-terms'] = array(
-    'description' => 'Creates terms in specified vocabulary.',
+    'description' => 'Create terms in specified vocabulary.',
     'arguments' => array(
       'machine_name' => 'Vocabulary machine name into which new terms will be inserted.',
-      'num_terms' => 'Number of terms to insert. Defaults to 10.',
+      'number_terms' => 'Number of terms to insert. Defaults to 10.',
     ),
     'options' => array(
       'kill' => 'Delete all terms in specified vocabulary before generating.',
@@ -35,7 +35,7 @@ function devel_generate_drush_command() {
 
   );
   $items['generate-vocabs'] = array(
-    'description' => 'Creates vocabularies.',
+    'description' => 'Create vocabularies.',
     'arguments' => array(
       'num_vocabs' => 'Number of vocabularies to create. Defaults to 1.',
     ),
@@ -45,8 +45,7 @@ function devel_generate_drush_command() {
     'aliases' => array('genv'),
   );
   $items['generate-content'] = array(
-    'description' => 'Creates content.',
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN, // Various D7 code assumes we have a uid.
+    'description' => 'Create content.',
     'drupal dependencies' => array('devel_generate'),
     'arguments' => array(
       'number_nodes' => 'Number of nodes to generate.',
@@ -62,9 +61,8 @@ function devel_generate_drush_command() {
     'aliases' => array('genc'),
   );
   $items['generate-menus'] = array(
-    'description' => 'Creates menus and menu items.',
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN, // Various D7 code assumes we have a uid.
-    'drupal dependencies' => array('devel_generate'),
+    'description' => 'Create menus and menu items.',
+    'drupal dependencies' => array('devel_generate'), // Remove these once devel.module is moved down a directory. http://drupal.org/node/925246
     'arguments' => array(
       'number_menus' => 'Number of menus to generate. Defaults to 2.',
       'number_links' => 'Number of links to generate. Defaults to 50.',
@@ -124,7 +122,7 @@ function drush_devel_generate_vocabs($num_vocab = 1) {
 }
 
 /**
- * Command callback. Generate a number of content.
+ * Command callback. Generate a number of nodes and comments.
  */
 function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   if (drush_generate_is_number($num_nodes) == FALSE) {
@@ -142,15 +140,15 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
     $values['values']['add_language'] = array_flip(array_intersect($add_language, array_keys(locale_language_list())));
   }
 
-  // Let's load user 1, seems to be needed for creating comments.
-  global $user;
-  $user_one = user_load(1);
-  $user = $user_one;
-  drupal_save_session(FALSE);
-
-  if (drush_get_option('kill')) {
-    $values['values']['kill_content'] = 1;
+  // Load user 1; is needed for creating *published* comments.
+  if ($max_comments) {
+    global $user;
+    $user_one = user_load(1);
+    $user = $user_one;
+    drupal_save_session(FALSE);
   }
+
+  $values['values']['kill_content'] = drush_get_option('kill');
   $values['values']['title_length'] = 6;
   $values['values']['num_nodes'] = $num_nodes;
   $values['values']['max_comments'] = $max_comments;
