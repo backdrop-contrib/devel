@@ -83,7 +83,7 @@ function devel_generate_drush_command() {
  */
 function drush_devel_generate_users($num_users = NULL) {
   if (drush_generate_is_number($num_users) == FALSE) {
-    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of users.'));
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of users.'));
   }
   drush_generate_include_devel();
   $roles = drush_get_option('roles') ? explode(',', drush_get_option('roles')) : array();
@@ -126,10 +126,10 @@ function drush_devel_generate_vocabs($num_vocab = 1) {
  */
 function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   if (drush_generate_is_number($num_nodes) == FALSE) {
-    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of nodes'));
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid number of nodes'));
   }
   if (!empty($max_comments) && drush_generate_is_number($max_comments) == FALSE) {
-    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of comments.'));
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid number of comments.'));
   }
 
   $add_language = drush_get_option('languages');
@@ -163,16 +163,16 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
  */
 function drush_devel_generate_menus($number_menus = 2, $number_links = 50, $max_depth = 3, $max_width = 8) {
   if (drush_generate_is_number($number_menus) == FALSE) {
-    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of menus'));
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid number of menus'));
   }
   if (drush_generate_is_number($number_links) == FALSE) {
-    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid number of links'));
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid number of links'));
   }
   if (drush_generate_is_number($max_depth) == FALSE || $max_depth > 9 || $max_depth < 1) {
-    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid maximum link depth. Use a value between 1 and 9'));
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid maximum link depth. Use a value between 1 and 9'));
   }
   if (drush_generate_is_number($max_width) == FALSE || $max_width < 1) {
-    drush_set_error('DEVEL_GENERATE_INVALID_INPUT', t('Invalid maximum menu width. Use a positive numeric value.'));
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid maximum menu width. Use a positive numeric value.'));
   }
 
   global $user;
