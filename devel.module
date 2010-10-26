@@ -1477,6 +1477,7 @@ function dargs($always = TRUE) {
  */
 function dpq($query) {
   if (user_access('access devel information')) {
+    $query->preExecute();
     $sql = (string) $query;
     $quoted = array();
     $connection = Database::getConnection();
