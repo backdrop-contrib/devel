@@ -299,7 +299,7 @@ function devel_generate_node_insert($node) {
   if (isset($node->devel_generate)) {
     $results = $node->devel_generate;
 
-    if (!empty($results['max_comments'])) {
+    if (!empty($results['max_comments']) && $node->comment >= COMMENT_NODE_OPEN) {
       devel_generate_add_comments($node, $results['users'], $results['max_comments'], $results['title_length']);
     }
 
