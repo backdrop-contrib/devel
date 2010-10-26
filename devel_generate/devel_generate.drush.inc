@@ -94,7 +94,7 @@ function drush_devel_generate_users($num_users = NULL) {
 /**
  * Command callback. Generate a number of terms in given vocabs.
  */
-function drush_devel_generate_terms($vname, $num_terms = 10) {
+function drush_devel_generate_terms($vname = NULL, $num_terms = 10) {
   // Try to convert machine name to a vocab ID
   if (!$vocab = taxonomy_vocabulary_machine_name_load($vname)) {
     return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid vocabulary name: !name', array('!name' => $vname)));
