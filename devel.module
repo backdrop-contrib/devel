@@ -1470,6 +1470,25 @@ function dargs($always = TRUE) {
 }
 
 /**
+ * Print a SQL string from a DBTNG Query object. Includes quoted arguments.
+ *
+ * @param $query
+ *   A Query object.
+ */
+function dpq($query) {
+  if (user_access('access devel information')) {
+    $sql = (string) $query;
+    $quoted = array();
+    $connection = Database::getConnection();
+    foreach ((array)$query->arguments() as $key => $val) {
+      $quoted[$key] = $connection->quote($val);
+    }
+    $sql = strtr($sql, $quoted);
+    dpm($sql);
+  }
+}
+
+/**
  * Print a variable to the 'message' area of the page. Uses drupal_set_message()
  */
 function dpm($input, $name = NULL) {
