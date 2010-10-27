@@ -24,7 +24,7 @@ function devel_enable() {
   menu_save($menu);
 }
 
- /**
+/**
  * Implements hook_uninstall().
  */
 function devel_uninstall() {
