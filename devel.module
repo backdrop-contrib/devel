@@ -1139,8 +1139,12 @@ function devel_switch_user($name = NULL) {
     module_invoke_all('user_logout', $user);
   }
   if (isset($name) && $account = user_load_by_name($name)) {
+    $old_uid = $user->uid;
     $user = $account;
-    drupal_session_regenerate();
+    if (!$old_uid) {
+      // Switch from anonymous to authorized.
+      drupal_session_regenerate();
+    }
     $edit = array();
     user_module_invoke('login', $edit, $user);
   }
