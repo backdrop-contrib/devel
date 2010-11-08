@@ -62,7 +62,6 @@ EOT;
 // Menu callback that shows menu item.
 function devel_menu_item() {
   $item = menu_get_item($_GET['path']);
-  dcp($item);
   return kdevel_print_object($item);
 }
 
