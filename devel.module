@@ -856,7 +856,6 @@ function devel_shutdown() {
   // Register the real shutdown function so it runs later than other shutdown functions.
   drupal_register_shutdown_function('devel_shutdown_real');
 
-  // Do this now so that we don't get cut off by drush_shutdown().
   global $devel_run_id;
   $devel_run_id = variable_get('devel_xhprof_enabled', FALSE) ? devel_shutdown_xhprof(): NULL;
   if ($devel_run_id && function_exists('drush_log')) {
