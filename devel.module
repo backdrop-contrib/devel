@@ -588,7 +588,7 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
   // Don't respond to the error if it was suppressed with a '@'
   if (error_reporting() == 0) return;
 
-  if ($errno & (E_ALL ^ E_NOTICE ^ E_DEPRECATED)) {
+  if ($errno & (E_ALL ^ E_NOTICE)) {
     // We can't use the PHP E_* constants here as not all versions of PHP have all
     // the constants defined, so for consistency, we just use the numeric equivelant.
     $types = array(
