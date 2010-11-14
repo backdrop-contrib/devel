@@ -317,7 +317,7 @@ function devel_generate_menu_data($num_menus, $existing_menus, $num_links, $titl
   if ($kill) {
     if (module_exists('menu')) {
       foreach (menu_get_menus(FALSE) as $menu => $menu_title) {
-        if (strpos($menu, 'devel_') === 0) {
+        if (strpos($menu, 'devel-') === 0) {
           $menu = menu_load($menu);
           menu_delete($menu);
         }
@@ -361,7 +361,7 @@ function devel_generate_menus($num_menus, $title_length = 12) {
   for ($i = 1; $i <= $num_menus; $i++) {
     $menu = array();
     $menu['title'] = devel_generate_word(mt_rand(2, $title_length));
-    $menu['menu_name'] = 'devel_' . drupal_strtolower($menu['title']);
+    $menu['menu_name'] = 'devel-' . drupal_strtolower($menu['title']);
     $menu['description'] = t('Description of @name', array('@name' => $menu['title']));
     menu_save($menu);
     $menus[$menu['menu_name']] = $menu['title'];
