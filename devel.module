@@ -584,11 +584,12 @@ function devel_boot() {
   drupal_register_shutdown_function('devel_shutdown');
 }
 
-function backtrace_error_handler($errno, $message, $filename, $line) {
+function backtrace_error_handler($error_level, $message, $filename, $line) {
   // Don't respond to the error if it was suppressed with a '@'
-  if (error_reporting() == 0) return;
-
-  if ($errno & (E_ALL ^ E_NOTICE)) {
+  if (error_reporting() == 0) {
+    return;
+  }
+  if ($error_level & error_reporting()) {
     // We can't use the PHP E_* constants here as not all versions of PHP have all
     // the constants defined, so for consistency, we just use the numeric equivelant.
     $types = array(
@@ -608,7 +609,7 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
       8192 => 'deprecated',
       16384 => 'user deprecated',
     );
-    $entry = $types[$errno] .': '. $message .' in '. $filename .' on line '. $line .'.';
+    $entry = $types[$error_level] .': '. $message .' in '. $filename .' on line '. $line .'.';
 
     if (variable_get('error_level', 1) == 1) {
       $backtrace = debug_backtrace();
@@ -618,7 +619,7 @@ function backtrace_error_handler($errno, $message, $filename, $line) {
       krumo($nicetrace);
     }
 
-    watchdog('php', '%message in %file on line %line.', array('%error' => $types[$errno], '%message' => $message, '%file' => $filename, '%line' => $line), WATCHDOG_ERROR);
+    watchdog('php', '%message in %file on line %line.', array('%error' => $types[$error_level], '%message' => $message, '%file' => $filename, '%line' => $line), WATCHDOG_ERROR);
   }
 }
 
