@@ -133,6 +133,7 @@ function devel_generate_content_form() {
     '#options' => $options,
     '#default_value' => array_keys($options),
   );
+  if (module_exists('checkall')) $form['node_types']['#checkall'] = TRUE;
   $form['kill_content'] = array(
     '#type' => 'checkbox',
     '#title' => t('<strong>Delete all content</strong> in these content types before generating new content.'),
