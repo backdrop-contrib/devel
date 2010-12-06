@@ -132,5 +132,12 @@ function devel_admin_settings() {
    '#default_value' => variable_get('devel_rebuild_theme_registry', FALSE),
   );
 
+  $form['devel_use_uncompressed_jquery'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use uncompressed jQuery'),
+    '#default_value' => variable_get('devel_use_uncompressed_jquery', FALSE),
+    '#description' => t("Use a human-readable version of jQuery instead of the minified version that ships with Drupal, to make JavaScript debugging easier."),
+  );
+
   return system_settings_form($form);
 }

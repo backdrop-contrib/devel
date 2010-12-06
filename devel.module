@@ -837,7 +837,9 @@ function devel_switch_user_form_submit($form, &$form_state) {
   $form_state['redirect'] = 'devel/switch/'. $form_state['values']['username'];
 }
 
-// An implementation of hook_drupal_goto_alter().
+/**
+ * Implements hook_drupal_goto_alter().
+ */
 function devel_drupal_goto_alter($path, $options, $http_response_code) {
   global $user;
 
@@ -855,6 +857,27 @@ function devel_drupal_goto_alter($path, $options, $http_response_code) {
     }
     else {
       $GLOBALS['devel_redirecting'] = TRUE;
+    }
+  }
+}
+
+/**
+ * Implements hook_library_alter().
+ */
+function devel_library_alter(&$libraries, $module) {
+  // Use an uncompressed version of jQuery for debugging.
+  if ($module === 'system' && variable_get('devel_use_uncompressed_jquery', FALSE) && isset($libraries['jquery'])) {
+    // Make sure we're not changing the jQuery version used on the site.
+    if (version_compare($libraries['jquery']['version'], '1.4.4', '=')) {
+      $libraries['jquery']['js'] = array(
+        drupal_get_path('module', 'devel') . '/jquery-1.4.4-uncompressed.js' => array('weight' => JS_LIBRARY - 20),
+      );
+    }
+    else {
+      if (!devel_silent() && user_access('access devel information')) {
+        drupal_set_message(t('jQuery could not be replaced with an uncompressed version of 1.4.4, because jQuery @version is running on the site.', array('@version' => $libraries['jquery']['version'])));
+      }
+
     }
   }
 }
