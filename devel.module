@@ -1511,6 +1511,10 @@ function dargs($always = TRUE) {
  *
  * @param $query
  *   A Query object.
+ * @param $return
+ *   Whether to return or print the string. Default to FALSE.
+ * @param $name
+ *   Optional name for identifying the output.
  */
 function dpq($query, $return = FALSE, $name = NULL) {
   if (user_access('access devel information')) {
