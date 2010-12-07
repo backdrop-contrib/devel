@@ -1640,8 +1640,10 @@ function ddebug_backtrace() {
   if (user_access('access devel information')) {
     $trace = debug_backtrace();
     array_shift($trace);
-    foreach ($trace as $key => $value) {
-      $rich_trace[$value['function']] = $value;
+    $count = count($trace);
+    foreach ($trace as $i => $call) {
+      $key = ($count - $i) . ': ' . $call['function'];
+      $rich_trace[$key] = $call;
     }
     if (has_krumo()) {
       print krumo($rich_trace);
