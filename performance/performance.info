@@ -5,3 +5,4 @@ package = Development
 core = 7.x
 files[] = performance.module
 files[] = performance.install
+tags[] = developer

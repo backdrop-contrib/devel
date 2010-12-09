@@ -8,3 +8,4 @@ files[] = devel_generate.module
 files[] = devel_generate.inc
 files[] = devel_generate_batch.inc
 files[] = devel_generate.drush.inc
+tags[] = developer
