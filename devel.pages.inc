@@ -333,42 +333,21 @@ function devel_session() {
 }
 
 /**
- * Menu callback; prints the render structure of a term.
- */
-function devel_render_term($term) {
-  $build = array();
-  $build += field_attach_view('taxonomy_term', $term);
-  if (!empty($term->description)) {
-    $build['term_description'] = array(
-      '#markup' => filter_xss_admin($term->description),
-      '#weight' => -1,
-      '#prefix' => '<div class="taxonomy-term-description">',
-      '#suffix' => '</div>',
-    );
-  }
-  return kdevel_print_object($build, '$term->');
-}
-
-/**
  * Menu callback; prints the loaded structure of the current node/user.
  */
-function devel_load_object($object, $name = NULL) {
-  $title = isset($object->title) ? $object->title : $object->name;
-  drupal_set_title($title);
+function devel_load_object($type, $object, $name = NULL) {
+  $name = isset($name) ? $name : $type;
   return kdevel_print_object($object, '$'. $name .'->');
 }
 
 /**
  * Menu callback; prints the render structure of the current object (currently node or user).
  */
-function devel_render_object($type, $object) {
-  $output = '';
-  $title = isset($object->title) ? $object->title : $object->name;
-  // not sure why menu system doesn't give us a reasonable title here.
-  drupal_set_title($title);
-  $function = $type .'_build_content';
-  $function($object);
-  return kdevel_print_object($object->content, '$'. $type .'->');
+function devel_render_object($type, $object, $name = NULL) {
+  $name = isset($name) ? $name : $type;
+  $function = $type . '_view';
+  $build = $function($object);
+  return kdevel_print_object($build, '$'. $name .'->');
 }
 
 function devel_elements_page() {
