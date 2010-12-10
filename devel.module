@@ -1636,6 +1636,22 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', 
 }
 
 /**
+ * Prints a renderable array element to the screen using kprint_r().
+ *
+ * #pre_render and/or #post_render pass-through callback for kprint_r().
+ *
+ * @todo Investigate appending to #suffix.
+ * @todo Investigate label derived from #id, #title, #name, and #theme.
+ */
+function devel_render() {
+  $args = func_get_args();
+  // #pre_render and #post_render pass the rendered $element as last argument.
+  kprint_r(end($args));
+  // #pre_render and #post_render expect the first argument to be returned.
+  return reset($args);
+}
+
+/**
  * Print the function call stack.
  */
 function ddebug_backtrace() {
