@@ -728,23 +728,28 @@ function devel_switch_user_list() {
     // Try to find at least $list_size users that can switch.
     // Inactive users are omitted from all of the following db selects.
     $roles = user_roles(TRUE, 'switch users');
-    if (isset($roles[DRUPAL_AUTHENTICATED_RID])) {
-      // If authenticated users have this permission, just grab
-      // the last $list_size users, since there won't be records in
-      // {user_roles} and every user on the system can switch.
-      $accounts = db_query_range("SELECT DISTINCT u.uid, u.name, u.access FROM {users} u WHERE u.uid > 0 AND u.status > 0 ORDER BY u.access DESC", 0, $list_size);
+    $query = db_select('users', 'u');
+    $query->addField('u', 'uid');
+    $query->distinct();
+    $query->condition('u.uid', 0, '>');
+    $query->condition('u.status', 0, '>');
+    $query->orderBy('u.access', 'DESC');
+    $query->range(0, $list_size);
+
+    if (!isset($roles[DRUPAL_AUTHENTICATED_RID])) {
+      $query->leftJoin('users_roles', 'r', 'u.uid = r.uid');
+      $or_condition = db_or();
+      $or_condition->condition('u.uid', 1);
+      $or_condition->condition('r.rid', array_keys($roles), 'IN');
+      $query->condition($or_condition);
     }
-    else {
-      $where = array('u.uid = 1');
-      if (count($roles)) {
-        $where[] = 'r.rid IN ('. implode(',', array_keys($roles)) .')';
-      }
-      $where_sql = implode(' OR ', $where);
-      $accounts = db_query_range("SELECT DISTINCT u.uid, u.name, u.access FROM {users} u LEFT JOIN {users_roles} r ON u.uid = r.uid WHERE ($where_sql) AND u.status > 0 ORDER BY u.access DESC", 0, $list_size);
-    }
+
+    $uids = $query->execute()->fetchCol();
+    $accounts = user_load_multiple($uids);
+
     foreach ($accounts as $account) {
       $links[$account->uid] = array(
-        'title' => drupal_placeholder($account->name),
+        'title' => drupal_placeholder(format_username($account)),
         'href' => 'devel/switch/'. $account->name,
         'query' => $dest,
         'attributes' => array('title' => t('This user can switch back.')),
@@ -755,10 +760,11 @@ function devel_switch_user_list() {
     $num_links = count($links);
     if ($num_links < $list_size) {
       // If we don't have enough, add distinct uids until we hit $list_size.
-      $accounts = db_query_range('SELECT uid, name, access FROM {users} WHERE uid > 0 AND uid NOT IN ('. implode(',', array_keys($links)) .') AND status > 0 ORDER BY access DESC', 0, $list_size - $num_links);
+      $uids = db_query_range('SELECT uid FROM {users} WHERE uid > 0 AND uid NOT IN (:uids) AND status > 0 ORDER BY access DESC', 0, $list_size - $num_links, array(':uids' => array_keys($links)))->fetchCol();
+      $accounts = user_load_multiple($uids);
       foreach ($accounts as $account) {
         $links[$account->uid] = array(
-          'title' => $account->name ? $account->name : 'anon',
+          'title' => format_username($account),
           'href' => 'devel/switch/'. $account->name,
           'query' => $dest,
           'attributes' => array('title' => t('Caution: this user will be unable to switch back.')),
@@ -769,7 +775,7 @@ function devel_switch_user_list() {
     }
     if ($include_anon) {
       $link = array(
-        'title' => check_plain(format_username(drupal_anonymous_user())),
+        'title' => format_username(drupal_anonymous_user()),
         'href' => 'devel/switch',
         'query' => $dest,
         'attributes' => array('title' => t('Caution: the anonymous user will be unable to switch back.')),
@@ -1686,7 +1692,6 @@ function devel_empty_dir($dir) {
 /*
  * migration related functions
  */
-
 
 /**
  * Regenerate the data in node_comment_statistics table. Technique comes from
