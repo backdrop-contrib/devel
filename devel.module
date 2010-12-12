@@ -549,7 +549,7 @@ function devel_silent() {
 }
 
 function devel_xhprof_enable() {
-  if (extension_loaded('xhprof') && variable_get('devel_xhprof_enabled', FALSE)) {
+  if (devel_xhprof_is_enabled()) {
     if ($path = variable_get('devel_xhprof_directory', '')) {
       include_once $path . '/xhprof_lib/utils/xhprof_lib.php';
       include_once $path . '/xhprof_lib/utils/xhprof_runs.php';
@@ -557,6 +557,10 @@ function devel_xhprof_enable() {
       xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
     }
   }
+}
+
+function devel_xhprof_is_enabled() {
+  return extension_loaded('xhprof') && variable_get('devel_xhprof_enabled', FALSE);
 }
 
 /**
@@ -892,7 +896,7 @@ function devel_shutdown() {
   drupal_register_shutdown_function('devel_shutdown_real');
 
   global $devel_run_id;
-  $devel_run_id = variable_get('devel_xhprof_enabled', FALSE) ? devel_shutdown_xhprof(): NULL;
+  $devel_run_id = devel_xhprof_is_enabled() ? devel_shutdown_xhprof(): NULL;
   if ($devel_run_id && function_exists('drush_log')) {
     drush_log('xhprof link: ' . devel_xhprof_link($devel_run_id, 'url'), 'notice');
   }
@@ -965,7 +969,7 @@ function devel_shutdown_summary($queries) {
     $output .= devel_timer();
   }
 
-  if (variable_get('devel_xhprof_enabled', FALSE)) {
+  if (devel_xhprof_is_enabled()) {
     $output .= ' ' . devel_xhprof_link($GLOBALS['devel_run_id']);
   }
 
