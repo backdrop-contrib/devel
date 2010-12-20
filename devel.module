@@ -1157,7 +1157,9 @@ function devel_execute_form() {
   );
   $form['execute']['op'] = array('#type' => 'submit', '#value' => t('Execute'));
   $form['#redirect'] = FALSE;
-  unset($_SESSION['devel_execute_code']);
+  if (isset($_SESSION['devel_execute_code'])) {
+    unset($_SESSION['devel_execute_code']);
+  }
   return $form;
 }
 
