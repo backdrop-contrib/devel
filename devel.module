@@ -740,7 +740,9 @@ function devel_switch_user_list() {
       $query->leftJoin('users_roles', 'r', 'u.uid = r.uid');
       $or_condition = db_or();
       $or_condition->condition('u.uid', 1);
-      $or_condition->condition('r.rid', array_keys($roles), 'IN');
+      if (!empty($roles)) {
+        $or_condition->condition('r.rid', array_keys($roles), 'IN');
+      }
       $query->condition($or_condition);
     }
 
