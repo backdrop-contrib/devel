@@ -114,7 +114,7 @@ function drush_devel_download() {
 /**
  * Implements drush_MODULE_post_COMMAND().
  */
-function drush_devel_post_enable() {
+function drush_devel_post_pm_enable() {
   $modules = func_get_args();
   if (in_array('devel', $modules)) {
     drush_devel_download();
