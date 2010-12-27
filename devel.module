@@ -595,6 +595,10 @@ function backtrace_error_handler($error_level, $message, $filename, $line) {
   if (error_reporting() == 0) {
     return;
   }
+  // Don't respond to warning caused by ourselves.
+  if (preg_match('#Cannot modify header information - headers already sent .*[/\\\\]devel[/\\\\]krumo#', $message)) {
+    return;
+  }
   if ($error_level & error_reporting()) {
     require_once DRUPAL_ROOT . '/includes/errors.inc';
     $types = drupal_error_levels();
