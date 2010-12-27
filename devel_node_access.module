@@ -1091,17 +1091,11 @@ function _devel_node_access_explain_access($op, $node, $account = NULL) {
 
   if ($op != 'create' && $node->nid) {
     if (node_access($op, $node)) {  // delegate this part
+      $variables['@node_access_table'] = '{node_access}';
       return array(
         TRUE,
-        t('!YES: node access', $variables),
-        t('!YES: Node access allows this.', $variables),
-      );
-    }
-    else {
-      return array(
-        FALSE,
-        t('!NO: node access', $variables),
-        t('!NO: Node access denies this.', $variables),
+        t('!YES: @node_access_table', $variables),
+        t('!YES: Node access allows this based on one or more records in the @node_access_table table (see the other DNA block!).', $variables),
       );
     }
   }
