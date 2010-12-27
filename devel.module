@@ -600,6 +600,16 @@ function backtrace_error_handler($error_level, $message, $filename, $line) {
     return;
   }
   if ($error_level & error_reporting()) {
+    // Only write each distinct NOTICE message once, as repeats do not give any
+    // further information and can choke the page output.
+    if ($error_level == E_NOTICE) {
+      static $written = array();
+      if (!empty($written[$line][$filename][$message])) {
+        return;
+      }
+      $written[$line][$filename][$message] = TRUE;
+    }
+
     require_once DRUPAL_ROOT . '/includes/errors.inc';
     $types = drupal_error_levels();
     $type = $types[$error_level];
