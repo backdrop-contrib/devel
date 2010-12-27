@@ -615,7 +615,7 @@ function devel_node_access_block_view($delta) {
             //dpm($acquired_grants_nid, "acquired_grants_nid =");
             // check node_access_grants()
             $published_nid[$nid] = $node->status;
-            if ($node->nid && $node->status) {
+            if ($node->nid) {
               foreach (array('view', 'update', 'delete') as $op) {
                 $grants = _devel_node_access_module_invoke_all('node_grants', $user, $op);
                 // call all hook_node_grants_alter() implementations
