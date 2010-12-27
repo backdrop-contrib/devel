@@ -1007,7 +1007,7 @@ function _devel_node_access_explain_access($op, $node, $account = NULL) {
     drupal_save_session(TRUE);
     $second_opinion = node_access($op, $node, $account);
     if ($second_opinion != $result[0]) {
-      $result[1] .= '<span class="' . ($second_opinion ? 'ok' : 'error') . '" title="DNA and Core seem to disagree on this item. This is a bug in either one of them and should be fixed! Try to look at this node as this user and check whether there is still disagreement.">*</span>';
+      $result[1] .= '<span class="' . ($second_opinion ? 'ok' : 'error') . '" title="Core seems to disagree on this item. This is a bug in either DNA or Core and should be fixed! Try to look at this node as this user and check whether there is still disagreement.">*</span>';
     }
     return $result;
   }
