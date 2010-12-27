@@ -926,15 +926,15 @@ function devel_node_access_block_view($delta) {
         // limit the number of users returned.  It would be better to make a
         // pager query, or at least make the number of users configurable.  If
         // anyone is up for that please submit a patch.
-        $query = db_select('users', 'u');
-        $query
-          ->distinct()
-          ->fields('u')
+        $query = db_select('users', 'u')
+          ->fields('u', array('uid'))
           ->orderBy('access', 'DESC')
-          ->range(0, 10);
-        foreach ($query->execute() as $data) {
-          $account = user_load($data->uid);
-          $username = theme('username', array('account' => $data));
+          ->range(0, 9);
+        $uids = $query->execute()->fetchCol();
+        array_unshift($uids, 0);
+        $accounts = user_load_multiple($uids);
+        foreach ($accounts as $account) {
+          $username = theme('username', array('account' => $account));
           if ($account->uid == $user->uid) {
             $username = '<strong>' . $username . '</strong>';
           }
