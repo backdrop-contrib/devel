@@ -590,7 +590,11 @@ function devel_boot() {
   drupal_register_shutdown_function('devel_shutdown');
 }
 
-function backtrace_error_handler($error_level, $message, $filename, $line) {
+function backtrace_error_handler($error_level, $message, $filename, $line, $context) {
+  // Hide stack trace and parameters from unqualified users.
+  if (!user_access('access devel information')) {
+    return _drupal_error_handler($error_level, $message, $filename, $line, $context);
+  }
   // Don't respond to the error if it was suppressed with a '@'
   if (error_reporting() == 0) {
     return;
