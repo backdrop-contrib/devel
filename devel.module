@@ -596,7 +596,7 @@ function backtrace_error_handler($error_level, $message, $filename, $line) {
     return;
   }
   // Don't respond to warning caused by ourselves.
-  if (preg_match('#Cannot modify header information - headers already sent .*[/\\\\]devel[/\\\\]krumo#', $message)) {
+  if (preg_match('#Cannot modify header information - headers already sent by \\([^\\)]*[/\\\\]devel[/\\\\]#', $message)) {
     return;
   }
   if ($error_level & error_reporting()) {
