@@ -4,7 +4,5 @@ description = Developer blocks and page illustrating relevant node_access record
 package = Development
 dependencies[] = menu
 core = 7.x
-files[] = devel_node_access.module
-files[] = devel_node_access.install
 configure = admin/config/development/devel
 tags[] = developer
