@@ -16,6 +16,7 @@ function devel_node_access_permission() {
     'view devel_node_access information' => array(
       'description' => t('View the node access information blocks on node pages and the summary page.'),
       'title'       => t('Access DNA information'),
+      'restrict access' => TRUE,
     ),
   );
 }

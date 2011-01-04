@@ -642,18 +642,22 @@ function devel_permission() {
     'access devel information' => array(
       'description' => t('View developer output like variable printouts, query log, etc.'),
       'title' => t('Access developer information'),
+      'restrict access' => TRUE,
     ),
     'execute php code' => array(
       'title' => t('Execute PHP code'),
-      'description' => t('Run arbitrary PHP from a block. Danger!'),
+      'description' => t('Run arbitrary PHP from a block.'),
+      'restrict access' => TRUE,
     ),
     'switch users' => array(
       'title' => t('Switch users'),
-      'description' => t('Become any user on the site with just a click. Danger!'),
+      'description' => t('Become any user on the site with just a click.'),
+      'restrict access' => TRUE,
     ),
     'display source code' => array(
       'title' => t('Display source code'),
-      'description' => t('View the site\'s php source code. Danger!'),
+      'description' => t('View the site\'s php source code.'),
+      'restrict access' => TRUE,
     ),
   );
 }
