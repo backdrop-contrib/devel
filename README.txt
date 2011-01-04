@@ -22,7 +22,7 @@ Useful during development. Many other nice functions like dpm(), dvm().
 
 AJAX developers in particular ought to install FirePHP Core from
 http://www.firephp.org/ and put it in the devel directory. 
-This happens automatically when you enable via using drush. You may also
+This happens automatically when you enable via drush. You may also
 use a drush command to download the library. If downloading by hand, 
 your path to fb.php should look like devel/FirePHPCore/lib/FirePHPCore/fb.php. 
 You can use svn checkout http://firephp.googlecode.com/svn/trunk/trunk/Libraries/FirePHPCore.
@@ -34,17 +34,15 @@ Included in this package is also:
   implement. Handy.
 - devel_generate.module which bulk creates nodes, users, comment, terms for 
   development.
+- performance module.
 
 COMPATIBILITY NOTES
 ==================
 - Modules that use AHAH may have incompatibility with the query log and other
-  footer info. Consider setting $GLOBALS['devel_shutdown'] = FALSE in order to 
-  avoid issues.
-- Modules that use AJAX should idenify their response as: 
-  Content-type: text/javascript 
-  The easiest way to do that is run your reply through drupal_json_page().
+  footer info. Consider setting $GLOBALS['devel_shutdown'] = FALSE if you run into
+  any issues.
 
 AUTHOR/MAINTAINER
 ======================
--moshe weitzman
-weitzman at tejasa DOT com
+-moshe weitzman <weitzman at tejasa DOT com>
+http://cyrve.com
