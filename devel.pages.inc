@@ -232,6 +232,9 @@ function devel_variable_form() {
     case 'mssql':
       $query->addExpression("COL_LENGTH('{variable}', 'value')", 'length');
       break;
+    case 'pgsql':
+      $query->addExpression("CONVERT(LENGTH(v.value), INTEGER)", 'length');
+      break;
     default:
       $query->addExpression("CONVERT(LENGTH(v.value), UNSIGNED INTEGER)", 'length');
       break;
