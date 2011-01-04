@@ -1,37 +1,6 @@
 <?php
 //$Id$
 
-/**
- * Return PHP highlighted file
- *
- * @param $path
- *   path to the file
- *    *warning* there is NO VALIDATION in this function
- *    Beware of paths such as '../../../../../etc/apache/httpd.conf'
- *
- * @param $standalone
- *   should the returned HTML be wrapped in a full <html> page or will it be output by Drupal?
- */
-function devel_highlight_file($path = NULL, $standalone = FALSE) {
-  if (file_exists($path)) {
-    $source = highlight_file($path, TRUE);
-    // add anchor links before all functions
-    // with doxygen
-    // $source = preg_replace('!(\/\*\*.*?\*\/.*?)<br.*?function.*?#0000BB">(.*?)<\/span>!', '<a id="$2"></a> $0', $source);
-    //$source = preg_replace('!(\/\*\*.*?\*\/).*?function.*?#0000BB">(.*?)<\/span>!', '<a id="$2"></a> $0', $source);
-    if ($standalone) {
-      $source = <<<EOT
-<head><title>$path</title></head>
-<body>$source</body>
-EOT;
-    }
-    return $source;
-  }
-  else {
-    return FALSE;
-  }
-}
-
 // Menu callback that shows menu item.
 function devel_menu_item() {
   $item = menu_get_item($_GET['path']);
