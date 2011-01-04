@@ -2,33 +2,6 @@
 //$Id$
 
 /**
- * Page callback to display syntax hilighted source code
- *
- * note: the path for this function is received via $_GET['path']
- *  example http://www.example.com/devel/source?file=modules/node/node.module
- *
- * @param $standalone
- *   Set to FALSE to place the code inside a Drupal page. Otherwise code displays on its own.
- */
-function devel_display_source($standalone = TRUE) {
-  $path = $_GET['file'];
-  // take out the nasties
-  $path = str_replace('../', '', $path);
-  $output = devel_highlight_file($path, $standalone);
-  if ($output) {
-    if ($standalone) {
-      print $output;
-      drupal_exit();
-    }
-    return $output;
-  }
-  else {
-    drupal_set_message(t('Invalid file path'), 'error');
-    drupal_not_found();
-  }
-}
-
-/**
  * Return PHP highlighted file
  *
  * @param $path

@@ -64,14 +64,6 @@ function devel_menu() {
     'file' => 'devel.pages.inc',
     'menu_name' => 'devel',
   );
-  $items['devel/source'] = array(
-    'title' => 'Display the PHP code of any file in your Drupal installation',
-    'page callback' => 'devel_display_source',
-    'access arguments' => array('display source code'),
-    'type' => MENU_CALLBACK,
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
   $items['devel/menu/reset'] = array(
     'title' => 'Rebuild menus',
     'description' => 'Rebuild menu based on hook_menu() and revert any custom changes. All menu items return to their default settings.',
