@@ -1157,6 +1157,16 @@ function _devel_node_access_get_grant_list($nid, $ng_alter_data) {
 
 /**
  * Implementation of hook_node_access_explain().
+ *
+ * Provide a (short!) textual explanation of this module's grant records.
+ *
+ * @param $row
+ *   Array with a row from the {node_access} table.
+ *   The keys are: nid, gid, realm, grant_view, grant_update, grant_delete.
+ *
+ * @return
+ *   A (short!) HTML explanation of the given {node_access} row, to be
+ *   displayed in DNA's 'Devel Node Access' block.
  */
 function devel_node_access_node_access_explain($row) {
   if ($row->gid == 0 && $row->realm == 'all') {
