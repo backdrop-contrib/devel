@@ -1204,6 +1204,7 @@ function devel_switch_user($name = NULL) {
   if (isset($name) && $account = user_load_by_name($name)) {
     $old_uid = $user->uid;
     $user = $account;
+    $user->timestamp = time() - 9999;
     if (!$old_uid) {
       // Switch from anonymous to authorized.
       drupal_session_regenerate();
