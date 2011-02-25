@@ -1,4 +1,3 @@
-$Id$
 
 By Khalid Baheyeldin
 

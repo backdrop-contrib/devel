@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 function devel_admin_settings() {
   $form['queries'] = array('#type' => 'fieldset', '#title' => t('Query log'));

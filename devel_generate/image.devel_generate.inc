@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 define('DEVEL_GENERATE_IMAGE_MAX', 5);
 

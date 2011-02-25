@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Generate some random users.

@@ -1,5 +1,4 @@
 <?php
-//$Id$
 
 // Menu callback that shows menu item.
 function devel_menu_item() {

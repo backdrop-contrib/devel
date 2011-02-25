@@ -1,4 +1,3 @@
-// $Id$
 (function ($) {
 
 // Explain link in query log

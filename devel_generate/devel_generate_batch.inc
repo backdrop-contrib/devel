@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Devel Generate batch handling functions using the BatchAPI
