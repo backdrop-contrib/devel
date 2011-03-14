@@ -115,7 +115,7 @@ function drush_devel_download() {
  */
 function drush_devel_post_pm_enable() {
   $modules = func_get_args();
-  if (in_array('devel', $modules)) {
+  if (in_array('devel', $modules) && !drush_get_option('skip')) {
     drush_devel_download();
   }
 }
