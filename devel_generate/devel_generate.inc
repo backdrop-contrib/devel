@@ -55,6 +55,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
       // Populate all core fields on behalf of field.module
       module_load_include('inc', 'devel_generate', 'devel_generate.fields');
       $edit = (object) $edit;
+      $edit->language = LANGUAGE_NONE;
       devel_generate_fields($edit, 'user', 'user');
       $edit = (array) $edit;
 
@@ -193,6 +194,7 @@ function devel_generate_vocabs($records, $maxlength = 12, $types = array('page',
     $voc->relations = 1;
     $voc->hierarchy = 1;
     $voc->weight = mt_rand(0,10);
+    $voc->language = LANGUAGE_NONE;
 
     taxonomy_vocabulary_save($voc);
     $vocs[] = $voc->name;
@@ -247,6 +249,7 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
     $term->description = "description of ". $term->name;
     $term->format = filter_fallback_format();
     $term->weight = mt_rand(0, 10);
+    $term->language = LANGUAGE_NONE;
 
     // Populate all core fields on behalf of field.module
     module_load_include('inc', 'devel_generate', 'devel_generate.fields');
