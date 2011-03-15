@@ -675,14 +675,9 @@ function devel_generate_content_add_node(&$results) {
   if (!isset($results['time_range'])) {
     $results['time_range'] = 0;
   }
-  if (isset($results['add_language'])) {
-    $languages = array_keys($results['add_language']);
-    $node->language = $languages[array_rand($languages)];
-  }
-  else {
-    $default = langage_default('language');
-    $node->language =  $default == 'en' ? LANGUAGE_NONE : $default;
-  }
+
+  devel_generate_set_language($results, $node);
+
   $node->created = REQUEST_TIME - mt_rand(0, $results['time_range']);
 
   // A flag to let hook_nodeapi() implementations know that this is a generated node.
@@ -694,4 +689,18 @@ function devel_generate_content_add_node(&$results) {
 
   // See devel_generate_nodeapi() for actions that happen before and after this save.
   node_save($node);
+}
+
+/*
+ * Populate $object->language based on $results
+ */
+function devel_generate_set_language($results, $object) {
+  if (isset($results['add_language'])) {
+    $languages = array_keys($results['add_language']);
+    $object->language = $languages[array_rand($languages)];
+  }
+  else {
+    $default = langage_default('language');
+    $object->language =  $default == 'en' ? LANGUAGE_NONE : $default;
+  }
 }
