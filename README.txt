@@ -46,3 +46,4 @@ AUTHOR/MAINTAINER
 ======================
 -moshe weitzman <weitzman at tejasa DOT com>
 http://cyrve.com
+Hans Salvisberg <drupal@salvisberg.com>
