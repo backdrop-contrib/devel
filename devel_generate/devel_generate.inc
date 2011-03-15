@@ -160,7 +160,7 @@ function devel_generate_add_comments($node, $users, $max_comments, $title_length
       default:
         $comment->pid = 0;
     }
-    
+
     // The subject column has a max character length of 64
     // See bug: http://drupal.org/node/1024340
     $comment->subject = substr(devel_create_greeking(mt_rand(2, $title_length), TRUE), 0, 63);
@@ -659,7 +659,6 @@ function devel_generate_content_pre_node(&$results) {
  *   array of options obtained from devel_generate_content_form.
  */
 function devel_generate_content_add_node(&$results) {
-  global $language;
   $node = new stdClass();
   $node->nid = NULL;
 
@@ -676,12 +675,13 @@ function devel_generate_content_add_node(&$results) {
   if (!isset($results['time_range'])) {
     $results['time_range'] = 0;
   }
-  if (isset($results['add_language']) && variable_get('language_content_type_' . $node->type, 0)) {
+  if (isset($results['add_language'])) {
     $languages = array_keys($results['add_language']);
     $node->language = $languages[array_rand($languages)];
   }
   else {
-    $node->language = LANGUAGE_NONE;
+    $default = langage_default('language');
+    $node->language =  $default == 'en' ? LANGUAGE_NONE : $default;
   }
   $node->created = REQUEST_TIME - mt_rand(0, $results['time_range']);
 
