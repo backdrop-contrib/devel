@@ -160,8 +160,10 @@ function devel_generate_add_comments($node, $users, $max_comments, $title_length
       default:
         $comment->pid = 0;
     }
-
-    $comment->subject = devel_create_greeking(mt_rand(2, $title_length), TRUE);
+    
+    // The subject column has a max character length of 64
+    // See bug: http://drupal.org/node/1024340
+    $comment->subject = substr(devel_create_greeking(mt_rand(2, $title_length), TRUE), 0, 63);
     $comment->uid = $users[array_rand($users)];
     $comment->language = LANGUAGE_NONE;
     // Populate all core fields on behalf of field.module
