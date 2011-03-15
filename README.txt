@@ -36,6 +36,8 @@ Included in this package is also:
   development.
 - performance module.
 
+Some nifty drush integration ships with devel and devel_generate. See drush help for details.
+
 COMPATIBILITY NOTES
 ==================
 - Modules that use AHAH may have incompatibility with the query log and other
