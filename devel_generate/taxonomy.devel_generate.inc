@@ -15,21 +15,22 @@ function _taxonomy_devel_generate($object, $field, $instance, $bundle) {
   // will not result in any tags being added.
   $machine_name = $field['settings']['allowed_values'][0]['vocabulary'];
   $vocabulary = taxonomy_vocabulary_machine_name_load($machine_name);
-  $max = db_query('SELECT MAX(tid) FROM {taxonomy_term_data} WHERE vid = :vid', array(':vid' => $vocabulary->vid))->fetchField();
-  $candidate = mt_rand(1, $max);
-  $query = db_select('taxonomy_term_data', 't');
-  $tid = $query
-            ->fields('t', array('tid'))
-            ->condition('t.vid', $vocabulary->vid, '=')
-            ->condition('t.tid', $candidate, '>=')
-            ->range(0,1)
-            ->execute()
-            ->fetchField();
-  // If there are no terms for the taxonomy, the query will fail, in which
-  // case we return NULL.
-  if ($tid === FALSE) {
-    return NULL;
+  if ($max = db_query('SELECT MAX(tid) FROM {taxonomy_term_data} WHERE vid = :vid', array(':vid' => $vocabulary->vid))->fetchField()) {
+    $candidate = mt_rand(1, $max);
+    $query = db_select('taxonomy_term_data', 't');
+    $tid = $query
+              ->fields('t', array('tid'))
+              ->condition('t.vid', $vocabulary->vid, '=')
+              ->condition('t.tid', $candidate, '>=')
+              ->range(0,1)
+              ->execute()
+              ->fetchField();
+    // If there are no terms for the taxonomy, the query will fail, in which
+    // case we return NULL.
+    if ($tid === FALSE) {
+      return NULL;
+    }
+    $object_field['tid'] = (int) $tid;
+    return $object_field;
   }
-  $object_field['tid'] = (int) $tid;
-  return $object_field;
 }
