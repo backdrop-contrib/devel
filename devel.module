@@ -743,6 +743,7 @@ function devel_switch_user_list() {
     $roles = user_roles(TRUE, 'switch users');
     $query = db_select('users', 'u');
     $query->addField('u', 'uid');
+    $query->addField('u', 'access');
     $query->distinct();
     $query->condition('u.uid', 0, '>');
     $query->condition('u.status', 0, '>');
