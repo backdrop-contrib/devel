@@ -59,7 +59,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
       devel_generate_fields($edit, 'user', 'user');
       $edit = (array) $edit;
 
-      $account = user_save(NULL, $edit);
+      $account = user_save(drupal_anonymous_user(), $edit);
 
       if ($pic_config) {
         // Since the image.module should scale the picture just pick an
