@@ -703,7 +703,7 @@ function devel_generate_set_language($results, $object) {
     $object->language = $languages[array_rand($languages)];
   }
   else {
-    $default = langage_default('language');
+    $default = language_default('language');
     $object->language =  $default == 'en' ? LANGUAGE_NONE : $default;
   }
 }
