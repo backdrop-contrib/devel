@@ -92,7 +92,7 @@ function drush_devel_download() {
   else {
     $path = drush_get_context('DRUSH_DRUPAL_ROOT');
     if (module_exists('libraries')) {
-      $path .= libraries_get_path('FirePHPCore') . '/FirePHPCore';
+      $path .= '/' . libraries_get_path('FirePHPCore') . '/FirePHPCore';
     }
     else {
       $path .= '/'. drupal_get_path('module', 'devel') . '/FirePHPCore';
