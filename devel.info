@@ -1,7 +1,6 @@
 name = Devel
 description = Various blocks, pages, and functions for developers.
 package = Development
-dependencies[] = menu
 core = 7.x
 configure = admin/config/development/devel
 tags[] = developer
