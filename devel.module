@@ -628,7 +628,11 @@ function backtrace_error_handler($error_level, $message, $filename, $line, $cont
     $variables = array('%error' => $type[0], '%message' => $message, '%function' => $backtrace[0]['function'] .'()', '%file' => $filename, '%line' => $line);
     $counter = 0;
 
-    if (variable_get('error_level', 1) == 1) {
+    // Show message if error_level is ERROR_REPORTING_DISPLAY_SOME or higher.
+    // (This is Drupal's error_level, which is different from $error_level,
+    // and we purposely ignore the difference between _SOME and _ALL,
+    // see #970688!)
+    if (variable_get('error_level', 1) >= 1) {
       foreach ($backtrace as $call) {
         $nicetrace[$call['function'] . '<span class="' . $counter++ . '" />'] = $call;
       }
