@@ -37,12 +37,12 @@ function performance_menu() {
     'access arguments' => array('administer performance logging'),
   );
 
-  $items['admin/settings/performance_logging/memcache_clear'] = array(
+  $items['admin/config/development/performance_logging/memcache_clear'] = array(
     'title'            => 'Clear Memcache',
     'description'      => 'Clears performance statistics collected in Memcache.',
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('performance_clear_memcache_confirm'),
-    'access arguments' => array('access administration pages'),
+    'access arguments' => array('administer performance logging'),
   );
 
   $items['admin/reports/performance_logging_summary'] = array(
