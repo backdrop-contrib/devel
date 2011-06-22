@@ -95,7 +95,7 @@ function drush_devel_download() {
       $path .= '/' . libraries_get_path('FirePHPCore') . '/FirePHPCore';
     }
     else {
-      $path .= '/'. drupal_get_path('module', 'devel') . '/FirePHPCore';
+      $path .= '/' . drupal_get_path('module', 'devel') . '/FirePHPCore';
     }
   }
 
@@ -121,7 +121,7 @@ function drush_devel_post_pm_enable() {
 }
 
 /**
- * Command handler. Show hook implementations
+ * Command handler. Show hook implementations.
  */
 function drush_devel_fn_hook($hook) {
   // Get implementations in the .install files as well.
