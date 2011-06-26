@@ -699,7 +699,7 @@ function devel_generate_content_add_node(&$results) {
  */
 function devel_generate_set_language($results, $object) {
   if (isset($results['add_language'])) {
-    $languages = array_keys($results['add_language']);
+    $languages = $results['add_language'];
     $object->language = $languages[array_rand($languages)];
   }
   else {

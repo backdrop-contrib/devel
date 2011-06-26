@@ -197,7 +197,7 @@ function devel_generate_content_form() {
     '#disabled' => !module_exists('locale'),
     '#description' => t('Requires locale.module'),
     '#options' => $options,
-    '#default_value' => array(LANGUAGE_NONE => LANGUAGE_NONE),
+    '#default_value' => array(LANGUAGE_NONE),
   );
 
   $form['submit'] = array(
