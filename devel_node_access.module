@@ -21,7 +21,7 @@ function devel_node_access_permission() {
 }
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function devel_node_access_help($path, $arg) {
   switch ($path) {
@@ -43,6 +43,9 @@ function devel_node_access_help($path, $arg) {
   }
 }
 
+/**
+ * Implements hook_menu().
+ */
 function devel_node_access_menu() {
   $items = array();
 
@@ -69,6 +72,14 @@ function devel_node_access_menu() {
       'menu_name' => 'devel',
     );
   }
+
+  // create a callback for use by devel_node_access_user_ajax().
+  $items['devel/node_access/by_user/%/%'] = array(
+    'page callback'    => 'devel_node_access_user_ajax',
+    'page arguments'   => array(3, 4),
+    'access arguments' => array(DNA_ACCESS_VIEW),
+    'type'             => MENU_CALLBACK,
+  );
 
   // add this to the custom menu 'devel' created by the devel module.
   $items['devel/node_access/summary'] = array(
@@ -103,6 +114,12 @@ function devel_node_access_form_alter(&$form, $form_state, $form_id) {
         '%DNAbU' => t('Devel Node Access by User'),
         '@link' => url('admin/structure/block/list'),
       )),
+    );
+    $form['devel_node_access']['devel_node_access_user_ajax'] = array(
+      '#type'          => 'checkbox',
+      '#title'         => t('Asynchronously populate the <em>Devel Node Access by User</em> block'),
+      '#default_value' => variable_get('devel_node_access_user_ajax', FALSE),
+      '#description'   => t("Use Ajax to populate the second DNA block. This loads the initial page faster and uses dynamic calls to build the data in the table, one request at a time. It's especially useful during development, if some of the calls are failing.") . '<br />' . t('JavaScript must be enabled in your browser.'),
     );
     // push the Save button down
     $form['actions']['#weight'] = 10;
@@ -957,6 +974,10 @@ function devel_node_access_block_view($delta) {
         $node_type = node_type_get_type($node);
         $headers = array(t('username'), '<span title="' . t("Create nodes of the '@Node_type' type.", array('@Node_type' => $node_type->name)) . '">' . t('create') . '</span>', t('view'), t('update'), t('delete'));
         $rows = array();
+        // Determine whether to use Ajax or prepopulate the tables.
+        if ($ajax = variable_get('devel_node_access_user_ajax', FALSE)) {
+          drupal_add_js(drupal_get_path('module', 'devel_node_access') . '/devel_node_access.js');
+        }
         // Find all users. The following operations are very inefficient, so we
         // limit the number of users returned.  It would be better to make a
         // pager query, or at least make the number of users configurable.  If
@@ -975,10 +996,26 @@ function devel_node_access_block_view($delta) {
           }
           $rows[] = array(
             $username,
-            theme('dna_permission', _devel_node_access_explain_access('create', $nid, $account)),
-            theme('dna_permission', _devel_node_access_explain_access('view', $nid, $account)),
-            theme('dna_permission', _devel_node_access_explain_access('update', $nid, $account)),
-            theme('dna_permission', _devel_node_access_explain_access('delete', $nid, $account)),
+            array(
+              'id' => 'create-' . $nid . '-' . $account->uid,
+              'class' => 'dna-permission',
+              'data' => $ajax ? NULL : theme('dna_permission', array('permission' => _devel_node_access_explain_access('create', $nid, $account))),
+            ),
+            array(
+              'id' => 'view-' . $nid . '-' . $account->uid,
+              'class' => 'dna-permission',
+              'data' => $ajax ? NULL : theme('dna_permission', array('permission' => _devel_node_access_explain_access('view', $nid, $account))),
+            ),
+            array(
+              'id' => 'update-' . $nid . '-' . $account->uid,
+              'class' => 'dna-permission',
+              'data' => $ajax ? NULL : theme('dna_permission', array('permission' => _devel_node_access_explain_access('update', $nid, $account))),
+            ),
+            array(
+              'id' => 'delete-' . $nid . '-' . $account->uid,
+              'class' => 'dna-permission',
+              'data' => $ajax ? NULL : theme('dna_permission', array('permission' => _devel_node_access_explain_access('delete', $nid, $account))),
+            ),
           );
         }
         if (count($rows)) {
@@ -1001,6 +1038,42 @@ function devel_node_access_block_view($delta) {
       }
       break;
   }
+}
+
+/**
+ * Callback function for node access by user block ajax.
+ */
+function devel_node_access_user_ajax($data_type, $cell) {
+  list($op, $nid, $uid) = explode('-', $cell);
+  $account = user_load($uid);
+  $output = array(
+    '#theme' => 'dna_permission',
+    '#permission' => _devel_node_access_explain_access($op, $nid, $account),
+  );
+  // JSON output for Ajax callbacks.
+  if ($data_type == 'json') {
+    drupal_json_output(drupal_render($output));
+    exit;
+  }
+  // HTML output for error message click-throughs.
+  if ($node = node_load($nid)) {
+    $node_title = l($node->title, 'node/' . $node->nid);
+  }
+  else {
+    $node_title = t('unknown node %nid', array('%nid' => $nid));
+  }
+  drupal_set_title(
+    t(
+      'Devel node access: %op permission for !user on !node',
+      array(
+        '%op'   => $op,
+        '!user' => theme('username', array('account' => $account)),
+        '!node' => $node_title,
+      )
+    ),
+    PASS_THROUGH
+  );
+  return $output;
 }
 
 /**
@@ -1261,12 +1334,14 @@ function _devel_node_access_format_row($row, $may_unpack = TRUE) {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function devel_node_access_theme() {
   return array(
     'dna_permission' => array(
-      'arguments'    => array('permission' => NULL),
+      'variables'    => array(
+        'permission' => NULL,
+      ),
     ),
   );
 }
@@ -1274,6 +1349,7 @@ function devel_node_access_theme() {
 /**
  * Indicate whether user has a permission or not.
  */
-function theme_dna_permission($permission) {
+function theme_dna_permission($variables) {
+  $permission = &$variables['permission'];
   return '<span class="' . ($permission[0] ? 'ok' : 'error') . '" title="' . $permission[2] . '">' . $permission[1] . '</span>';
 }
