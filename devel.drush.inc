@@ -103,7 +103,7 @@ function drush_devel_download() {
     drush_log('FirePHP already present. No download required.', 'ok');
   }
   elseif (drush_shell_exec('svn export http://firephp.googlecode.com/svn/branches/Library-FirePHPCore-0.3 ' . $path)) {
-    drush_log(dt('FirePHP has been checked out via svn to @path.', array('@path' => $path)), 'success');
+    drush_log(dt('FirePHP has been exported via svn to @path.', array('@path' => $path)), 'success');
   }
   else {
     drush_log(dt('Drush was unable to export FirePHP to @path.', array('@path' => $path)), 'error');
