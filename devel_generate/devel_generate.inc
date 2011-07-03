@@ -570,7 +570,8 @@ function devel_create_greeking($word_count, $title = FALSE) {
   else {
     // Use slightly different method for titles.
     $words = array_rand($dictionary_flipped, $word_count);
-    $greeking = ucwords(implode(' ', $words));
+    $words = is_array($words) ? implode(' ', $words) : $words;
+    $greeking = ucwords($words);
   }
 
   // Work around possible php garbage collection bug. Without an unset(), this
