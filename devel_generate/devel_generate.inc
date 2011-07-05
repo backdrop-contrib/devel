@@ -211,6 +211,7 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
   $max = db_query('SELECT MAX(tid) FROM {taxonomy_term_data}')->fetchField();
   $start = time();
   for ($i = 1; $i <= $records; $i++) {
+    $term = new stdClass;
     switch ($i % 2) {
       case 1:
         // Set vid and vocabulary_machine_name properties.
