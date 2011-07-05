@@ -18,7 +18,7 @@ function devel_drush_command() {
   $items['devel-reinstall'] = array(
     'description' => dt('Disable, Uninstall, and Install a list of projects.'),
     'arguments' => array(
-      'path' => dt('A space separated list of project names.'),
+      'projects' => dt('A space separated list of project names.'),
     ),
     'aliases' => array('dre'),
   );
