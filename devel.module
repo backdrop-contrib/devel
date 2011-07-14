@@ -394,30 +394,31 @@ function devel_init() {
       }
       elseif (module_exists('libraries')) {
         // Support Libraries API - http://drupal.org/project/libraries
-        $firephp_path = libraries_get_path('FirePHPCore') . '/lib/FirePHPCore/';
+        $firephp_path = libraries_get_path('FirePHPCore');
+        $firephp_path = ($firephp_path ? $firephp_path . '/lib/FirePHPCore/' : '');
         $chromephp_path = libraries_get_path('chromephp');
       }
       else {
-        $firephp_path = './'. drupal_get_path('module', 'devel') .'/FirePHPCore/lib/FirePHPCore/';
-        $chromephp_path = './' . drupal_get_path('module', 'devel') .'/chromephp';
+        $firephp_path = './' . drupal_get_path('module', 'devel') . '/FirePHPCore/lib/FirePHPCore/';
+        $chromephp_path = './' . drupal_get_path('module', 'devel') . '/chromephp';
       }
 
-      // include FirePHP if exists...
-      if (file_exists($firephp_path .'fb.php')) {
-        include_once $firephp_path .'fb.php';
-        include_once $firephp_path .'FirePHP.class.php';
+      // Include FirePHP if it exists.
+      if (!empty($firephp_path) && file_exists($firephp_path . 'fb.php')) {
+        include_once $firephp_path . 'fb.php';
+        include_once $firephp_path . 'FirePHP.class.php';
       }
 
-      // include ChromePHP if exists...
-      if (file_exists($chromephp_path . '/ChromePhp.php')) {
-        include_once $chromephp_path . '/ChromePhp.php';
+      // Include ChromePHP if it exists.
+      if (!empty($chromephp_path) && file_exists($chromephp_path .= '/ChromePhp.php')) {
+        include_once $chromephp_path;
       }
 
 
       // Add CSS for query log if should be displayed.
       if (variable_get('devel_query_display', 0)) {
-        drupal_add_css(drupal_get_path('module', 'devel') .'/devel.css');
-        drupal_add_js(drupal_get_path('module', 'devel'). '/devel.js');
+        drupal_add_css(drupal_get_path('module', 'devel') . '/devel.css');
+        drupal_add_js(drupal_get_path('module', 'devel') . '/devel.js');
       }
     }
   }
