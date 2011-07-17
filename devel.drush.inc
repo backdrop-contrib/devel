@@ -101,8 +101,8 @@ function drush_devel_download() {
  * Implements drush_MODULE_post_COMMAND().
  */
 function drush_devel_post_pm_enable() {
-  $modules = func_get_args();
-  if (in_array('devel', $modules) && !drush_get_option('skip')) {
+  $extensions = pm_parse_arguments(func_get_args());
+  if (in_array('devel', $extensions) && !drush_get_option('skip')) {
     drush_devel_download();
   }
 }
@@ -114,7 +114,7 @@ function drush_devel_fn_hook($hook) {
   // Get implementations in the .install files as well.
   include_once './includes/install.inc';
   drupal_load_updates();
-  
+
   if ($hook_implementations = module_implements($hook)) {
     if ($choice = drush_choice(array_combine($hook_implementations, $hook_implementations), 'Enter the number of the hook implementation you wish to view.')) {
       return drush_devel_fn_view($choice . "_$hook");
@@ -132,7 +132,7 @@ function drush_devel_fn_view($function_name) {
   // Get implementations in the .install files as well.
   include_once './includes/install.inc';
   drupal_load_updates();
-  
+
   if (strpos($function_name, '::') === FALSE) {
     if (!function_exists($function_name)) {
       return drush_set_error(dt('Function not found'));
