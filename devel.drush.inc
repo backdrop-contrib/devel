@@ -53,19 +53,6 @@ function devel_drush_command() {
 }
 
 /**
- * Implementation of hook_drush_help().
- */
-function devel_drush_help($section) {
-  switch ($section) {
-    case 'drush:devel-reinstall':
-      return dt('Disable, Uninstall, and Install a list of projects.');
-    case 'drush:devel-download':
-      return dt("Downloads the FirePHP library from http://firephp.org/. Places it in the devel module directory. Skips download if library already present. This all happens automatically if you enable devel using drush.");
-  }
-}
-
-
-/**
  * A command callback. This is faster than 3 separate bootstraps.
  */
 function drush_devel_reinstall() {
