@@ -665,11 +665,6 @@ function devel_permission() {
       'description' => t('Become any user on the site with just a click.'),
       'restrict access' => TRUE,
     ),
-    'display source code' => array(
-      'title' => t('Display source code'),
-      'description' => t('View the site\'s php source code.'),
-      'restrict access' => TRUE,
-    ),
   );
 }
 
