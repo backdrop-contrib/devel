@@ -42,6 +42,13 @@ COMPATIBILITY NOTES
   footer info. Consider setting $GLOBALS['devel_shutdown'] = FALSE if you run into
   any issues.
 
+DRUSH UNIT TEST
+==================
+See develDrushTest.php for an example of unit testing of the Drush integration.
+This uses Drush's own test framework, based on PHPUnit. To run the tests, use
+phpunit --bootstrap=/path/to/drush/tests/drush_testcase.inc. Note that we must name a file
+under /tests there.
+
 AUTHOR/MAINTAINER
 ======================
 -moshe weitzman <weitzman at tejasa DOT com>
