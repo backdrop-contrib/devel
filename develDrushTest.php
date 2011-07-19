@@ -19,7 +19,7 @@ class develCase extends Drush_CommandTestCase {
 
     $this->drush('fn-view', array('drush_main'), $options);
     $output = $this->getOutput();
-    $this->assertTrue((bool)strpos($output, '@return'), 'Output contain @return Doxygen.');
-    $this->assertTrue((bool)strpos($output, 'function drush_main() {'), 'Output contains function drush_main() declaration');
+    $this->assertContains('@return', $output, 'Output contain @return Doxygen.');
+    $this->assertContains('function drush_main() {', $output, 'Output contains function drush_main() declaration');
   }
 }
