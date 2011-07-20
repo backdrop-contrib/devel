@@ -1,5 +1,0 @@
-name = Performance Logging
-description = Logs detailed and/or summary page generation time and memory consumption for page requests.
-package = Development
-core = 7.x
-tags[] = developer
