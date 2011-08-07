@@ -441,8 +441,12 @@ function devel_set_message($msg, $type = NULL) {
 // Return boolean. No need for cache here.
 function has_krumo() {
   // see README.txt or just download from http://krumo.sourceforge.net/
-  @include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'devel') .'/krumo/class.krumo.php';
-  return function_exists('krumo') && !drupal_is_cli();
+  @include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'devel') . '/krumo/class.krumo.php';
+  if (function_exists('krumo') && !drupal_is_cli()) {
+    drupal_add_js(drupal_get_path('module', 'devel') . '/devel_krumo_path.js');
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**
