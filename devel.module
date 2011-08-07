@@ -1562,9 +1562,12 @@ function dargs($always = TRUE) {
  * @param $query
  *   A Query object.
  * @param $return
- *   Whether to return or print the string. Default to FALSE.
+ *   Whether to return the string. Default is FALSE, meaning to print it
+ *   and return $query instead.
  * @param $name
  *   Optional name for identifying the output.
+ * @return
+ *   The $query object, or the query string if $return was TRUE.
  */
 function dpq($query, $return = FALSE, $name = NULL) {
   if (user_access('access devel information')) {
@@ -1579,35 +1582,54 @@ function dpq($query, $return = FALSE, $name = NULL) {
     if ($return) {
       return $sql;
     }
-    else {
-      dpm($sql, $name);
-    }
+    dpm($sql, $name);
   }
+  return ($return ? NULL : $query);
 }
 
 /**
- * Print a variable to the 'message' area of the page. Uses drupal_set_message()
+ * Print a variable to the 'message' area of the page.
+ *
+ * Uses drupal_set_message().
+ *
+ * @param $input
+ *   An arbitrary value to output.
+ * @param $name
+ *   Optional name for identifying the output.
+ * @return
+ *   The unaltered input value.
  */
 function dpm($input, $name = NULL) {
   if (user_access('access devel information')) {
     $export = kprint_r($input, TRUE, $name);
     drupal_set_message($export);
   }
+  return $input;
 }
 
 /**
- * drupal_var_export() a variable to the 'message' area of the page. Uses drupal_set_message()
+ * drupal_var_export() a variable to the 'message' area of the page.
+ *
+ * Uses drupal_set_message().
+ *
+ * @param $input
+ *   An arbitrary value to output.
+ * @param $name
+ *   Optional name for identifying the output.
+ * @return
+ *   The unaltered input value.
  */
 function dvm($input, $name = NULL) {
   if (user_access('access devel information')) {
     $export = dprint_r($input, TRUE, $name, 'drupal_var_export', FALSE);
     drupal_set_message($export);
   }
+  return $input;
 }
 
 // legacy function that was poorly named. use dpm() instead, since the 'p' maps to 'print_r'
 function dsm($input, $name = NULL) {
-  dpm($input, $name);
+  return dpm($input, $name);
 }
 
 /**
