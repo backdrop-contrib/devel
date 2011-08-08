@@ -7,7 +7,7 @@ Drupal.behaviors.devel = {
   attach: function (context, settings) {
 
     // Add hint to footnote
-    $('.krumo-footnote .krumo-call').before('<img style="vertical-align: middle;" title="Click to expand. Double-click to show path." src="/misc/help.png"/>');
+    $('.krumo-footnote .krumo-call').before('<img style="vertical-align: middle;" title="Click to expand. Double-click to show path." src="' + Drupal.settings.basePath + 'misc/help.png"/>');
 
     var krumo_name = [];
     var krumo_type = [];
@@ -40,7 +40,7 @@ Drupal.behaviors.devel = {
 
             if (typeof krumo_name[(i-1)] !== 'undefined') {
               if (krumo_type[i] == 'Array') {
-                krumo_path_string += "["
+                krumo_path_string += "[";
                 if (!/^\d*$/.test(krumo_name[(i-1)]))
                   krumo_path_string += "'";
                 krumo_path_string += krumo_name[(i-1)];
