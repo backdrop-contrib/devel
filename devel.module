@@ -823,6 +823,9 @@ function devel_switch_user_list() {
       $links[] = $link;
     }
   }
+  if (array_key_exists($user->uid, $links)) {
+    $links[$user->uid]['title'] = '<strong>' . $links[$user->uid]['title'] . '</strong>';
+  }  
   return $links;
 }
 
