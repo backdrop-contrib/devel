@@ -746,6 +746,7 @@ function devel_block_view($delta) {
 function devel_block_switch_user() {
   $links = devel_switch_user_list();
   if (!empty($links) || user_access('switch users')) {
+    drupal_add_css(drupal_get_path('module', 'devel') . '/devel.css');
     $block['subject'] = t('Switch user');
     $build['devel_links'] = array('#theme' => 'links', '#links' => $links);
     if (variable_get('devel_switch_user_show_form', TRUE)) {

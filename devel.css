@@ -100,3 +100,33 @@ div.devel-querylog div.cell {
     top:0em;
     /*width:9em;*/
     }
+
+
+/**
+ * Switch User block
+ */
+
+div#content div#block-devel-switch-user ul.links {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+div#content div#block-devel-switch-user ul.links li {
+  display: inline;
+  margin-left: 0;
+  padding-right: 1.5em;
+}
+
+div#block-devel-switch-user form {
+  clear: both;
+}
+
+div#content div#block-devel-switch-user div.form-item-username,
+div#footer div#block-devel-switch-user div.form-item-username {
+  float: left;
+  margin-right: 2em;
+}
+
+div#content div#block-devel-switch-user .form-submit {
+  margin-top: 5px;
+}
