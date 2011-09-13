@@ -971,7 +971,10 @@ function devel_library_alter(&$libraries, $module) {
 }
 
 /**
- * See devel_start() which registers this function as a shutdown function.
+ * Runs on shutdown to clean up and display developer information.
+ *
+ * devel_boot() registers this function as a shutdown function.
+ * The bulk of the work is done in devel_shutdown_real().
  */
 function devel_shutdown() {
   // Register the real shutdown function so it runs later than other shutdown functions.
@@ -997,7 +1000,9 @@ function devel_ajax_render_alter() {
 }
 
 /**
- * See devel_shutdown() which registers this function as a shutdown function. Displays developer information in the footer.
+ * Runs on shutdown to display developer information in the footer.
+ *
+ * devel_shutdown() registers this function as a shutdown function.
  */
 function devel_shutdown_real() {
   global $user;
