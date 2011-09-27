@@ -65,9 +65,9 @@ function devel_generate_image($extension = 'png', $min_resolution, $max_resoluti
     $max = explode('x', $max_resolution);
 
     $width = rand((int)$min[0], (int)$max[0]);
-    $height = rand((int)$min[0], (int)$max[0]);
+    $height = rand((int)$min[1], (int)$max[1]);
 
-    // Make a image split into 4 sections with random colors.
+    // Make an image split into 4 sections with random colors.
     $im = imagecreate($width, $height);
     for ($n = 0; $n < 4; $n++) {
       $color = imagecolorallocate($im, rand(0, 255), rand(0, 255), rand(0, 255));
