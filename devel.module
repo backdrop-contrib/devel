@@ -11,6 +11,7 @@ define('DEVEL_QUERY_SORT_BY_DURATION', 1);
 define('DEVEL_ERROR_HANDLER_NONE', 0);
 define('DEVEL_ERROR_HANDLER_STANDARD', 1);
 define('DEVEL_ERROR_HANDLER_BACKTRACE', 2);
+define('DEVEL_ERROR_HANDLER_BACKTRACE_AND_MESSAGE', 3);
 
 define('DEVEL_MIN_TEXTAREA', 50);
 
@@ -541,6 +542,7 @@ function devel_set_handler($handler) {
       // do nothing
       break;
     case DEVEL_ERROR_HANDLER_BACKTRACE:
+    case DEVEL_ERROR_HANDLER_BACKTRACE_AND_MESSAGE:
       if (has_krumo()) {
         set_error_handler('backtrace_error_handler');
       }
@@ -610,6 +612,21 @@ function devel_boot() {
   drupal_register_shutdown_function('devel_shutdown');
 }
 
+/**
+ * Displays backtrace showing the route of calls to the current error.
+ *
+ * @param $error_level
+ *   The level of the error raised.
+ * @param $message
+ *   The error message.
+ * @param $filename
+ *   The filename that the error was raised in.
+ * @param $line
+ *   The line number the error was raised at.
+ * @param $context
+ *   An array that points to the active symbol table at the point the error
+ *   occurred.
+ */
 function backtrace_error_handler($error_level, $message, $filename, $line, $context) {
   // Hide stack trace and parameters from unqualified users.
   if (!user_access('access devel information')) {
@@ -670,6 +687,12 @@ function backtrace_error_handler($error_level, $message, $filename, $line, $cont
     if (variable_get('error_level', 1) >= 1) {
       print t('%error: %message in %function (line %line of %file).', $variables) ." =&gt;\n";
       ddebug_backtrace();
+
+      // Also show the standard Drupal message if this was requested via the admin option
+      // for both backtrace and message.
+      if (variable_get('devel_error_handler', DEVEL_ERROR_HANDLER_STANDARD) == DEVEL_ERROR_HANDLER_BACKTRACE_AND_MESSAGE) {
+        drupal_set_message(t('%error: %message in %function (line %line of %file).', $variables), ($type[1] <= WATCHDOG_ERROR ? 'error' : 'warning'));
+      }
     }
 
     watchdog('php', '%error: %message in %function (line %line of %file).', $variables, $type[1]);
