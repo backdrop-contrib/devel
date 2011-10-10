@@ -492,7 +492,7 @@ function dfbt($label) {
  * Wrapper for ChromePHP Class log method
  */
 function dcp() {
-  if (class_exists('ChromePhp') && user_access('access devel information')) {
+  if (class_exists('ChromePhp', FALSE) && user_access('access devel information')) {
     $args = func_get_args();
     call_user_func_array(array('ChromePhp', 'log'), $args);
   }
@@ -502,7 +502,7 @@ function dcp() {
  * Implements hook_watchdog().
  */
 function devel_watchdog(array $log_entry) {
-  if (class_exists('FirePHP') && !drupal_is_cli()) {
+  if (class_exists('FirePHP', FALSE) && !drupal_is_cli()) {
     switch ($log_entry['severity']) {
       case WATCHDOG_EMERGENCY:
       case WATCHDOG_ALERT:
