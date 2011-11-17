@@ -1832,10 +1832,12 @@ function ddebug_backtrace() {
   }
 }
 
-// Delete all files in a dir. http://www.plus2net.com/php_tutorial/php-files-delete.php
+// Delete all files in a dir.
 function devel_empty_dir($dir) {
   foreach (new DirectoryIterator($dir) as $fileInfo) {
-    unlink($fileInfo->getPathname());
+    if ($fileInfo->isFile()) {
+      unlink($fileInfo->getPathname());
+    }
   }
 }
 
