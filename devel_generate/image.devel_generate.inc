@@ -4,11 +4,15 @@ define('DEVEL_GENERATE_IMAGE_MAX', 5);
 
 function image_devel_generate($object, $field, $instance, $bundle) {
   if (function_exists('imagejpeg')) {
+    $devel_generate_image_function = variable_get('devel_generate_image_function', '_image_devel_generate');
+    if (!function_exists($devel_generate_image_function)) {
+      $devel_generate_image_function = '_image_devel_generate';
+    }
     if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {
-      return devel_generate_multiple('_image_devel_generate', $object, $field, $instance, $bundle);
+      return devel_generate_multiple($devel_generate_image_function, $object, $field, $instance, $bundle);
     }
     else {
-      return _image_devel_generate($object, $field, $instance, $bundle);
+      return $devel_generate_image_function($object, $field, $instance, $bundle);
     }
   }
 }
