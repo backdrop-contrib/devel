@@ -249,7 +249,7 @@ function devel_variable_edit($form, &$form_state, $name) {
     $form['new'] = array(
       '#type' => 'item',
       '#title' => t('New value'),
-      '#value' => t('Sorry, complex variable types may not be edited yet. Use the <em>Execute PHP</em> block and the <a href="@variable-set-doc">variable_set()</a> function.', array('@variable-set-doc' => "http://$api/api/HEAD/function/variable_set"))
+      '#markup' => t('Sorry, complex variable types may not be edited yet. Use the <em>Execute PHP</em> block and the <a href="@variable-set-doc">variable_set()</a> function.', array('@variable-set-doc' => "http://$api/api/HEAD/function/variable_set"))
     );
   }
   drupal_set_title($name);
