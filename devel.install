@@ -39,6 +39,7 @@ function devel_uninstall() {
   variable_del('devel_api_url');
   variable_del('dev_mem');
   variable_del('devel_error_handlers');
+  variable_del('devel_raw_names');
   variable_del('devel_switch_user_list_size');
   variable_del('devel_switch_user_include_anon');
   variable_del('devel_switch_user_show_form');

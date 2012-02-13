@@ -105,6 +105,11 @@ function devel_admin_settings() {
     '#default_value' => variable_get('devel_page_alter', FALSE),
     '#description' => t('Display $page array from <a href="http://api.drupal.org/api/function/hook_page_alter/7">hook_page_alter()</a> in the messages area of each page.'),
   );
+  $form['devel_raw_names'] = array('#type' => 'checkbox',
+    '#title' => t('Display machine names of permissions and modules'),
+    '#default_value' => variable_get('devel_raw_names', FALSE),
+    '#description' => t('Display the language-independent machine names of the permissions in mouse-over hints on the !Permissions page and the module base file names on the @Permissions and !Modules pages.', array('!Permissions' => l(t('Permissions'), 'admin/people/permissions'), '@Permissions' => t('Permissions'), '!Modules' => l(t('Modules'), 'admin/modules'))),
+  );
 
   $error_handlers = devel_get_handlers();
   $form['devel_error_handlers'] = array(

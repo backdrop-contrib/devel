@@ -1904,3 +1904,45 @@ function devel_rebuild_node_comment_statistics() {
     ->from($query)
     ->execute();
 }
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Adds mouse-over hints on the Permissions page to display
+ * language-independent machine names and module base names.
+ */
+function devel_form_user_admin_permissions_alter(&$form, &$form_state) {
+  if (user_access('access devel information') && variable_get('devel_raw_names', FALSE)) {
+    foreach ($form['permission'] as $perm => $data) {
+      if (is_numeric($perm)) {
+        $form['permission'][$perm]['#markup'] = '<span title="' . $form['permission'][$perm]['#id'] . '">' . $form['permission'][$perm]['#markup'] . '</span>';
+      }
+      else {
+        $form['permission'][$perm]['#markup'] = '<span title="' . check_plain($perm) . '">' . $form['permission'][$perm]['#markup'] . '</span>';
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Adds mouse-over hints on the Modules page to display
+ * module base names.
+ */
+function devel_form_system_modules_alter(&$form, &$form_state) {
+  if (user_access('access devel information') && variable_get('devel_raw_names', FALSE) && isset($form['modules']) && is_array($form['modules'])) {
+    foreach (element_children($form['modules']) as $key) {
+      if (isset($form['modules'][$key]['name']['#markup'])) {
+        $form['modules'][$key]['name']['#markup'] = '<span title="' . $key . '">' . $form['modules'][$key]['name']['#markup'] . '</span>';
+      }
+      elseif (is_array($form['modules'][$key])) {
+        foreach (element_children($form['modules'][$key]) as $key2) {
+          if (isset($form['modules'][$key][$key2]['name']['#markup'])) {
+            $form['modules'][$key][$key2]['name']['#markup'] = '<span title="' . $key2 . '">' . $form['modules'][$key][$key2]['name']['#markup'] . '</span>';
+          }
+        }
+      }
+    }
+  }
+}
