@@ -1810,7 +1810,10 @@ function ddebug_backtrace($return = FALSE) {
     $backtrace = debug_backtrace();
     array_shift($backtrace);
     $counter = count($backtrace);
-    $clip = strlen(DRUPAL_ROOT) + 1;
+    $path = $backtrace[$counter - 1]['file'];
+    $path = substr($path, 0, strlen($path) - 10);
+    $paths[$path] = strlen($path) + 1;
+    $paths[DRUPAL_ROOT] = strlen(DRUPAL_ROOT) + 1;
     $nbsp = "\xC2\xA0";
 
     // Show message if error_level is ERROR_REPORTING_DISPLAY_SOME or higher.
@@ -1821,7 +1824,13 @@ function ddebug_backtrace($return = FALSE) {
       while (!empty($backtrace)) {
         $call = array();
         if (isset($backtrace[0]['file'])) {
-          $call['file'] = substr($backtrace[0]['file'], $clip) . ':' . $backtrace[0]['line'];
+          $call['file'] = $backtrace[0]['file'];
+          foreach ($paths as $path => $len) {
+            if (strpos($backtrace[0]['file'], $path) === 0) {
+              $call['file'] = substr($backtrace[0]['file'], $len);
+            }
+          }
+          $call['file'] .= ':' . $backtrace[0]['line'];
         }
         if (isset($backtrace[1])) {
           if (isset($backtrace[1]['class'])) {
