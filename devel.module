@@ -697,10 +697,10 @@ function backtrace_error_handler($error_level, $message, $filename, $line, $cont
       }
       if (!empty($error_handlers[DEVEL_ERROR_HANDLER_BACKTRACE_KRUMO])) {
         print $msg ." =&gt;\n";
-        ddebug_backtrace();
+        ddebug_backtrace(FALSE, 1);
       }
       if (!empty($error_handlers[DEVEL_ERROR_HANDLER_BACKTRACE_DPM])) {
-        dpm(ddebug_backtrace(TRUE), $msg, 'warning');
+        dpm(ddebug_backtrace(TRUE, 1), $msg, 'warning');
       }
     }
 
@@ -1805,10 +1805,12 @@ function devel_render() {
 /**
  * Print the function call stack.
  */
-function ddebug_backtrace($return = FALSE) {
+function ddebug_backtrace($return = FALSE, $pop = 0) {
   if (user_access('access devel information')) {
     $backtrace = debug_backtrace();
-    array_shift($backtrace);
+    while ($pop-- > 0) {
+      array_shift($backtrace);
+    }
     $counter = count($backtrace);
     $path = $backtrace[$counter - 1]['file'];
     $path = substr($path, 0, strlen($path) - 10);
