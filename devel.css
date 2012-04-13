@@ -136,8 +136,3 @@ div#content div#block-devel-switch-user #edit-submit,
 div#footer div#block-devel-switch-user #edit-submit {
   margin-top: 5px;
 }
-
-div#content form#devel-switch-user-form #edit-submit + div,
-div#footer form#devel-switch-user-form #edit-submit + div {
-  clear: both;
-}

@@ -913,8 +913,8 @@ function devel_switch_user_form() {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Switch'),
-    '#suffix' => '<div></div>',
   );
+  $form['#attributes'] = array('class' => array('clearfix'));
   return $form;
 }
 
