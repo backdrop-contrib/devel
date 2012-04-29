@@ -688,10 +688,11 @@ function devel_node_access_block_view($delta) {
                   }
                   else {
                     // at least one module acknowledged the record, attribute it to the first one
+                    $acknowledged_keys = array_keys($acknowledged);
                     $fixed_grant += array(
                       'priority' => '&ndash;',
                       'state'    => 'static',
-                      '#module'  => reset(array_keys($acknowledged)),
+                      '#module'  => reset($acknowledged_keys),
                     );
                   }
                 }
