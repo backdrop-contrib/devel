@@ -93,7 +93,7 @@ function drush_devel_download() {
     drush_log(dt('FirePHP has been exported via svn to @path.', array('@path' => $path)), 'success');
   }
   else {
-    drush_log(dt('Drush was unable to export FirePHP to @path.', array('@path' => $path)), 'error');
+    drush_log(dt('Drush was unable to export FirePHP to @path.', array('@path' => $path)), 'warning');
   }
 }
 
