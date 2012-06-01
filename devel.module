@@ -1601,19 +1601,23 @@ function dd($data, $label = NULL) {
   return drupal_debug($data, $label);
 }
 
-// Log any variable to a drupal_debug.log in the site's temp directory.
-// See http://drupal.org/node/314112
+/**
+ * Logs a variable to a drupal_debug.txt in the site's temp directory.
+ *
+ * @param $data
+ *   The variable to log to the drupal_debug.txt log file.
+ * @param $label
+ *   (optional) If set, a label to output before $data in the log file.
+ *
+ * @return
+ *   No return value if successful, FALSE if the log file could not be written
+ *   to.
+ *
+ * @see dd()
+ * @see http://drupal.org/node/314112
+ */
 function drupal_debug($data, $label = NULL) {
-  ob_start();
-  print_r($data);
-  $string = ob_get_clean();
-  if ($label) {
-    $out = $label .': '. $string;
-  }
-  else {
-    $out = $string;
-  }
-  $out .= "\n";
+  $out = ($label ? $label . ': ' : '') . print_r($data, TRUE) . "\n";
 
   // The temp directory does vary across multiple simpletest instances.
   $file = 'temporary://drupal_debug.txt';
