@@ -117,14 +117,15 @@ function devel_generate_content_form() {
   }
   else {
     $types = node_type_get_types();
-    $suffix = '';
     foreach ($types as $type) {
+      $options[$type->type] = array(
+        'type' => t($type->name),
+      );
       if (module_exists('comment')) {
         $default = variable_get('comment_' . $type->type, COMMENT_NODE_OPEN);
         $map = array(t('Hidden'), t('Closed'), t('Open'));
-        $suffix = '<small>. ' . t('Comments: ') . $map[$default]. '</small>';
+        $options[$type->type]['comments'] = '<small>'. $map[$default]. '</small>';
       }
-      $options[$type->type] = t($type->name) . $suffix;
     }
   }
   // we cannot currently generate valid polls.
@@ -135,11 +136,18 @@ function devel_generate_content_form() {
     return;
   }
 
+  $header = array(
+    'type' => t('Content type'),
+  );
+  if (module_exists('comment')) {
+    $header['comments'] = t('Comments');
+  }
+
   $form['node_types'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Content types'),
+    '#type' => 'tableselect',
+    '#header' => $header,
     '#options' => $options,
-    '#default_value' => array_keys($options),
+    '#required' => TRUE,
   );
   if (module_exists('checkall')) $form['node_types']['#checkall'] = TRUE;
   $form['kill_content'] = array(
