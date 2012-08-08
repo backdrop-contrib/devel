@@ -398,7 +398,7 @@ function devel_init() {
 
       // See http://www.firephp.org/HQ/Install.htm
       $path = NULL;
-      if (@include_once('fb.php')) {
+      if (@include_once('fb.php') || (@include_once 'FirePHPCore/fb.php')) {
         // FirePHPCore is in include_path. Probably a PEAR installation.
         $path = '';
       }
