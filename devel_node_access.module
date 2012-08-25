@@ -964,10 +964,11 @@ function devel_node_access_block_view($delta) {
                 '#suffix' => '</div>',
               );
             }
-            $variables['!username'] = theme('username', array('account' => $account));
+            $variables['!username'] = '<em class="placeholder">' . theme('username', array('account' => $account)) . '</em>';
             $output[] = array(
               '#prefix' => "\n<div style='text-align: left'>",
-              '#markup' => t("!username has the following access", $variables),
+              '#type'   => 'item',
+              'lead-in' => array('#markup' => t("!username has the following access", $variables) . ' '),
               'items'   => $account_items,
               '#suffix' => "\n</div>\n",
             );
