@@ -226,9 +226,13 @@ function dna_visible_nodes($nid = NULL) {
   if ($nid) {
     $nids[$nid] = $nid;
   }
-  elseif (empty($nids) && arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == NULL) {
-    // show DNA information on node/NID even if access is denied (IF the user has the 'view devel_node_access information' permission)!
-    return array(arg(1));
+  elseif (empty($nids)) {
+    $menu_item = menu_get_item();
+    $map = $menu_item['original_map'];
+    if ($map[0] == 'node' && isset($map[1]) && is_numeric($map[1]) && !isset($map[2])) {
+      // show DNA information on node/NID even if access is denied (IF the user has the 'view devel_node_access information' permission)!
+      return array($map[1]);
+    }
   }
   return $nids;
 }
@@ -924,7 +928,10 @@ function devel_node_access_block_view($delta) {
           );
           $accounts[] = $user;
         }
-        if (arg(0) == 'node' && is_numeric(arg(1)) && !$block1_visible) {  // only for single nodes
+        $menu_item = menu_get_item();
+        $map = $menu_item['original_map'];
+        if ($map[0] == 'node' && isset($map[1]) && is_numeric($map[1]) && !isset($map[2]) && !$block1_visible) {
+          // only for single nodes
           if (user_is_logged_in()) {
             $accounts[] = user_load(0);  // Anonymous, too
           }
@@ -981,7 +988,8 @@ function devel_node_access_block_view($delta) {
     case 'dna_user':
       // show which users can access this node
       $menu_item = menu_get_item();
-      if ($menu_item['original_map'][0] != 'node' || !isset($menu_item['original_map'][1]) || !is_numeric($menu_item['original_map'][1]) || isset($menu_item['original_map'][2])) {
+      $map = $menu_item['original_map'];
+      if ($map[0] != 'node' || !isset($map[1]) || !is_numeric($map[1]) || isset($map[2])) {
         // Ignore anything but node/%.
         return;
       }
