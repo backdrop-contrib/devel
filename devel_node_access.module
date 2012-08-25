@@ -368,6 +368,7 @@ function _devel_node_access_nar_alter(&$grants, $node) {
       }
       else {
         // it's an existing grant, check for changes
+        $view = $update = $delete = FALSE;
         foreach (array('view', 'update', 'delete') as $op) {
           $$op = $grant["grant_$op"] - $data[$grant['realm']][$grant['gid']]['current']["grant_$op"];
         }

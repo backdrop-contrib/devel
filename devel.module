@@ -642,7 +642,8 @@ function backtrace_error_handler($error_level, $message, $filename, $line, $cont
     if ($error_level & error_reporting()) {
       $types = drupal_error_levels();
       list($severity_msg, $severity_level) = $types[$error_level];
-      $caller = _drupal_get_last_caller(debug_backtrace());
+      $backtrace = debug_backtrace();
+      $caller = _drupal_get_last_caller($backtrace);
       if (!function_exists('filter_xss_admin')) {
         require_once DRUPAL_ROOT . '/includes/common.inc';
       }
