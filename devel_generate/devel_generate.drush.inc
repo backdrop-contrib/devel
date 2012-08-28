@@ -103,9 +103,14 @@ function drush_devel_generate_terms($vname = NULL, $num_terms = 10) {
   }
 
   drush_generate_include_devel();
-  $vocabs[$vocab->vid] = $vocab;
-  devel_generate_term_data($vocabs, $num_terms, '12', drush_get_option('kill'));
-  drush_log(dt('Generated @num_terms terms.', array('@num_terms' => $num_terms)), 'success');
+  if (drush_get_option('kill')) {
+    devel_generate_delete_vocabulary_terms($vocab->vid);
+    drush_log(dt('Deleted existing terms.'), 'success');
+  }
+  $new_terms = devel_generate_terms($num_terms, array($vocab->vid => $vocab), '12');
+  if (!empty($new_terms)) {
+    drush_log(dt("Created the following new terms:\n!terms", array('!terms' => implode("\n", $new_terms))), 'success');
+  }
 }
 
 /**
@@ -116,8 +121,14 @@ function drush_devel_generate_vocabs($num_vocab = 1) {
     return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid number of vocabularies: !num.', array('!num' => $num_vocab)));
   }
   drush_generate_include_devel();
-  devel_generate_vocab_data($num_vocab, '12', drush_get_option('kill'));
-  drush_log(dt('Generated @num_vocab vocabularies.', array('@num_vocab' => $num_vocab)), 'success');
+  if (drush_get_option('kill')) {
+    devel_generate_delete_vocabularies();
+    drush_log(dt('Deleted existing vocabularies.'), 'success');
+  }
+  $new_vocs = devel_generate_vocabs($num_vocab, '12');
+  if (!empty($new_vocs)) {
+    drush_log(dt("Created the following new vocabularies:\n!vocs", array('!vocs' => implode("\n", $new_vocs))), 'success');
+  }
 }
 
 /**
@@ -179,12 +190,26 @@ function drush_devel_generate_menus($number_menus = 2, $number_links = 50, $max_
   $user = $user_one;
   drupal_save_session(FALSE);
 
-  $kill = drush_get_option('kill');
   drush_generate_include_devel();
+
+  // Delete custom menus.
+  if (drush_get_option('kill')) {
+    devel_generate_delete_menus();
+    drush_log(dt('Deleted existing menus and links.'), 'success');
+  }
+
+  // Generate new menus.
+  $new_menus = devel_generate_menus($number_menus, '12');
+  if (!empty($new_menus)) {
+    drush_log(dt("Created the following new menus:\n!menus", array('!menus' => implode("\n", $new_menus))), 'success');
+  }
+
+  // Generate new menu links.
   $link_types = drupal_map_assoc(array('node', 'front', 'external'));
-  devel_generate_menu_data($number_menus, array(), $number_links, 12, $link_types, $max_depth, $max_width, $kill);
-  drush_log(t('Generated @number_menus menus, @number_links links.', array('@number_menus' => (int)$number_menus, '@number_links' => (int)$number_links)), 'success');
+  $new_links = devel_generate_links($number_links, $new_menus, '12', $link_types, $max_depth, $max_width);
+  drush_log(dt('Created !count new menu links.', array('!count' => count($new_links))), 'success');
 }
+
 //////////////////////////////////////////////////////////////////////////////
 // Helper functions
 

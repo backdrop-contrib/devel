@@ -314,17 +314,35 @@ function devel_generate_vocab_form() {
  * FormAPI submission to generate taxonomy terms.
  */
 function devel_generate_term_form_submit($form_id, &$form_state) {
+  $values = $form_state['values'];
   module_load_include('inc', 'devel_generate');
-  $vocabs = taxonomy_vocabulary_load_multiple($form_state['values']['vids']);
-  devel_generate_term_data($vocabs, $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
+  if ($values['kill_taxonomy']) {
+    foreach ($values['vids'] as $vid) {
+      devel_generate_delete_vocabulary_terms($vid);
+    }
+    drupal_set_message(t('Deleted existing terms.'));
+  }
+  $vocabs = taxonomy_vocabulary_load_multiple($values['vids']);
+  $new_terms = devel_generate_terms($values['num_terms'], $vocabs, $values['title_length']);
+  if (!empty($new_terms)) {
+    drupal_set_message(t('Created the following new terms: !terms', array('!terms' => theme('item_list', array('items' => $new_terms)))));
+  }
 }
 
 /**
  * FormAPI submission to generate taxonomy vocabularies.
  */
 function devel_generate_vocab_form_submit($form_id, &$form_state) {
+  $values = $form_state['values'];
   module_load_include('inc', 'devel_generate');
-  devel_generate_vocab_data($form_state['values']['num_vocabs'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
+  if ($values['kill_taxonomy']) {
+    devel_generate_delete_vocabularies();
+    drupal_set_message(t('Deleted existing vocabularies.'));
+  }
+  $new_vocs = devel_generate_vocabs($values['num_vocabs'], $values['title_length']);
+  if (!empty($new_vocs)) {
+    drupal_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => theme('item_list', array('items' => $new_vocs)))));
+  }
 }
 
 /**
@@ -467,5 +485,20 @@ function devel_generate_menu_form_submit($form_id, &$form_state) {
     $form_state['values']['num_menus'] = 0;
   }
   module_load_include('inc', 'devel_generate');
-  devel_generate_menu_data($form_state['values']['num_menus'], $form_state['values']['existing_menus'], $form_state['values']['num_links'], $form_state['values']['title_length'], $form_state['values']['link_types'], $form_state['values']['max_depth'], $form_state['values']['max_width'], $form_state['values']['kill']);
+  // Delete custom menus.
+  if ($form_state['values']['kill']) {
+    devel_generate_delete_menus();
+    drupal_set_message(t('Deleted existing menus and links.'));
+  }
+
+  // Generate new menus.
+  $new_menus = devel_generate_menus($form_state['values']['num_menus'], $form_state['values']['title_length']);
+  if (!empty($new_menus)) {
+    drupal_set_message(t('Created the following new menus: !menus', array('!menus' => theme('item_list', array('items' => $new_menus)))));
+  }
+
+  // Generate new menu links.
+  $menus = $new_menus + $form_state['values']['existing_menus'];
+  $new_links = devel_generate_links($form_state['values']['num_links'], $menus, $form_state['values']['title_length'], $form_state['values']['link_types'], $form_state['values']['max_depth'], $form_state['values']['max_width']);
+  drupal_set_message(t('Created @count new menu links.', array('@count' => count($new_links))));
 }
