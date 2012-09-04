@@ -267,7 +267,7 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
 
     // Populate all core fields on behalf of field.module
     module_load_include('inc', 'devel_generate', 'devel_generate.fields');
-    devel_generate_fields($term, 'term', $term->vocabulary_machine_name);
+    devel_generate_fields($term, 'taxonomy_term', $term->vocabulary_machine_name);
 
     if ($status = taxonomy_term_save($term)) {
       $max += 1;
