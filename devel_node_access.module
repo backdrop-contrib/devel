@@ -501,6 +501,7 @@ function devel_node_access_block_info() {
   $blocks['dna_user'] = array(
     'info'   => t('Devel Node Access by User'),
     'region' => 'footer',
+    'status' => 0,
     'cache'  => DRUPAL_NO_CACHE,
   );
   return $blocks;
