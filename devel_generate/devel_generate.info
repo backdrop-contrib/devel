@@ -5,3 +5,4 @@ core = 7.x
 dependencies[] = devel
 tags[] = developer
 configure = admin/config/development/generate
+files[] = devel_generate.test
