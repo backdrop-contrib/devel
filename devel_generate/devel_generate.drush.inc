@@ -28,7 +28,7 @@ function devel_generate_drush_command() {
     ),
     'options' => array(
       'kill' => 'Delete all terms in specified vocabulary before generating.',
-      'feedback' => 'An integer representing interval for insertion rate logging. Defaults to 500',
+      'feedback' => 'An integer representing interval for insertion rate logging. Defaults to 1000',
     ),
     'aliases' => array('gent'),
 
@@ -53,7 +53,7 @@ function devel_generate_drush_command() {
     'options' => array(
       'kill' => 'Delete all content before generating new content.',
       'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
-      'feedback' => 'An integer representing interval for insertion rate logging. Defaults to 500',
+      'feedback' => 'An integer representing interval for insertion rate logging. Defaults to 1000',
       'skip-fields' => 'A comma delimited list of fields to omit when generating random values',
       'languages' => 'A comma-separated list of language codes',
     ),
