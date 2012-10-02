@@ -90,8 +90,6 @@ function devel_generate_image($extension = 'png', $min_resolution, $max_resoluti
 
     $save_function = 'image'. ($extension == 'jpg' ? 'jpeg' : $extension);
     $save_function($im, drupal_realpath($destination));
-
-    $images[$extension][$min_resolution][$max_resolution][$destination] = $destination;
   }
   return $destination;
 }
