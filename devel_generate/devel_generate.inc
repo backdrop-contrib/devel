@@ -114,8 +114,11 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
 /**
  * The main API function for creating content.
  *
- * See devel_generate_content_form() for the supported keys in $form_state['values'].
- * Other modules may participate by form_alter() on that form and then handling their data during hook_nodeapi('pre_save') or in own submit handler for the form.
+ * See devel_generate_content_form() for the supported keys in
+ * $form_state['values'].
+ * Other modules may participate by form_alter() on that form and then handling
+ * their data during hook_node_insert() or in their own submit handler for the
+ * form.
  *
  * @param string $form_state
  * @return void
@@ -678,14 +681,16 @@ function devel_generate_content_add_node(&$results) {
 
   $node->created = REQUEST_TIME - mt_rand(0, $results['time_range']);
 
-  // A flag to let hook_nodeapi() implementations know that this is a generated node.
+  // A flag to let hook_node_insert() implementations know that this is a
+  // generated node.
   $node->devel_generate = $results;
 
   // Populate all core fields on behalf of field.module
   module_load_include('inc', 'devel_generate', 'devel_generate.fields');
   devel_generate_fields($node, 'node', $node->type);
 
-  // See devel_generate_nodeapi() for actions that happen before and after this save.
+  // See devel_generate_node_insert() for actions that happen before and after
+  // this save.
   node_save($node);
 }
 
