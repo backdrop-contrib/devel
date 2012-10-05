@@ -399,7 +399,7 @@ function devel_generate_links($num_links, $menus, $title_length, $link_types, $m
     }
     else {
       // Otherwise, get a random parent menu depth.
-      $depth = mt_rand(1, $max_depth - 1);
+      $depth = mt_rand(1, max(1, $max_depth - 1));
     }
     // Get a random parent link from the proper depth.
     do {
