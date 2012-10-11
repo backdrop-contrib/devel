@@ -145,6 +145,14 @@ function devel_field_info_page() {
   $output .= kprint_r($info, TRUE, t('Instances'));
   $info = field_info_bundles();
   $output .= kprint_r($info, TRUE, t('Bundles'));
+  $info = field_info_field_types();
+  $output .= kprint_r($info, TRUE, t('Field types'));
+  $info = field_info_formatter_types();
+  $output .= kprint_r($info, TRUE, t('Formatter types'));
+  $info = field_info_storage_types();
+  $output .= kprint_r($info, TRUE, t('Storage types'));
+  $info = field_info_widget_types();
+  $output .= kprint_r($info, TRUE, t('Widget types'));
   return $output;
 }
 
