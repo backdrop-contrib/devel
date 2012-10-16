@@ -1113,7 +1113,7 @@ function devel_xhprof_link($run_id, $type = 'link') {
   $xhprof_url = variable_get('devel_xhprof_url', '');
   $namespace = variable_get('site_name', '');  // namespace for your application
   if ($xhprof_url) {
-    $url  = $xhprof_url . "/index.php?run=$run_id&source=$namespace";
+    $url = $xhprof_url . '/index.php?run=' . urlencode($run_id) . '&source=' . urlencode($namespace);
     return $type == 'url' ? $url : t('<a href="@xhprof">XHProf output</a>. ', array('@xhprof' => $url));
   }
 }
