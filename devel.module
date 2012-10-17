@@ -1657,7 +1657,9 @@ function dargs($always = TRUE) {
  */
 function dpq($query, $return = FALSE, $name = NULL) {
   if (user_access('access devel information')) {
-    $query->preExecute();
+    if (method_exists($query, 'preExecute')) {
+      $query->preExecute();
+    }
     $sql = (string) $query;
     $quoted = array();
     $connection = Database::getConnection();
