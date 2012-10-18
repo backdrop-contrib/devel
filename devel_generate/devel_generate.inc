@@ -361,7 +361,7 @@ function devel_generate_menus($num_menus, $title_length = 12) {
 
   for ($i = 1; $i <= $num_menus; $i++) {
     $menu = array();
-    $menu['title'] = devel_generate_word(mt_rand(2, $title_length));
+    $menu['title'] = devel_generate_word(mt_rand(2, max(2, $title_length)));
     $menu['menu_name'] = 'devel-' . drupal_strtolower($menu['title']);
     $menu['description'] = t('Description of @name', array('@name' => $menu['title']));
     menu_save($menu);
@@ -389,7 +389,7 @@ function devel_generate_links($num_links, $menus, $title_length, $link_types, $m
       'options'     => array('devel' => TRUE),
       'weight'      => mt_rand(-50, 50),
       'mlid'        => 0,
-      'link_title'  => devel_generate_word(mt_rand(2, $title_length)),
+      'link_title'  => devel_generate_word(mt_rand(2, max(2, $title_length))),
     );
     $link['options']['attributes']['title'] = t('Description of @title.', array('@title' => $link['link_title']));
 

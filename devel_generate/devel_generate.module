@@ -433,6 +433,7 @@ function devel_generate_menu_form() {
   $form['title_length'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum number of characters in menu and menu link names'),
+    '#description' => t("The minimum length is 2."),
     '#default_value' => 12,
     '#size' => 10,
     '#required' => TRUE,
