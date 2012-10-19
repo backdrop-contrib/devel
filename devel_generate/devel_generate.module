@@ -227,11 +227,20 @@ function devel_generate_content_form() {
 }
 
 /**
+ * FormAPI validation before generate nodes.
+ */
+function devel_generate_content_form_validate($form, &$form_state) {
+  form_set_value($form['node_types'], array_filter($form_state['values']['node_types']) , $form_state);
+  if (!empty($form_state['values']['kill_content']) && empty($form_state['values']['node_types'])) {
+    form_set_error('', t('Please select at least one content type to delete the content.'));
+  }
+}
+
+/**
  * FormAPI submission to generate nodes.
  */
-function devel_generate_content_form_submit($form_id, &$form_state) {
+function devel_generate_content_form_submit($form, &$form_state) {
   module_load_include('inc', 'devel_generate', 'devel_generate');
-  $form_state['values']['node_types'] = array_filter($form_state['values']['node_types']);
   if ($form_state['values']['num_nodes'] <= 50 && $form_state['values']['max_comments'] <= 10) {
     module_load_include('inc', 'devel_generate');
     devel_generate_content($form_state);

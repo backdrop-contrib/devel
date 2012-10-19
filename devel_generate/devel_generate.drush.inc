@@ -163,6 +163,10 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   $values['values']['num_nodes'] = $num_nodes;
   $values['values']['max_comments'] = $max_comments;
   $values['values']['node_types'] = drupal_map_assoc(explode(',', drush_get_option('types', 'page,article')));
+  $node_types = array_filter($values['values']['node_types']);
+  if (!empty($values['values']['kill_content']) && empty($node_types)) {
+    return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Please provide content type (--types) in which you want to delete the content.'));
+  }
   drush_generate_include_devel();
   devel_generate_content($values);
   drush_log(t('Generated @num_nodes nodes, @max_comments comments (or less) per node.', array('@num_nodes' => (int)$num_nodes, '@max_comments' => (int)$max_comments)), 'success');
