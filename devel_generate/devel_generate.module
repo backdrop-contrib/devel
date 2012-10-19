@@ -93,7 +93,7 @@ function devel_generate_users_form() {
 /**
  * FormAPI submission to generate users.
  */
-function devel_generate_users_form_submit($form_id, &$form_state) {
+function devel_generate_users_form_submit($form, &$form_state) {
   module_load_include('inc', 'devel_generate');
   $values = $form_state['values'];
   devel_create_users($values['num'], $values['kill_users'], $values['time_range'], $values['roles']);
@@ -322,7 +322,7 @@ function devel_generate_vocab_form() {
 /**
  * FormAPI submission to generate taxonomy terms.
  */
-function devel_generate_term_form_submit($form_id, &$form_state) {
+function devel_generate_term_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   module_load_include('inc', 'devel_generate');
   if ($values['kill_taxonomy']) {
@@ -341,7 +341,7 @@ function devel_generate_term_form_submit($form_id, &$form_state) {
 /**
  * FormAPI submission to generate taxonomy vocabularies.
  */
-function devel_generate_vocab_form_submit($form_id, &$form_state) {
+function devel_generate_vocab_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   module_load_include('inc', 'devel_generate');
   if ($values['kill_taxonomy']) {
@@ -489,7 +489,7 @@ function devel_generate_menu_form() {
 /**
  * FormAPI submission to generate menus.
  */
-function devel_generate_menu_form_submit($form_id, &$form_state) {
+function devel_generate_menu_form_submit($form, &$form_state) {
   // If the create new menus checkbox is off, set the number of new menus to 0.
   if (!isset($form_state['values']['existing_menus']['__new-menu__']) || !$form_state['values']['existing_menus']['__new-menu__']) {
     $form_state['values']['num_menus'] = 0;
