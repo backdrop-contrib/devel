@@ -14,12 +14,16 @@ function devel_drush_command() {
     'arguments' => array(
       'path' => dt('Optional. A path to the download folder. If omitted Drush will use the default location (sites/all/libraries/firephp).'),
     ),
+    'required-arguments' => 1,
   );
   $items['devel-reinstall'] = array(
     'description' => dt('Disable, Uninstall, and Install a list of projects.'),
+    'drush dependencies' => array('pm'),
     'arguments' => array(
       'projects' => dt('A space-separated list of project names.'),
     ),
+    'allow-additional-options' => array('pm-disable', 'pm-uninstall', 'pm-enable'),
+    'required-arguments' => 1,
     'aliases' => array('dre'),
   );
   $items['fn-hook'] = array(
@@ -27,6 +31,8 @@ function devel_drush_command() {
     'arguments' => array(
       'hook' => 'The name of the hook to explore.'
     ),
+    'allow-additional-options' => array('fn-view'),
+    'required-arguments' => 1,
     'aliases' => array('fnh', 'hook'),
   );
   $items['fn-view'] = array(
@@ -44,11 +50,13 @@ function devel_drush_command() {
       'fn-view NodeController::load' => 'View the source code for method load in the class NodeController'
     ),
     'aliases' => array('fnv'),
+    'required-arguments' => 1,
   );
   $items['devel-token'] = array(
     'description' => dt('List available tokens'),
     'aliases' => array('token'),
     'core' => array(7), // Remove once 3.0 is released.
+    //@todo support --format option for json, csv, etc.
   );
   return $items;
 }
