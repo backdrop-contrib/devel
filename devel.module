@@ -57,7 +57,7 @@ function devel_menu() {
   // Note: we can't dynamically append destination to querystring.
   // Do so at theme layer. Fix in D7?
   $items['devel/cache/clear'] = array(
-    'title' => 'Empty cache',
+    'title' => 'Clear cache',
     'page callback' => 'devel_cache_clear',
     'description' => 'Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.',
     'access arguments' => array('access devel information'),
