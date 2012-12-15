@@ -669,9 +669,19 @@ function devel_generate_content_add_node(&$results) {
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
   $type = node_type_get_type($node);
-  $node->title = $type->has_title ? devel_create_greeking(mt_rand(2, $results['title_length']), TRUE) : '';
   $node->revision = mt_rand(0,1);
   $node->promote = mt_rand(0, 1);
+
+  if ($type->has_title) {
+    // We should not use the random function if the value is not random
+    if ($results['title_length'] < 2) {
+      $node->title = devel_create_greeking(1, TRUE);
+    }
+    else {
+      $node->title = devel_create_greeking(mt_rand(1, $results['title_length']), TRUE);
+    }
+  }
+
   // Avoid NOTICE.
   if (!isset($results['time_range'])) {
     $results['time_range'] = 0;
