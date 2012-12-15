@@ -12,9 +12,8 @@ function devel_drush_command() {
   $items['devel-download'] = array(
     'description' => dt('Downloads the FirePHP library from http://firephp.org/.'),
     'arguments' => array(
-      'path' => dt('Optional. A path to the download folder. If omitted Drush will use the default location (sites/all/libraries/firephp).'),
+      'path' => dt('Path to the download folder. This path is relative to the Drupal root. If omitted Drush will use the default location (sites/all/libraries/FirePHPCore).'),
     ),
-    'required-arguments' => 1,
   );
   $items['devel-reinstall'] = array(
     'description' => dt('Disable, Uninstall, and Install a list of projects.'),
@@ -80,25 +79,28 @@ function drush_devel_reinstall() {
 /**
  * A command callback.
  */
-function drush_devel_download() {
-  $args = func_get_args();
-  if (isset($args[0])) {
-    $path = $args[0];
+function drush_devel_download($path = NULL) {
+  // If no path is provided by the user, set our default path.
+  if (is_null($path)) {
+    // We use devel folder for legacy reason.
+    $path = drupal_get_path('module', 'devel') . '/FirePHPCore';
   }
-  else {
-    $path = drush_get_context('DRUSH_DRUPAL_ROOT');
+  // If FirePHP is not installed and libraries module is enabled,
+  // try to find FirePHP by its own means.
+  if (!is_dir($path)) {
     if (module_exists('libraries')) {
-      $path .= '/' . libraries_get_path('FirePHPCore') . '/FirePHPCore';
-    }
-    else {
-      $path .= '/' . drupal_get_path('module', 'devel') . '/FirePHPCore';
+      // Libraries 1.x will return a path even if it doesn't exist
+      // while 2.x will return FALSE.
+      $path = libraries_get_path('FirePHPCore');
+      if (!$path) {
+        $path = 'sites/all/libraries/FirePHPCore';
+      }
     }
   }
-
   if (is_dir($path)) {
-    drush_log('FirePHP already present. No download required.', 'ok');
+    drush_log(dt('FirePHP already present at @path. No download required.', array('@path' => $path)), 'ok');
   }
-  elseif (drush_shell_exec('svn export http://firephp.googlecode.com/svn/branches/Library-FirePHPCore-0.3 ' . $path)) {
+  elseif (drush_shell_exec('svn export http://firephp.googlecode.com/svn/branches/Library-FirePHPCore-0.3 %s', $path)) {
     drush_log(dt('FirePHP has been exported via svn to @path.', array('@path' => $path)), 'success');
   }
   else {
