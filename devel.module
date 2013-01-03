@@ -1538,7 +1538,7 @@ function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FA
   if (is_array($obj)) {
     $output = "<dl>\n";
     foreach ($obj as $field => $value) {
-      if ($field == 'devel_flag_reference') {
+      if ($field === 'devel_flag_reference') {
         continue;
       }
       if (!is_null($parents)) {
