@@ -156,17 +156,6 @@ function devel_field_info_page() {
   return $output;
 }
 
-/**
- * Menu callback; display all variables.
- */
-function devel_variable_page() {
-  // We return our own $page so as to avoid blocks.
-  $output = drupal_get_form('devel_variable_form');
-  drupal_set_page_content($output);
-  $page = element_info('page');
-  return $page;
-}
-
 function devel_variable_form() {
   $header = array(
     'name' => array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),

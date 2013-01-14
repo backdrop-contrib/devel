@@ -102,7 +102,8 @@ function devel_menu() {
   $items['devel/variable'] = array(
     'title' => 'Variable editor',
     'description' => 'Edit and delete site variables.',
-    'page callback' => 'devel_variable_page',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('devel_variable_form'),
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
     'menu_name' => 'devel',
