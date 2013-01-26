@@ -342,7 +342,7 @@ function devel_generate_term_form_submit($form, &$form_state) {
   $vocabs = taxonomy_vocabulary_load_multiple($values['vids']);
   $new_terms = devel_generate_terms($values['num_terms'], $vocabs, $values['title_length']);
   if (!empty($new_terms)) {
-    drupal_set_message(t('Created the following new terms: !terms', array('!terms' => theme('item_list', array('items' => $new_terms)))));
+    drupal_set_message(t('Created the following new terms: !terms', array('!terms' => implode(', ', $new_terms))));
   }
 }
 
@@ -358,7 +358,7 @@ function devel_generate_vocab_form_submit($form, &$form_state) {
   }
   $new_vocs = devel_generate_vocabs($values['num_vocabs'], $values['title_length']);
   if (!empty($new_vocs)) {
-    drupal_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => theme('item_list', array('items' => $new_vocs)))));
+    drupal_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => implode(', ', $new_vocs))));
   }
 }
 
@@ -512,7 +512,7 @@ function devel_generate_menu_form_submit($form, &$form_state) {
   // Generate new menus.
   $new_menus = devel_generate_menus($form_state['values']['num_menus'], $form_state['values']['title_length']);
   if (!empty($new_menus)) {
-    drupal_set_message(t('Created the following new menus: !menus', array('!menus' => theme('item_list', array('items' => $new_menus)))));
+    drupal_set_message(t('Created the following new menus: !menus', array('!menus' => implode(', ', $new_menus))));
   }
 
   // Generate new menu links.
