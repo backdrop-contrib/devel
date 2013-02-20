@@ -651,7 +651,7 @@ function devel_node_access_block_view($delta) {
               foreach (array('view', 'update', 'delete') as $op) {
                 $grants = _devel_node_access_module_invoke_all('node_grants', $user, $op);
                 // call all hook_node_grants_alter() implementations
-                $ng_alter_data = _devel_node_access_ng_alter($grants, $user, $op);
+                $ng_alter_datas[$op] = _devel_node_access_ng_alter($grants, $user, $op);
                 $checked_grants[$nid][$op] = array_merge(array('all' => array(0)), $grants);
               }
             }
@@ -920,7 +920,7 @@ function devel_node_access_block_view($delta) {
           );
         }
         else {
-          $variables['!list'] = '<div style="margin-left: 2em">' . _devel_node_access_get_grant_list($nid, $ng_alter_data) . '</div>';
+          $variables['!list'] = '<div style="margin-left: 2em">' . _devel_node_access_get_grant_list($nid, $ng_alter_datas['view']) . '</div>';
           $variables['%access'] = 'view';
           $output[] = array(
             '#prefix' => "\n<div style='text-align: left' title='" . t('These are the grants returned by hook_node_grants() for this user.') . "'>",
