@@ -459,7 +459,7 @@ function devel_init() {
 function devel_set_message($msg, $type = NULL) {
   $function  = function_exists('drush_log') ? 'drush_log' : 'drupal_set_message';
   $function($msg, $type);
-}
+  }
 
 /**
  * Returns boolean. No need for cache here.
@@ -871,7 +871,7 @@ function devel_switch_user_list() {
   $links = array();
   if (user_access('switch users')) {
     $list_size = variable_get('devel_switch_user_list_size', 10);
-    if ($include_anon = ($user->uid && variable_get('devel_switch_user_include_anon', FALSE))) {
+    if ($include_anon = variable_get('devel_switch_user_include_anon', FALSE)) {
       --$list_size;
     }
     $dest = drupal_get_destination();
@@ -1328,7 +1328,7 @@ function devel_get_core_version($version) {
   $version_parts = explode('.', $version);
   // Map from 4.7.10 -> 4.7
   if ($version_parts[0] < 5) {
-    return $version_parts[0] .'.'. $version_parts[1];
+    return $version_parts[0] . '.' . $version_parts[1];
   }
   // Map from 5.5 -> 5 or 6.0-beta2 -> 6
   else {
