@@ -26,9 +26,12 @@ function devel_drush_command() {
     'aliases' => array('dre'),
   );
   $items['fn-hook'] = array(
-    'description' => 'List implementations of a given hook and explore source of specified one.',
+    'description' => 'List implementations of a given hook and explore the source of the selected one.',
     'arguments' => array(
-      'hook' => 'The name of the hook to explore.'
+      'hook' => 'The name of the hook to explore (e.g. "menu" for hook_menu()).'
+    ),
+    'examples' => array(
+      'fn-hook cron' => 'List implementations of hook_cron().',
     ),
     'allow-additional-options' => array('fn-view'),
     'required-arguments' => 1,
