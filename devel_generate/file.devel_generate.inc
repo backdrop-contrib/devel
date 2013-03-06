@@ -18,8 +18,7 @@ function _file_devel_generate($object, $field, $instance, $bundle) {
       $source->uri = $path;
       $source->uid = 1; // TODO: randomize? use case specific.
       $source->filemime = 'text/plain';
-      $path_exploded = explode("//", $path);
-      $source->filename = array_pop($path_exploded);
+      $source->filename = basename($path);
       $destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
       file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
       $destination = $destination_dir . '/' . basename($path);
