@@ -31,7 +31,6 @@ function devel_enable() {
  * Implements hook_uninstall().
  */
 function devel_uninstall() {
-  variable_del('devel_form_weights');
   variable_del('devel_execution');
   variable_del('dev_timer');
   variable_del('devel_query_display');
@@ -115,4 +114,11 @@ function devel_update_7004() {
     variable_del('devel_error_handler');
     variable_set('devel_error_handlers', drupal_map_assoc($error_handlers));
   }
+}
+
+/**
+ * Delete variable 'devel_form_weights' from database as it was removed from code.
+ */
+function devel_update_7005() {
+  variable_del('devel_form_weights');
 }
