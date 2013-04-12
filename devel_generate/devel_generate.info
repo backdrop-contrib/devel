@@ -2,7 +2,6 @@ name = Devel generate
 description = Generate dummy users, nodes, and taxonomy terms.
 package = Development
 core = 7.x
-dependencies[] = devel
 tags[] = developer
 configure = admin/config/development/generate
 files[] = devel_generate.test
