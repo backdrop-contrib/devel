@@ -48,7 +48,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array(), $pass = NUL
         'uid'     => NULL,
         'name'    => $name,
         'pass'    => $pass,
-        'mail'    => $name . '@' . $url['host'],
+        'mail'    => $name . '@' . $url['host'].'.invalid',
         'status'  => 1,
         'created' => REQUEST_TIME - mt_rand(0, $age),
         'roles' => drupal_map_assoc($roles),
