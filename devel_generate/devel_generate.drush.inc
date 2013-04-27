@@ -10,6 +10,7 @@
  */
 function devel_generate_drush_command() {
   $items['generate-users'] = array(
+    'callback' => 'drush_devel_generate_users',
     'description' => 'Create users.',
     'arguments' => array(
       'number_users' => 'Number of users to generate.',
@@ -22,6 +23,7 @@ function devel_generate_drush_command() {
     'aliases' => array('genu'),
   );
   $items['generate-terms'] = array(
+    'callback' => 'drush_devel_generate_terms',
     'description' => 'Create terms in specified vocabulary.',
     'arguments' => array(
       'machine_name' => 'Vocabulary machine name into which new terms will be inserted.',
@@ -35,6 +37,7 @@ function devel_generate_drush_command() {
 
   );
   $items['generate-vocabs'] = array(
+    'callback' => 'drush_devel_generate_vocabs',
     'description' => 'Create vocabularies.',
     'arguments' => array(
       'num_vocabs' => 'Number of vocabularies to create. Defaults to 1.',
@@ -45,6 +48,7 @@ function devel_generate_drush_command() {
     'aliases' => array('genv'),
   );
   $items['generate-content'] = array(
+    'callback' => 'drush_devel_generate_content',
     'description' => 'Create content.',
     'drupal dependencies' => array('devel_generate'),
     'arguments' => array(
@@ -61,6 +65,7 @@ function devel_generate_drush_command() {
     'aliases' => array('genc'),
   );
   $items['generate-menus'] = array(
+    'callback' => 'drush_devel_generate_menus',
     'description' => 'Create menus and menu items.',
     'drupal dependencies' => array('devel_generate'), // Remove these once devel.module is moved down a directory. http://drupal.org/node/925246
     'arguments' => array(
