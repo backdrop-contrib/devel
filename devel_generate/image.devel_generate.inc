@@ -23,7 +23,7 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
 
   $min_resolution = empty($instance['settings']['min_resolution']) ? '100x100' : $instance['settings']['min_resolution'];
   $max_resolution = empty($instance['settings']['max_resolution']) ? '600x600' : $instance['settings']['max_resolution'];
-  $extensions = array_intersect(explode(' ', $instance['settings']['file_extensions']), array('png', 'jpg'));
+  $extensions = array_intersect(explode(' ', $instance['settings']['file_extensions']), array('png', 'gif', 'jpg', 'jpeg'));
   $extension = array_rand(drupal_map_assoc($extensions));
 
   // Generate a max of 5 different images.
