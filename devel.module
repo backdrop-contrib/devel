@@ -1991,10 +1991,25 @@ function devel_render() {
 
 /**
  * Prints the function call stack.
+ *
+ * @param $return
+ *   Pass TRUE to return the formatted backtrace rather than displaying it in
+ *   the browser via kprint_r().
+ * @param $pop
+ *   How many items to pop from the top of the stack; useful when calling from
+ *   an error handler.
+ * @param $options
+ *   Options to pass on to PHP's debug_backtrace(), depending on your PHP
+ *   version.
+ *
+ * @return string|NULL
+ *   The formatted backtrace, if requested, or NULL.
+ *
+ * @see http://php.net/manual/en/function.debug-backtrace.php
  */
-function ddebug_backtrace($return = FALSE, $pop = 0) {
+function ddebug_backtrace($return = FALSE, $pop = 0, $options = TRUE) {
   if (user_access('access devel information')) {
-    $backtrace = debug_backtrace();
+    $backtrace = debug_backtrace($options);
     while ($pop-- > 0) {
       array_shift($backtrace);
     }
