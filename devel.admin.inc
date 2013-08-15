@@ -90,9 +90,9 @@ function devel_admin_settings() {
     '#description' => t('Display page execution time in the query log box.'),
   );
 
-  $form['dev_mem'] = array('#type' => 'checkbox',
+  $form['devel_memory'] = array('#type' => 'checkbox',
     '#title' => t('Display memory usage'),
-    '#default_value' => variable_get('dev_mem', 0),
+    '#default_value' => variable_get('devel_memory', 0),
     '#description' => t('Display how much memory is used to generate the current page. This will show memory usage when devel_init() is called and when devel_exit() is called.'),
   );
   $form['devel_redirect_page'] = array('#type' => 'checkbox',

@@ -36,7 +36,7 @@ function devel_uninstall() {
   variable_del('devel_query_display');
   variable_del('devel_redirect_page');
   variable_del('devel_api_url');
-  variable_del('dev_mem');
+  variable_del('devel_memory');
   variable_del('devel_error_handlers');
   variable_del('devel_raw_names');
   variable_del('devel_switch_user_list_size');
@@ -121,4 +121,15 @@ function devel_update_7004() {
  */
 function devel_update_7005() {
   variable_del('devel_form_weights');
+}
+
+/**
+ * Change variable 'dev_mem' to 'devel_memory'.
+ */
+function devel_update_7006() {
+  if (variable_get('dev_mem', NULL) !== NULL) {
+    variable_set('devel_memory', variable_get('dev_mem'));
+  }
+
+  variable_del('dev_mem');
 }

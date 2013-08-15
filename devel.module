@@ -632,7 +632,7 @@ function devel_boot() {
   devel_xhprof_enable();
 
   if (!devel_silent()) {
-    if (variable_get('dev_mem', 0)) {
+    if (variable_get('devel_memory', 0)) {
       global $memory_init;
       $memory_init = memory_get_usage();
     }
@@ -1218,7 +1218,7 @@ function devel_xhprof_link($run_id, $type = 'link') {
 function devel_shutdown_memory() {
   global $memory_init;
 
-  if (variable_get('dev_mem', FALSE)) {
+  if (variable_get('devel_memory', FALSE)) {
     $memory_shutdown = memory_get_usage();
     $args = array(
       '@memory_boot' => round($memory_init / 1024 / 1024, 2),
