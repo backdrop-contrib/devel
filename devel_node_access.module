@@ -1005,7 +1005,12 @@ function devel_node_access_block_view($delta) {
       if (isset($node)) {
         $nid = $node->nid;
         $node_type = node_type_get_type($node);
-        $headers = array(t('username'), '<span title="' . t("Create nodes of the '@Node_type' type.", array('@Node_type' => $node_type->name)) . '">' . t('create') . '</span>', t('view'), t('update'), t('delete'));
+        $variables = array('@Node_type' => ($node_type ? $node_type->name : $node->type));
+        $create_header = '<span title="' . t("Create nodes of the '@Node_type' type.", $variables) . '">' . t('create') . '</span>';
+        if (!$node_type) {
+          $create_header .= '<br /><span class="error">' . t("(missing type: '@Node_type')", $variables) . '</span>';
+        }
+        $headers = array(t('username'), $create_header, t('view'), t('update'), t('delete'));
         $rows = array();
         // Determine whether to use Ajax or prepopulate the tables.
         if ($ajax = variable_get('devel_node_access_user_ajax', FALSE)) {
