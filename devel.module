@@ -1774,7 +1774,7 @@ function dd($data, $label = NULL) {
 /**
  * Logs a variable to a drupal_debug.txt in the site's temp directory.
  *
- * @param string $data
+ * @param mixed $data
  *   The variable to log to the drupal_debug.txt log file.
  * @param string $label
  *   (optional) If set, a label to output before $data in the log file.
