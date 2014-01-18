@@ -112,21 +112,6 @@ function drush_devel_download($path = NULL) {
 }
 
 /**
- * Implements drush_MODULE_post_COMMAND().
- */
-function drush_devel_post_pm_enable() {
-  $extensions = func_get_args();
-  // Deal with comma delimited extension list.
-  if (strpos($extensions[0], ',') !== FALSE) {
-    $extensions = explode(',', $extensions[0]);
-  }
-
-  if (in_array('devel', $extensions) && !drush_get_option('skip')) {
-    drush_devel_download();
-  }
-}
-
-/**
  * Command handler. Show hook implementations.
  */
 function drush_devel_fn_hook($hook) {
