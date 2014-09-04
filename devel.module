@@ -325,7 +325,7 @@ function devel_menu() {
  */
 function _devel_switch_user_access($name) {
   // Suppress notices when on other pages when menu system still checks access.
-  return user_access('switch users') && drupal_valid_token(@$_GET['token'], "devel/switch/$name|" . @$_GET['destination'], TRUE);
+  return user_access('switch users') && drupal_valid_token(@$_GET['token'], "devel/switch/$name", TRUE);
 }
 
 /**
@@ -881,7 +881,7 @@ function devel_switch_user_list() {
       $links[$account->uid] = array(
         'title' => drupal_placeholder(format_username($account)),
         'href' => $path,
-        'query' => $dest + array('token' => drupal_get_token($path . '|' . $dest['destination'])),
+        'query' => $dest + array('token' => drupal_get_token($path)),
         'attributes' => array('title' => t('This user can switch back.')),
         'html' => TRUE,
         'last_access' => $account->access,
@@ -897,7 +897,7 @@ function devel_switch_user_list() {
         $links[$account->uid] = array(
           'title' => format_username($account),
           'href' => $path,
-          'query' => $dest + array('token' => drupal_get_token($path . '|' . $dest['destination'])),
+          'query' => array('token' => drupal_get_token($path)),
           'attributes' => array('title' => t('Caution: this user will be unable to switch back.')),
           'last_access' => $account->access,
         );
@@ -909,7 +909,7 @@ function devel_switch_user_list() {
       $link = array(
         'title' => format_username(drupal_anonymous_user()),
         'href' => $path,
-        'query' => $dest + array('token' => drupal_get_token($path . '/|' . $dest['destination'])),
+        'query' => $dest + array('token' => drupal_get_token($path)),
         'attributes' => array('title' => t('Caution: the anonymous user will be unable to switch back.')),
       );
       if (user_access('switch users', drupal_anonymous_user())) {
