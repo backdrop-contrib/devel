@@ -675,7 +675,7 @@ function devel_generate_content_add_node(&$results) {
   $node->revision = mt_rand(0,1);
   $node->promote = mt_rand(0, 1);
 
-  if ($type->has_title) {
+  if (!$type || $type->has_title) {
     // We should not use the random function if the value is not random
     if ($results['title_length'] < 2) {
       $node->title = devel_create_greeking(1, TRUE);
