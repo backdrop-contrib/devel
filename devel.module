@@ -830,7 +830,7 @@ function devel_switch_user_list() {
     $query->orderBy('u.access', 'DESC');
     $query->range(0, $list_size);
 
-    if (!isset($roles[BACKDROP_AUTHENTICATED_RID])) {
+    if (!isset($roles[BACKDROP_AUTHENTICATED_ROLE])) {
       $query->leftJoin('users_roles', 'r', 'u.uid = r.uid');
       $or_condition = db_or();
       $or_condition->condition('u.uid', 1);
@@ -1757,13 +1757,13 @@ function kprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r') 
  * Displays only for users with proper permissions. If
  * you want a string returned instead of a print, use the 2nd param.
  */
-function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', $check= TRUE) {
+function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', $check = TRUE) {
   if (user_access('access devel information')) {
     if ($name) {
       $name .= ' => ';
     }
     if ($function == 'backdrop_var_export') {
-      include_once BACKDROP_ROOT . '/includes/utility.inc';
+      include_once BACKDROP_ROOT . '/core/includes/utility.inc';
       $output = backdrop_var_export($input);
     }
     else {

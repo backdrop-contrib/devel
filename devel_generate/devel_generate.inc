@@ -39,7 +39,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
     }
 
     if (empty($roles)) {
-      $roles = array(BACKDROP_AUTHENTICATED_RID);
+      $roles = array(BACKDROP_AUTHENTICATED_ROLE);
     }
     foreach ($names as $name => $value) {
       $edit = array(
@@ -82,7 +82,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
 
         // Create an empty, managed file where we want the user's picture to
         // be so we can have GD overwrite it with the image.
-        $picture_directory =  variable_get('file_default_scheme', 'public') . '://' . variable_get('user_picture_path', 'pictures');
+        $picture_directory =  file_default_scheme() . '://' . variable_get('user_picture_path', 'pictures');
         file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
         $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '.png');
         $file = file_save_data('', $destination);
@@ -218,8 +218,7 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
       case 1:
         // Set vid and vocabulary_machine_name properties.
         $vocab = $vocabs[array_rand($vocabs)];
-        $term->vid = $vocab->vid;
-        $term->vocabulary_machine_name = $vocab->machine_name;
+        $term->vocabulary = $vocab->machine_name;
         // Don't set a parent. Handled by taxonomy_save_term()
         // $term->parent = 0;
         break;
@@ -707,7 +706,7 @@ function devel_generate_set_language($results, $object) {
     $object->language = $languages[array_rand($languages)];
   }
   else {
-    $default = language_default('language');
+    $default = language_default();
     $object->language =  $default == 'en' ? LANGUAGE_NONE : $default;
   }
 }

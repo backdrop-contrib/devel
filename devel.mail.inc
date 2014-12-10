@@ -25,7 +25,7 @@ class DevelMailLog extends DefaultMailSystem {
       $mimeheaders[] = $name . ': ' . mime_header_encode($value);
     }
 
-    $line_endings = variable_get('mail_line_endings', MAIL_LINE_ENDINGS);
+    $line_endings = settings_get('mail_line_endings', MAIL_LINE_ENDINGS);
     $output = join($line_endings, $mimeheaders) . $line_endings;
     $output .= $message['subject'] . $line_endings;
     $output .= preg_replace('@\r?\n@', $line_endings, $message['body']);

@@ -63,7 +63,7 @@ function devel_generate_users_form() {
     '#default_value' => FALSE,
   );
   $options = user_roles(TRUE);
-  unset($options[BACKDROP_AUTHENTICATED_RID]);
+  unset($options[BACKDROP_AUTHENTICATED_ROLE]);
   $form['roles'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Which roles should the users receive?'),

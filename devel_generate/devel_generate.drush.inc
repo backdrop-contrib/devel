@@ -95,7 +95,7 @@ function drush_devel_generate_users($num_users = NULL) {
  */
 function drush_devel_generate_terms($vname = NULL, $num_terms = 10) {
   // Try to convert machine name to a vocab ID
-  if (!$vocab = taxonomy_vocabulary_machine_name_load($vname)) {
+  if (!$vocab = taxonomy_vocabulary_load($vname)) {
     return drush_set_error('DEVEL_GENERATE_INVALID_INPUT', dt('Invalid vocabulary name: !name', array('!name' => $vname)));
   }
   if (drush_generate_is_number($num_terms) == FALSE) {
@@ -103,7 +103,7 @@ function drush_devel_generate_terms($vname = NULL, $num_terms = 10) {
   }
 
   drush_generate_include_devel();
-  $vocabs[$vocab->vid] = $vocab;
+  $vocabs[$vocab->machine_name] = $vocab;
   devel_generate_term_data($vocabs, $num_terms, '12', drush_get_option('kill'));
   drush_log(dt('Generated @num_terms terms.', array('@num_terms' => $num_terms)), 'success');
 }

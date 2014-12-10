@@ -31,18 +31,18 @@ function devel_enable() {
  * Implements hook_uninstall().
  */
 function devel_uninstall() {
-  variable_del('devel_form_weights');
-  variable_del('devel_execution');
-  variable_del('dev_timer');
-  variable_del('devel_query_display');
-  variable_del('devel_redirect_page');
-  variable_del('devel_api_url');
-  variable_del('dev_mem');
-  variable_del('devel_error_handlers');
-  variable_del('devel_raw_names');
-  variable_del('devel_switch_user_list_size');
-  variable_del('devel_switch_user_include_anon');
-  variable_del('devel_switch_user_show_form');
+  update_variable_del('devel_form_weights');
+  update_variable_del('devel_execution');
+  update_variable_del('dev_timer');
+  update_variable_del('devel_query_display');
+  update_variable_del('devel_redirect_page');
+  update_variable_del('devel_api_url');
+  update_variable_del('dev_mem');
+  update_variable_del('devel_error_handlers');
+  update_variable_del('devel_raw_names');
+  update_variable_del('devel_switch_user_list_size');
+  update_variable_del('devel_switch_user_include_anon');
+  update_variable_del('devel_switch_user_show_form');
 
   // Delete the development menu.
   if (module_exists('menu')) {
@@ -67,7 +67,7 @@ function devel_update_7001() {
   db_delete('menu_links')
     ->condition('module', 'devel')
     ->execute();
-  variable_set('menu_rebuild_needed', TRUE);
+  state_set('menu_rebuild_needed', TRUE);
   return t('Devel module menu links will be rebuilt.');
 }
 
@@ -75,16 +75,16 @@ function devel_update_7001() {
  * Remove deprecated variables - dev_query, devel_code_coverage
  */
 function devel_update_7002() {
-  variable_del('dev_query'); // Sad trombone. http://drupalcode.org/viewvc/drupal/drupal/includes/database.mysql.inc?revision=1.2&view=markup
-  variable_del('devel_code_coverage');
+  update_variable_del('dev_query'); // Sad trombone. http://drupalcode.org/viewvc/drupal/drupal/includes/database.mysql.inc?revision=1.2&view=markup
+  update_variable_del('devel_code_coverage');
 }
 
 /**
  * As per issue #813132: change schablon.com to white for krumo.
  */
 function devel_update_7003() {
-  if (variable_get('devel_krumo_skin', 'white') == 'schablon.com') {
-    variable_set('devel_krumo_skin', 'white');
+  if (update_variable_get('devel_krumo_skin', 'white') == 'schablon.com') {
+    update_variable_set('devel_krumo_skin', 'white');
   }
 }
 
@@ -94,7 +94,7 @@ function devel_update_7003() {
 function devel_update_7004() {
   define('DEVEL_ERROR_HANDLER_BACKTRACE_AND_MESSAGE', 3);
 
-  $error_handler = variable_get('devel_error_handler', NULL);
+  $error_handler = update_variable_get('devel_error_handler', NULL);
   if (isset($error_handler)) {
     if ($error_handler == DEVEL_ERROR_HANDLER_BACKTRACE_AND_MESSAGE) {
       $error_handlers = array(DEVEL_ERROR_HANDLER_STANDARD, DEVEL_ERROR_HANDLER_BACKTRACE_KRUMO);
@@ -102,7 +102,7 @@ function devel_update_7004() {
     else {
       $error_handlers = array($error_handler);
     }
-    variable_del('devel_error_handler');
-    variable_set('devel_error_handlers', backdrop_map_assoc($error_handlers));
+    update_variable_del('devel_error_handler');
+    update_variable_set('devel_error_handlers', backdrop_map_assoc($error_handlers));
   }
 }
