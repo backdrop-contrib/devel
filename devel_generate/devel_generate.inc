@@ -216,22 +216,19 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
     $term = new TaxonomyTerm();
     switch ($i % 2) {
       case 1:
-        // Set vid and vocabulary_machine_name properties.
+        // Set vocabulary machine_name properties.
         $vocab = $vocabs[array_rand($vocabs)];
         $term->vocabulary = $vocab->machine_name;
-        // Don't set a parent. Handled by taxonomy_save_term()
-        // $term->parent = 0;
+        $term->parent = array(0);
         break;
       default:
         while (TRUE) {
           // Keep trying to find a random parent.
           $candidate = mt_rand(1, $max);
           $query = db_select('taxonomy_term_data', 't');
-          $query->innerJoin('taxonomy_vocabulary', 'v', 't.vid = v.vid');
           $parent = $query
-                    ->fields('t', array('tid', 'vid'))
-                    ->fields('v', array('machine_name'))
-                    ->condition('v.vid', array_keys($vocabs), 'IN')
+                    ->fields('t', array('tid', 'vocabulary'))
+                    ->condition('t.vocabulary', array_keys($vocabs), 'IN')
                     ->condition('t.tid', $candidate, '>=')
                     ->range(0,1)
                     ->execute()
@@ -240,10 +237,8 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
             break;
           }
         }
-        $term->parent = $parent['tid'];
-        // Slight speedup due to this property being set.
-        $term->vocabulary_machine_name = $parent['machine_name'];
-        $term->vid = $parent['vid'];
+        $term->parent = array($parent['tid']);
+        $term->vocabulary = $parent['vocabulary'];
         break;
     }
 
@@ -255,7 +250,7 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
 
     // Populate all core fields on behalf of field.module
     module_load_include('inc', 'devel_generate', 'devel_generate.fields');
-    devel_generate_fields($term, 'term', $term->vocabulary_machine_name);
+    devel_generate_fields($term, 'term', $term->vocabulary);
 
     if ($status = taxonomy_term_save($term)) {
       $max += 1;
@@ -280,10 +275,10 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
 }
 
 // TODO: use taxonomy_get_entries once that exists.
-function devel_generate_get_terms($vids) {
+function devel_generate_get_terms($vocabulary_names) {
   return db_select('taxonomy_term_data', 'td')
            ->fields('td', array('tid'))
-           ->condition('vid', $vids, 'IN')
+           ->condition('vocabulary', $vocabulary_names, 'IN')
            ->orderBy('tid', 'ASC')
            ->execute()
            ->fetchCol('tid');
@@ -306,8 +301,8 @@ function devel_generate_term_data($vocabs, $num_terms, $title_length, $kill) {
 function devel_generate_vocab_data($num_vocab, $title_length, $kill) {
 
   if ($kill) {
-    foreach (taxonomy_get_vocabularies() as $vid => $vocab) {
-      taxonomy_vocabulary_delete($vid);
+    foreach (taxonomy_get_vocabularies() as $vocabulary_name => $vocab) {
+      taxonomy_vocabulary_delete($vocabulary_name);
     }
     backdrop_set_message(t('Deleted existing vocabularies.'));
   }
@@ -585,8 +580,8 @@ function devel_create_greeking($word_count, $title = FALSE) {
 function devel_generate_add_terms(&$node) {
   $vocabs = taxonomy_get_vocabularies($node->type);
   foreach ($vocabs as $vocab) {
-    $sql = "SELECT tid FROM {taxonomy_term_data} WHERE vid = :vid ORDER BY RAND()";
-    $result = db_query_range($sql, 0, 5 , array(':vid' => $vocab->vid));
+    $sql = "SELECT tid FROM {taxonomy_term_data} WHERE vocabulary = :vocabulary ORDER BY RAND()";
+    $result = db_query_range($sql, 0, 5 , array(':vocabulary' => $vocab->machine_name));
     foreach($result as $row) {
       $node->taxonomy[] = $row->tid;
       if (!$vocab->multiple) {
