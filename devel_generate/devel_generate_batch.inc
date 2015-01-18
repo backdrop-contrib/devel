@@ -29,7 +29,7 @@ function devel_generate_batch_content($form_state) {
     'title' => t('Generating Content'),
     'operations' => $operations,
     'finished' => 'devel_generate_batch_finished',
-    'file' => drupal_get_path('module', 'devel_generate') . '/devel_generate_batch.inc',
+    'file' => backdrop_get_path('module', 'devel_generate') . '/devel_generate_batch.inc',
   );
   batch_set($batch);
 }
@@ -63,6 +63,6 @@ function devel_generate_batch_finished($success, $results, $operations) {
   else {
     $message = t('Finished with an error.');
   }
-  drupal_set_message($message);
+  backdrop_set_message($message);
 }
 

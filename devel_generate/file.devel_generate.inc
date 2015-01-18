@@ -18,7 +18,7 @@ function _file_devel_generate($object, $field, $instance, $bundle) {
       $source->uri = $path;
       $source->uid = 1; // TODO: randomize? use case specific.
       $source->filemime = 'text/plain';
-      $source->filename = basename($path);
+      $source->filename = array_pop(explode("//", $path));
       $destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
       file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
       $destination = $destination_dir . '/' . basename($path);
@@ -45,7 +45,7 @@ function _file_devel_generate($object, $field, $instance, $bundle) {
  * Private function for generating a random text file.
  */
 function devel_generate_textfile($filesize = 1024) {
-  if ($tmp_file = drupal_tempnam('temporary://', 'filefield_')) {
+  if ($tmp_file = backdrop_tempnam('temporary://', 'filefield_')) {
     $destination = $tmp_file . '.txt';
     file_unmanaged_move($tmp_file, $destination);
 

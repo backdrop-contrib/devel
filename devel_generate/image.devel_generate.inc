@@ -4,10 +4,7 @@ define('DEVEL_GENERATE_IMAGE_MAX', 5);
 
 function image_devel_generate($object, $field, $instance, $bundle) {
   if (function_exists('imagejpeg')) {
-    $devel_generate_image_function = variable_get('devel_generate_image_function', '_image_devel_generate');
-    if (!function_exists($devel_generate_image_function)) {
-      $devel_generate_image_function = '_image_devel_generate';
-    }
+    $devel_generate_image_function = '_image_devel_generate';
     if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {
       return devel_generate_multiple($devel_generate_image_function, $object, $field, $instance, $bundle);
     }
@@ -23,17 +20,18 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
 
   $min_resolution = empty($instance['settings']['min_resolution']) ? '100x100' : $instance['settings']['min_resolution'];
   $max_resolution = empty($instance['settings']['max_resolution']) ? '600x600' : $instance['settings']['max_resolution'];
-  $extensions = array_intersect(explode(' ', $instance['settings']['file_extensions']), array('png', 'gif', 'jpg', 'jpeg'));
-  $extension = array_rand(drupal_map_assoc($extensions));
+  $extensions = array_intersect(explode(' ', $instance['settings']['file_extensions']), array('png', 'jpg'));
+  $extension = array_rand(backdrop_map_assoc($extensions));
 
   // Generate a max of 5 different images.
   if (!isset($images[$extension][$min_resolution][$max_resolution]) || count($images[$extension][$min_resolution][$max_resolution]) <= DEVEL_GENERATE_IMAGE_MAX) {
     if ($path = devel_generate_image($extension, $min_resolution, $max_resolution)) {
-      $source = new stdClass();
+      $parts = explode("//", $path);
+      $source = new File();
       $source->uri = $path;
       $source->uid = 1; // TODO: randomize? Use case specific.
       $source->filemime = 'image/' . pathinfo($path, PATHINFO_EXTENSION);
-      $source->filename = basename($path);
+      $source->filename = array_pop($parts);
       $destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
       file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
       $destination = $destination_dir . '/' . basename($path);
@@ -46,7 +44,7 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
   }
   else {
     // Select one of the images we've already generated for this field.
-    $file = new stdClass();
+    $file = new File();
     $file->fid = array_rand($images[$extension][$min_resolution][$max_resolution]);
   }
 
@@ -62,7 +60,7 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
  * This function only works with the GD toolkit. ImageMagick is not supported.
  */
 function devel_generate_image($extension = 'png', $min_resolution, $max_resolution) {
-  if ($tmp_file = drupal_tempnam('temporary://', 'imagefield_')) {
+  if ($tmp_file = backdrop_tempnam('temporary://', 'imagefield_')) {
     $destination = $tmp_file . '.' . $extension;
     file_unmanaged_move($tmp_file, $destination, FILE_CREATE_DIRECTORY);
 
@@ -88,7 +86,9 @@ function devel_generate_image($extension = 'png', $min_resolution, $max_resoluti
     imageellipse($im, $width/2, $height/2, $smaller_dimension, $smaller_dimension, $color);
 
     $save_function = 'image'. ($extension == 'jpg' ? 'jpeg' : $extension);
-    $save_function($im, drupal_realpath($destination));
+    $save_function($im, backdrop_realpath($destination));
+
+    $images[$extension][$min_resolution][$max_resolution][$destination] = $destination;
   }
   return $destination;
 }

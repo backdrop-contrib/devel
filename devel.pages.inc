@@ -12,10 +12,10 @@ function devel_menu_item() {
  */
 function devel_function_reference() {
   $functions = get_defined_functions();
-  $version = devel_get_core_version(VERSION);
+  $version = devel_get_core_version(BACKDROP_VERSION);
   $ufunctions = $functions['user'];
   sort($ufunctions);
-  $api = variable_get('devel_api_url', 'api.drupal.org');
+  $api = config_get('devel.settings', 'api_url');
   foreach ($ufunctions as $function) {
     $links[] = l($function, "http://$api/api/$version/function/$function");
   }
@@ -26,11 +26,11 @@ function devel_function_reference() {
  * Menu callback; clears all caches, then redirects to the previous page.
  */
 function devel_cache_clear() {
-  drupal_flush_all_caches();
+  backdrop_flush_all_caches();
 
-  drupal_set_message('Cache cleared.');
+  backdrop_set_message('Cache cleared.');
 
-  drupal_goto();
+  backdrop_goto();
 }
 
 // A menu callback. Called by the AJAX link in query log.
@@ -86,8 +86,8 @@ function devel_querylog_arguments($request_id, $qid) {
  */
 function devel_menu_rebuild() {
   menu_rebuild();
-  drupal_set_message(t('The menu router has been rebuilt.'));
-  drupal_goto();
+  backdrop_set_message(t('The menu router has been rebuilt.'));
+  backdrop_goto();
 }
 
 /**
@@ -97,7 +97,7 @@ function devel_reinstall($form, &$form_state) {
   $output = '';
   $modules = module_list();
   sort($modules);
-  $options = drupal_map_assoc($modules);
+  $options = backdrop_map_assoc($modules);
   $form['list'] = array(
     '#type' => 'checkboxes',
     '#options' => $options,
@@ -117,14 +117,14 @@ function devel_reinstall_submit($form, &$form_state) {
   // require_once './includes/install.inc';
   $modules = array_filter($form_state['values']['list']);
   module_disable($modules, FALSE);
-  drupal_uninstall_modules($modules, FALSE);
+  backdrop_uninstall_modules($modules, FALSE);
   module_enable($modules, FALSE);
-  drupal_set_message(t('Uninstalled and installed: %names.', array('%names' => implode(', ', $modules))));
+  backdrop_set_message(t('Uninstalled and installed: %names.', array('%names' => implode(', ', $modules))));
 }
 
 // Menu callback.
 function devel_theme_registry() {
-  drupal_theme_initialize();
+  backdrop_theme_initialize();
   $hooks = theme_get_registry();
   ksort($hooks);
   return kprint_r($hooks, TRUE);
@@ -145,118 +145,7 @@ function devel_field_info_page() {
   $output .= kprint_r($info, TRUE, t('Instances'));
   $info = field_info_bundles();
   $output .= kprint_r($info, TRUE, t('Bundles'));
-  $info = field_info_field_types();
-  $output .= kprint_r($info, TRUE, t('Field types'));
-  $info = field_info_formatter_types();
-  $output .= kprint_r($info, TRUE, t('Formatter types'));
-  $info = field_info_storage_types();
-  $output .= kprint_r($info, TRUE, t('Storage types'));
-  $info = field_info_widget_types();
-  $output .= kprint_r($info, TRUE, t('Widget types'));
   return $output;
-}
-
-function devel_variable_form() {
-  $header = array(
-    'name' => array('data' => t('Name'), 'field' => 'name', 'sort' => 'asc'),
-    'value' => array('data' => t('Value'), 'field' => 'value'),
-    'length' => array('data' => t('Length'), 'field' => 'length'),
-    'edit' => array('data' => t('Operations')),
-  );
-  // TODO: we could get variables out of $conf but that would include hard coded ones too. ideally i would highlight overrridden/hard coded variables
-  $query = db_select('variable', 'v')->extend('TableSort');
-  $query->fields('v', array('name', 'value'));
-  switch (db_driver()) {
-    case 'mssql':
-      $query->addExpression("LEN(v.value)", 'length');
-      break;
-    default:
-      $query->addExpression("LENGTH(v.value)", 'length');
-      break;
-  }
-  $result = $query
-    ->orderByHeader($header)
-    ->execute();
-
-  foreach ($result as $row) {
-    // $variables[$row->name] = '';
-    $options[$row->name]['name'] = check_plain($row->name);
-    if (merits_krumo($row->value)) {
-      $value = krumo_ob(variable_get($row->name, NULL));
-    }
-    else {
-      if (drupal_strlen($row->value) > 70) {
-        $value = check_plain(drupal_substr($row->value, 0, 65)) .'...';
-      }
-      else {
-        $value = check_plain($row->value);
-      }
-    }
-    $options[$row->name]['value'] = $value;
-    $options[$row->name]['length'] = $row->length;
-    $options[$row->name]['edit'] = l(t('Edit'), "devel/variable/edit/$row->name");
-  }
-  $form['variables'] = array(
-    '#type' => 'tableselect',
-    '#header' => $header,
-    '#options' => $options,
-    '#empty' => t('No variables.'),
-  );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-  );
-
-    // krumo($form);
-  return $form;
-}
-
-function devel_variable_form_submit($form, &$form_state) {
-  $deletes = array_filter($form_state['values']['variables']);
-  array_walk($deletes, 'variable_del');
-  if (count($deletes)) {
-    drupal_set_message(format_plural(count($deletes), 'One variable deleted.', '@count variables deleted.'));
-  }
-}
-
-function devel_variable_edit($form, &$form_state, $name) {
-  $value = variable_get($name, 'not found');
-  $form['name'] = array(
-    '#type' => 'value',
-    '#value' => $name
-  );
-  $form['value'] = array(
-    '#type' => 'item',
-    '#title' => t('Old value'),
-    '#markup' => dpr($value, TRUE),
-  );
-  if (is_string($value) || is_numeric($value)) {
-    $form['new'] = array(
-      '#type' => 'textarea',
-      '#title' => t('New value'),
-      '#default_value' => $value
-    );
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Submit'),
-    );
-  }
-  else {
-    $api = variable_get('devel_api_url', 'api.drupal.org');
-    $form['new'] = array(
-      '#type' => 'item',
-      '#title' => t('New value'),
-      '#markup' => t('Sorry, complex variable types may not be edited yet. Use the <em>Execute PHP</em> block and the <a href="@variable-set-doc">variable_set()</a> function.', array('@variable-set-doc' => "http://$api/api/HEAD/function/variable_set"))
-    );
-  }
-  drupal_set_title($name);
-  return $form;
-}
-
-function devel_variable_edit_submit($form, &$form_state) {
-  variable_set($form_state['values']['name'], $form_state['values']['new']);
-  drupal_set_message(t('Saved new value for %name.', array('%name' => $form_state['values']['name'])));
-   'devel/variable';
 }
 
 /**
@@ -294,5 +183,5 @@ function devel_elements_page() {
 
 function devel_phpinfo() {
   print phpinfo();
-  drupal_exit();
+  backdrop_exit();
 }

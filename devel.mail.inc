@@ -11,8 +11,8 @@
  *);
  *
  * Saves to temporary://devel-mails dir by default. Can be changed using
- * 'devel_debug_mail_directory' variable. Filename pattern controlled by
- * 'devel_debug_mail_file_format' variable.
+ * 'debug_mail_directory' config option. Filename pattern controlled by
+ * 'debug_mail_file_format' config option.
  *
  */
 
@@ -25,12 +25,9 @@ class DevelMailLog extends DefaultMailSystem {
       $mimeheaders[] = $name . ': ' . mime_header_encode($value);
     }
 
-    $line_endings = variable_get('mail_line_endings', MAIL_LINE_ENDINGS);
+    $line_endings = settings_get('mail_line_endings', MAIL_LINE_ENDINGS);
     $output = join($line_endings, $mimeheaders) . $line_endings;
-    // 'Subject:' is a mail header and should not be translated.
-    $output .= 'Subject: ' . $message['subject'] . $line_endings;
-    // Blank line to separate headers from body.
-    $output .= $line_endings;
+    $output .= $message['subject'] . $line_endings;
     $output .= preg_replace('@\r?\n@', $line_endings, $message['body']);
     return $output;
   }
@@ -39,7 +36,7 @@ class DevelMailLog extends DefaultMailSystem {
     $output_directory = $this->getOutputDirectory();
     $this->makeOutputDirectory($output_directory);
 
-    $output_file_format = variable_get('devel_debug_mail_file_format', '%to-%subject-%datetime.mail.txt');
+    $output_file_format = config_get('devel.settings', 'devel_debug_mail_file_format');
     $tokens = array(
       '%to' => $message['to'],
       '%subject' => $message['subject'],
@@ -52,10 +49,10 @@ class DevelMailLog extends DefaultMailSystem {
     return preg_replace('/[^a-zA-Z0-9_\-\.@]/', '_', $string);
   }
   /**
-   * Save an e-mail message to a file, using Drupal variables and default settings.
+   * Save an e-mail message to a file.
    *
    * @see http://php.net/manual/en/function.mail.php
-   * @see drupal_mail()
+   * @see backdrop_mail()
    *
    * @param $message
    *   A message array, as described in hook_mail_alter().
@@ -76,7 +73,7 @@ class DevelMailLog extends DefaultMailSystem {
   }
 
   public function getOutputDirectory() {
-    return variable_get('devel_debug_mail_directory', 'temporary://devel-mails');
+    return config_get('devel.settings', 'devel_debug_mail_directory');
   }
 }
 ?>

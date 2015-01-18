@@ -14,13 +14,13 @@ function _taxonomy_devel_generate($object, $field, $instance, $bundle) {
   // TODO: For free tagging vocabularies that do not already have terms, this
   // will not result in any tags being added.
   $machine_name = $field['settings']['allowed_values'][0]['vocabulary'];
-  $vocabulary = taxonomy_vocabulary_machine_name_load($machine_name);
-  if ($max = db_query('SELECT MAX(tid) FROM {taxonomy_term_data} WHERE vid = :vid', array(':vid' => $vocabulary->vid))->fetchField()) {
+  $vocabulary = taxonomy_vocabulary_load($machine_name);
+  if ($max = db_query('SELECT MAX(tid) FROM {taxonomy_term_data} WHERE vocabulary = :name', array(':name' => $vocabulary->machine_name))->fetchField()) {
     $candidate = mt_rand(1, $max);
     $query = db_select('taxonomy_term_data', 't');
     $tid = $query
               ->fields('t', array('tid'))
-              ->condition('t.vid', $vocabulary->vid, '=')
+              ->condition('t.vocabulary', $vocabulary->machine_name, '=')
               ->condition('t.tid', $candidate, '>=')
               ->range(0,1)
               ->execute()

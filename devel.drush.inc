@@ -12,29 +12,21 @@ function devel_drush_command() {
   $items['devel-download'] = array(
     'description' => dt('Downloads the FirePHP library from http://firephp.org/.'),
     'arguments' => array(
-      'path' => dt('Path to the download folder. This path is relative to the Drupal root. If omitted Drush will use the default location (sites/all/libraries/FirePHPCore).'),
+      'path' => dt('Optional. A path to the download folder. If omitted Drush will use the default location (sites/all/libraries/firephp).'),
     ),
   );
   $items['devel-reinstall'] = array(
     'description' => dt('Disable, Uninstall, and Install a list of projects.'),
-    'drush dependencies' => array('pm'),
     'arguments' => array(
       'projects' => dt('A space-separated list of project names.'),
     ),
-    'allow-additional-options' => array('pm-disable', 'pm-uninstall', 'pm-enable'),
-    'required-arguments' => 1,
     'aliases' => array('dre'),
   );
   $items['fn-hook'] = array(
-    'description' => 'List implementations of a given hook and explore the source of the selected one.',
+    'description' => 'List implementations of a given hook and explore source of specified one.',
     'arguments' => array(
-      'hook' => 'The name of the hook to explore (e.g. "menu" for hook_menu()).'
+      'hook' => 'The name of the hook to explore.'
     ),
-    'examples' => array(
-      'fn-hook cron' => 'List implementations of hook_cron().',
-    ),
-    'allow-additional-options' => array('fn-view'),
-    'required-arguments' => 1,
     'aliases' => array('fnh', 'hook'),
   );
   $items['fn-view'] = array(
@@ -47,18 +39,16 @@ function devel_drush_command() {
       'format' => 'Specify how the filename should be printed. Available placeholders are !startline, !endline and !file',
     ),
     'examples' => array(
-      'fn-view drupal_set_breadcrumb' => 'View the source code for function "drupal_set_breadcrumb"',
+      'fn-view backdrop_set_breadcrumb' => 'View the source code for function "backdrop_set_breadcrumb"',
       'vi `drush --pipe fn-view user_access --format=\'+!startline !file\'`' => 'Edit the file that contains the function "user_access"',
       'fn-view NodeController::load' => 'View the source code for method load in the class NodeController'
     ),
     'aliases' => array('fnv'),
-    'required-arguments' => 1,
   );
   $items['devel-token'] = array(
     'description' => dt('List available tokens'),
     'aliases' => array('token'),
     'core' => array(7), // Remove once 3.0 is released.
-    //@todo support --format option for json, csv, etc.
   );
   return $items;
 }
@@ -80,44 +70,12 @@ function drush_devel_reinstall() {
 }
 
 /**
- * A command callback.
- */
-function drush_devel_download($path = NULL) {
-  // If no path is provided by the user, set our default path.
-  if (is_null($path)) {
-    // We use devel folder for legacy reason.
-    $path = drupal_get_path('module', 'devel') . '/FirePHPCore';
-  }
-  // If FirePHP is not installed and libraries module is enabled,
-  // try to find FirePHP by its own means.
-  if (!is_dir($path)) {
-    if (module_exists('libraries')) {
-      // Libraries 1.x will return a path even if it doesn't exist
-      // while 2.x will return FALSE.
-      $path = libraries_get_path('FirePHPCore');
-      if (!$path) {
-        $path = 'sites/all/libraries/FirePHPCore';
-      }
-    }
-  }
-  if (is_dir($path)) {
-    drush_log(dt('FirePHP already present at @path. No download required.', array('@path' => $path)), 'ok');
-  }
-  elseif (drush_shell_exec('svn export http://firephp.googlecode.com/svn/branches/Library-FirePHPCore-0.3 %s', $path)) {
-    drush_log(dt('FirePHP has been exported via svn to @path.', array('@path' => $path)), 'success');
-  }
-  else {
-    drush_log(dt('Drush was unable to export FirePHP to @path.', array('@path' => $path)), 'warning');
-  }
-}
-
-/**
  * Command handler. Show hook implementations.
  */
 function drush_devel_fn_hook($hook) {
   // Get implementations in the .install files as well.
   include_once './includes/install.inc';
-  drupal_load_updates();
+  backdrop_load_updates();
 
   if ($hook_implementations = module_implements($hook)) {
     if ($choice = drush_choice(array_combine($hook_implementations, $hook_implementations), 'Enter the number of the hook implementation you wish to view.')) {
@@ -135,7 +93,7 @@ function drush_devel_fn_hook($hook) {
 function drush_devel_fn_view($function_name) {
   // Get implementations in the .install files as well.
   include_once './includes/install.inc';
-  drupal_load_updates();
+  backdrop_load_updates();
 
   if (strpos($function_name, '::') === FALSE) {
     if (!function_exists($function_name)) {

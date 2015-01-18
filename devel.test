@@ -8,7 +8,7 @@
 /**
  * Test devel mail functionality.
  */
-class DevelMailTest extends DrupalWebTestCase {
+class DevelMailTest extends BackdropWebTestCase {
   protected $profile = 'testing';
 
   public static function getInfo() {
@@ -27,7 +27,8 @@ class DevelMailTest extends DrupalWebTestCase {
    * Test mail logging functionality.
    */
   function testMail() {
-    require_once ('devel.mail.inc');
+    $path = backdrop_get_path('module', 'devel_generate');
+    require_once BACKDROP_ROOT . '/' . $path . '/devel.mail.inc';
     $message = array();
     $message['to'] = 'drupal@example.com';
     $message['subject'] = 'Test mail';
@@ -45,8 +46,7 @@ class DevelMailTest extends DrupalWebTestCase {
     $this->assertEqual($content, 'From: postmaster@example.com
 X-stupid: dumb
 To: drupal@example.com
-Subject: Test mail
-
+Test mail
 I am the body of this message');
   }
 

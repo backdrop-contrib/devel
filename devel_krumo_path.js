@@ -3,11 +3,11 @@
 /**
  * Attaches double-click behavior to toggle full path of Krumo elements.
  */
-Drupal.behaviors.devel = {
+Backdrop.behaviors.devel = {
   attach: function (context, settings) {
 
     // Add hint to footnote
-    $('.krumo-footnote .krumo-call').once().before('<img style="vertical-align: middle;" title="Click to expand. Double-click to show path." src="' + settings.basePath + 'misc/help.png"/>');
+    $('.krumo-footnote .krumo-call').before('<img style="vertical-align: middle;" title="Click to expand. Double-click to show path." src="' + Backdrop.settings.basePath + 'misc/help.png"/>');
 
     var krumo_name = [];
     var krumo_type = [];
