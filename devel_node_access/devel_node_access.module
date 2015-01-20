@@ -95,9 +95,9 @@ function devel_node_access_form_alter(&$form, $form_state, $form_id) {
       '#default_value' => config_get('devel_node_access.settings', 'user_ajax'),
       '#description'   => t("Use Ajax to populate the second DNA block. This loads the initial page faster and uses dynamic calls to build the data in the table, one request at a time. It's especially useful during development, if some of the calls are failing.") . '<br />' . t('JavaScript must be enabled in your browser.'),
     );
-  }
 
-  $form['#submit'][] = 'devel_node_access_form_submit';
+    $form['#submit'][] = 'devel_node_access_form_submit';
+  }
 }
 
 /**
