@@ -698,7 +698,7 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
       // fix the urls
       //
       // DEVEL: changed for Drupal path system.
-      $css_url = file_create_url(backdrop_get_path('module', 'devel') . "/krumo/skins/{$skin}/");
+      $css_url = file_create_url(backdrop_get_path('module', 'devel') . "/lib/krumo/skins/{$skin}/");
 
       $css = preg_replace('~%url%~Uis', $css_url, $css);
 
