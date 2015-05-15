@@ -6,5 +6,4 @@ configure = admin/config/development/devel
 tags[] = developer
 files[] = devel.test
 files[] = devel.mail.inc
-
-version = 1.x-1.x
+type = module
