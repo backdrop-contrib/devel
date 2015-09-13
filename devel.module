@@ -316,6 +316,20 @@ function devel_admin_paths() {
   return $paths;
 }
 
+/**
+ * Implements hook_config_info().
+ */
+/**
+ * Implements hook_config_info().
+ */
+function devel_config_info() {
+  $prefixes['devel.settings'] = array(
+    'label' => t('Devel settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
 function devel_menu_need_destination() {
   return array('devel/cache/clear', 'devel/reinstall', 'devel/menu/reset', 'devel/variable', 'admin/reports/status/run-cron');
 }
