@@ -319,9 +319,6 @@ function devel_admin_paths() {
 /**
  * Implements hook_config_info().
  */
-/**
- * Implements hook_config_info().
- */
 function devel_config_info() {
   $prefixes['devel.settings'] = array(
     'label' => t('Devel settings'),
