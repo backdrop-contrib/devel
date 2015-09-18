@@ -4,3 +4,4 @@ package = Development
 backdrop = 1.x
 dependencies[] = devel
 configure = admin/config/development/generate
+type = module
