@@ -1,4 +1,4 @@
-name = Devel generate
+name = Devel Generate
 description = Generate dummy users, nodes, and taxonomy terms.
 package = Development
 backdrop = 1.x
