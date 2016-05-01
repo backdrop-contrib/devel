@@ -4,6 +4,27 @@
  * The settings form for Devel module.
  */
 function devel_admin_settings() {
+  $config = config('system.core');
+  $form['system_core'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Core system devel settings'),
+  );
+
+  $form['system_core']['theme_debug'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable theme debug'),
+    '#default_value' => $config->get('theme_debug'),
+    '#description' => t('Enable core\'s theme debug mode.'),
+  );
+
+  $form['system_core']['watchdog_enabled_severity_levels'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Watchdog severity levels'),
+    '#options' => watchdog_severity_levels(),
+    '#default_value' => $config->get('watchdog_enabled_severity_levels'),
+    '#description' => t('Show only watchdog messages with the selected severity levels.'),
+  );
+
   $config = config('devel.settings');
   $form['queries'] = array(
     '#type' => 'fieldset',
@@ -177,8 +198,17 @@ function devel_admin_settings() {
  * Submit handler for devel_admin_settings().
  */
 function devel_admin_settings_submit($form, &$form_state) {
-  $config = config('devel.settings');
   $values = $form_state['values'];
+
+  // Save the hidden core development settings
+  $config = config('system.core');
+  $config->set('theme_debug', (bool)$values['theme_debug']);
+  $config->set('watchdog_enabled_severity_levels', array_map('intval', array_values(array_filter($values['watchdog_enabled_severity_levels'], 'is_string'))));
+
+  $config->save();
+
+  // And now our own devel.settings.
+  $config = config('devel.settings');
 
   $config->set('query_display', (bool) $values['query_display']);
   $config->set('query_sort', $values['query_sort']);
