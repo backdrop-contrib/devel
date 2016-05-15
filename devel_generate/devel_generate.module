@@ -259,15 +259,14 @@ function devel_generate_content_form_submit($form_id, &$form_state) {
 function devel_generate_term_form() {
   $options = array();
   foreach (taxonomy_get_vocabularies() as $vid => $vocab) {
-    $options[$vid] = $vocab->machine_name;
+    $options[$vid] = $vocab->name;
   }
   $form['vids'] = array(
     '#type' => 'select',
     '#multiple' => TRUE,
-    '#title' => t('Vocabularies'),
+    '#title' => t('Generate terms for these vocabularies'),
     '#required' => TRUE,
     '#options' => $options,
-    '#description' => t('Restrict terms to these vocabularies.'),
   );
   $form['num_terms'] = array(
     '#type' => 'textfield',
