@@ -199,8 +199,8 @@ function devel_generate_content_form() {
   $form['add_alias'] = array(
     '#type' => 'checkbox',
     '#disabled' => !module_exists('path'),
-    '#description' => t('Requires path.module'),
-    '#title' => t('Add an url alias for each node.'),
+    '#description' => t('Content types will use the default patterns when generated. Checking this box will add a custom alias to all content types that do not have a pattern specified.'),
+    '#title' => t('Ensure all content has a URL alias.'),
     '#default_value' => FALSE,
   );
   $form['add_statistics'] = array(
