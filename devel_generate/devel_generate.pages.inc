@@ -323,7 +323,7 @@ function devel_generate_set_message($msg, $type = 'status') {
 function devel_generate_menu_form() {
   $menu_enabled = module_exists('menu');
   if ($menu_enabled) {
-    $menus = array('__new-menu__' => t('Create new menu(s)')) + menu_get_menus();
+    $menus = menu_get_menus() + array('__new-menu__' => t('Create new menu(s)'));
   }
   else {
     $menus = menu_list_system_menus();
