@@ -164,10 +164,11 @@ function devel_generate_content_form() {
     '#default_value' => FALSE,
   );
   $form['num_nodes'] = array(
-    '#type' => 'textfield',
+    '#type' => 'number',
     '#title' => t('How many nodes would you like to generate?'),
     '#default_value' => 50,
-    '#size' => 10,
+    '#min' => 1,
+    '#max' => 999999,
   );
 
   $options = array(1 => t('Now'));
@@ -183,18 +184,20 @@ function devel_generate_content_form() {
   );
 
   $form['max_comments'] = array(
-    '#type' => module_exists('comment') ? 'textfield' : 'value',
+    '#type' => module_exists('comment') ? 'number' : 'value',
     '#title' => t('Maximum number of comments per node.'),
     '#description' => t('You must also enable comments for the content types you are generating. Note that some nodes will randomly receive zero comments. Some will receive the max.'),
     '#default_value' => 0,
-    '#size' => 3,
+    '#min' => 0,
+    '#max' => 99999,
     '#access' => module_exists('comment'),
   );
   $form['title_length'] = array(
-    '#type' => 'textfield',
+    '#type' => 'number',
     '#title' => t('Maximum number of words in titles'),
     '#default_value' => 4,
-    '#size' => 10,
+    '#min' => 1,
+    '#max' => 100,
   );
   $form['add_alias'] = array(
     '#type' => 'checkbox',
@@ -202,12 +205,6 @@ function devel_generate_content_form() {
     '#description' => t('Content types will use the default patterns when generated. Checking this box will add a custom alias to all content types that do not have a pattern specified.'),
     '#title' => t('Ensure all content has a URL alias.'),
     '#default_value' => FALSE,
-  );
-  $form['add_statistics'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Add statistics for each node (node_counter table).'),
-    '#default_value' => TRUE,
-    '#access' => module_exists('statistics'),
   );
 
   unset($options);
@@ -269,16 +266,18 @@ function devel_generate_term_form() {
     '#options' => $options,
   );
   $form['num_terms'] = array(
-    '#type' => 'textfield',
+    '#type' => 'number',
     '#title' => t('Number of terms?'),
     '#default_value' => 10,
-    '#size' => 10,
+    '#min' => 1,
+    '#max' => 99999,
   );
   $form['title_length'] = array(
-    '#type' => 'textfield',
+    '#type' => 'number',
     '#title' => t('Maximum number of characters in term names'),
     '#default_value' => 12,
-    '#size' => 10,
+    '#min' => 1,
+    '#max' => 1000,
   );
   $form['kill_taxonomy'] = array(
     '#type' => 'checkbox',
@@ -297,16 +296,18 @@ function devel_generate_term_form() {
  */
 function devel_generate_vocab_form() {
   $form['num_vocabs'] = array(
-    '#type' => 'textfield',
+    '#type' => 'number',
     '#title' => t('Number of vocabularies?'),
     '#default_value' => 1,
-    '#size' => 10,
+    '#min' => 1,
+    '#max' => 999,
   );
   $form['title_length'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum number of characters in vocabulary names'),
     '#default_value' => 12,
-    '#size' => 10,
+    '#min' => 1,
+    '#max' => 1000,
   );
   $form['kill_taxonomy'] = array(
     '#type' => 'checkbox',
@@ -351,19 +352,20 @@ function devel_generate_node_insert($node) {
       devel_generate_add_comments($node, $results['users'], $results['max_comments'], $results['title_length']);
     }
 
-
     // Add an url alias. Cannot happen before save because we don't know the nid.
     if (!empty($results['add_alias'])) {
-      $path = array(
-        'source' => 'node/' . $node->nid,
-        'alias' => 'node-' . $node->nid . '-' . $node->type,
-      );
-      path_save($path);
-    }
-
-    // Add node statistics.
-    if (!empty($results['add_statistics']) && module_exists('statistics')) {
-      devel_generate_add_statistics($node);
+      // Check if an alias will be made automatically.
+      module_load_include('inc', 'path');
+      if (function_exists('path_generate_entity_alias')) {
+        $alias = path_generate_entity_alias($node);
+        if (!$alias) {
+          $path = array(
+            'source' => 'node/' . $node->nid,
+            'alias' => 'node-' . $node->nid . '-' . $node->type,
+          );
+          path_save($path);
+        }
+      }
     }
   }
 }
