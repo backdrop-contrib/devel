@@ -15,43 +15,22 @@ define('DEVEL_ERROR_HANDLER_BACKTRACE_DPM', 'dpm');
 define('DEVEL_MIN_TEXTAREA', 50);
 
 /**
- * Implements hook_modules_installed().
- *
- * @see devel_install()
- */
-function devel_modules_installed($modules) {
-  if (in_array('menu', $modules)) {
-    $menu = array(
-      'menu_name' => 'devel',
-      'title' => t('Development'),
-      'description' => t('Development link'),
-    );
-    menu_save($menu);
-  }
-}
-
-/**
  * Implements hook_menu().
  */
 function devel_menu() {
-  // Note: we can't dynamically append destination to querystring. Do so at theme layer. Fix in D7?
-  $items['devel/cache/clear'] = array(
-    'title' => 'Empty cache',
-    'page callback' => 'devel_cache_clear',
-    'description' => 'Clear the CSS cache and all database cache tables which store page, node, theme and variable caches.',
+  $items['devel'] = array(
+    'title' => 'Development',
     'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
+    'page callback' => 'system_admin_menu_block_page',
+    'weight' => 9,
+    'menu_name' => 'management',
+    'file' => 'system.admin.inc',
+    'file path' => backdrop_get_path('module', 'system'),
   );
 
-  $items['devel/reference'] = array(
-    'title' => 'Function reference',
-    'description' => 'View a list of currently defined user functions with documentation links.',
-    'page callback' => 'devel_function_reference',
-    'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
+  /**
+   * General utilities are at the top-level.
+   */
   $items['devel/reinstall'] = array(
     'title' => 'Reinstall modules',
     'page callback' => 'backdrop_get_form',
@@ -59,16 +38,89 @@ function devel_menu() {
     'description' => 'Run hook_uninstall() and then hook_install() for a given module.',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
   );
-  $items['devel/menu/reset'] = array(
-    'title' => 'Rebuild menus',
-    'description' => 'Rebuild menu based on hook_menu() and revert any custom changes. All menu items return to their default settings.',
+  $items['devel/php'] = array(
+    'title' => 'Execute PHP Code',
+    'description' => 'Execute arbitrary PHP code.',
     'page callback' => 'backdrop_get_form',
-    'page arguments' => array('devel_menu_rebuild'),
+    'page arguments' => array('devel_execute_form'),
+    'access arguments' => array('execute php code'),
+    'file' => 'devel.pages.inc',
+  );
+  $items['devel/switch-user'] = array(
+    'title' => 'Switch user account',
+    'description' => 'Change the currently logged in user to another account.',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('devel_switch_user_form'),
+    'access arguments' => array('switch users'),
+  );
+
+  /**
+   * Informational menu callbacks.
+   */
+  $items['devel/info'] = array(
+    'title' => 'Information',
+    'description' => 'Deep inspection tools for Backdrop internals.',
+    'access arguments' => array('access devel information'),
+    'page callback' => 'system_admin_menu_block_page',
+    'weight' => 9,
+    'menu_name' => 'management',
+    'file' => 'system.admin.inc',
+    'file path' => backdrop_get_path('module', 'system'),
+  );
+  $items['devel/info/reference'] = array(
+    'title' => 'Function reference',
+    'description' => 'View a list of currently defined user functions with documentation links.',
+    'page callback' => 'devel_function_reference',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
+  );
+  $items['devel/info/theme'] = array(
+    'title' => 'Theme registry',
+    'description' => 'View a list of available theme functions across the whole site.',
+    'page callback' => 'devel_theme_registry',
+    'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
+  );
+  $items['devel/info/entity'] = array(
+    'title' => 'Entity info',
+    'description' => 'View entity information across the whole site.',
+    'page callback' => 'devel_entity_info_page',
+    'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
+  );
+  $items['devel/info/field'] = array(
+    'title' => 'Field info',
+    'description' => 'View fields information across the whole site.',
+    'page callback' => 'devel_field_info_page',
+    'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
+  );
+  $items['devel/info/elements'] = array(
+    'title' => 'Form API elements',
+    'description' => 'View the active form/render elements for this site.',
+    'page callback' => 'devel_elements_page',
+    'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
+  );
+  $items['devel/info/session'] = array(
+    'title' => 'Session viewer',
+    'description' => 'List the contents of $_SESSION.',
+    'page callback' => 'devel_session',
+    'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
+  );
+
+  /**
+   * Menu callbacks that are accessed directly without menu links.
+   */
+  $items['devel/switch'] = array(
+    'title' => 'Switch user',
+    'page callback' => 'devel_switch_user',
+    'access callback' => '_devel_switch_user_access',
+    'access arguments' => array(2),
+    'file' => 'devel.pages.inc',
+    'type' => MENU_CALLBACK,
   );
   $items['devel/menu/item'] = array(
     'title' => 'Menu item',
@@ -76,83 +128,8 @@ function devel_menu() {
     'page callback' => 'devel_menu_item',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
-  // we don't want the abbreviated version provided by status report
-  $items['devel/phpinfo'] = array(
-    'title' => 'PHPinfo()',
-    'description' => 'View your server\'s PHP configuration',
-    'page callback' => 'devel_phpinfo',
-    'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
-  $items['devel/php'] = array(
-    'title' => 'Execute PHP Code',
-    'description' => 'Execute some PHP code',
-    'page callback' => 'backdrop_get_form',
-    'page arguments' => array('devel_execute_form'),
-    'access arguments' => array('execute php code'),
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
-  $items['devel/theme/registry'] = array(
-    'title' => 'Theme registry',
-    'description' => 'View a list of available theme functions across the whole site.',
-    'page callback' => 'devel_theme_registry',
-    'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
-  $items['devel/entity/info'] = array(
-    'title' => 'Entity info',
-    'description' => 'View entity information across the whole site.',
-    'page callback' => 'devel_entity_info_page',
-    'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
-  $items['devel/field/info'] = array(
-    'title' => 'Field info',
-    'description' => 'View fields information across the whole site.',
-    'page callback' => 'devel_field_info_page',
-    'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
-  $items['devel/elements'] = array(
-    'title' => 'Hook_elements()',
-    'description' => 'View the active form/render elements for this site.',
-    'page callback' => 'devel_elements_page',
-    'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
-  $items['devel/variable/edit/%'] = array(
-    'title' => 'Variable editor',
-    'page callback' => 'backdrop_get_form',
-    'page arguments' => array('devel_variable_edit', 3),
-    'access arguments' => array('access devel information'),
+    'menu_name' => 'management',
     'type' => MENU_CALLBACK,
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
-  $items['devel/session'] = array(
-    'title' => 'Session viewer',
-    'description' => 'List the contents of $_SESSION.',
-    'page callback' => 'devel_session',
-    'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
-  );
-  $items['devel/switch'] = array(
-    'title' => 'Switch user',
-    'page callback' => 'devel_switch_user',
-    'access callback' => '_devel_switch_user_access',
-    'access arguments' => array(2),
-    'type' => MENU_CALLBACK,
-    'file' => 'devel.pages.inc',
-    'menu_name' => 'devel',
   );
   $items['devel/explain'] = array(
     'title' => 'Explain query',
@@ -170,25 +147,6 @@ function devel_menu() {
     'file' => 'devel.pages.inc',
     'type' => MENU_CALLBACK
   );
-  $items['devel/run-cron'] = array(
-    'title' => 'Run cron',
-    'page callback' => 'system_run_cron',
-    'access arguments' => array('administer site configuration'),
-    'file' => 'system.admin.inc',
-    'file path' => backdrop_get_path('module', 'system'),
-    'menu_name' => 'devel',
-  );
-
-  // Duplicate path in 2 different menus. See http://drupal.org/node/601788.
-  $items['devel/settings'] = array(
-    'title' => 'Devel settings',
-    'description' =>  'Helper functions, pages, and blocks to assist Drupal developers. The devel blocks can be managed via the <a href="' . url('admin/structure/block') . '">block administration</a> page.',
-    'page callback' => 'backdrop_get_form',
-    'page arguments' => array('devel_admin_settings'),
-    'access arguments' => array('administer site configuration'),
-    'file' => 'devel.admin.inc',
-    'menu_name' => 'devel',
-  );
   $items['admin/config/development/devel'] = array(
     'title' => 'Devel settings',
     'description' =>  'Helper functions, pages, and blocks to assist developers. The devel blocks can be managed via the <a href="' . url('admin/structure/layouts') . '">Layout administration</a> page.',
@@ -198,6 +156,9 @@ function devel_menu() {
     'access arguments' => array('administer site configuration'),
   );
 
+  /**
+   * Information displayed as local tasks on various entities.
+   */
   $items['node/%node/devel'] = array(
     'title' => 'Devel',
     'page callback' => 'devel_load_object',
@@ -303,6 +264,7 @@ function _devel_switch_user_access($name) {
  */
 function devel_admin_paths() {
   $paths = array(
+    'devel' => TRUE,
     'devel/*' => TRUE,
     'node/*/devel' => TRUE,
     'node/*/devel/*' => TRUE,
@@ -781,6 +743,11 @@ function devel_block_view($delta = '', $settings = array(), $contexts = array())
 }
 
 function devel_block_switch_user($settings) {
+  $settings += array(
+    'list_size' => 20,
+    'include_anon' => FALSE,
+    'show_form' => TRUE,
+  );
   $links = devel_switch_user_list($settings);
   if (!empty($links) || user_access('switch users')) {
     backdrop_add_css(backdrop_get_path('module', 'devel') . '/devel.css');
