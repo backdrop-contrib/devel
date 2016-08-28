@@ -11,19 +11,27 @@ function text_devel_generate($object, $field, $instance, $bundle) {
 
 function _text_devel_generate($object, $field, $instance, $bundle) {
   $object_field = array();
+
+  $formats = filter_formats();
   if (!empty($instance['settings']['text_processing'])) {
-    $formats = filter_formats();
-    $format = array_rand($formats);
+    $format_name = array_rand($formats);
   }
   else {
-    $format = filter_fallback_format();
+    $format_name = filter_fallback_format();
+  }
+  $format = $formats[$format_name];
+
+  // If escaping all tags, do not add <p> tags.
+  $include_p_tags = TRUE;
+  if (array_key_exists('filter_html_escape', $format->filters)) {
+    $include_p_tags = FALSE;
   }
 
   if ($instance['widget']['type'] != 'text_textfield') {
     // Textarea handling
-    $object_field['value'] = devel_create_content($format);
+    $object_field['value'] = devel_create_content($include_p_tags);
     if ($instance['widget']['type'] == 'text_textarea_with_summary' && !empty($instance['display_summary'])) {
-      $object_field['summary'] = devel_create_content($format);
+      $object_field['summary'] = devel_create_content($include_p_tags);
     }
   }
   else {
@@ -34,6 +42,6 @@ function _text_devel_generate($object, $field, $instance, $bundle) {
     }
     $object_field['value'] = user_password($field['settings']['max_length']);
   }
-  $object_field['format'] = $format;
+  $object_field['format'] = $format_name;
   return $object_field;
 }
