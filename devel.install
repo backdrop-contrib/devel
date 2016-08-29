@@ -92,3 +92,10 @@ function devel_update_1002() {
   config('menu.menu.devel')->delete();
   db_query("DELETE FROM {menu_links} WHERE menu_name = 'devel'");
 }
+
+/**
+ * Remove option for Krumo skin.
+ */
+function devel_update_1003() {
+  config('devel.settings')->clear('krumo_skin')->save();
+}

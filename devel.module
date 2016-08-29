@@ -347,7 +347,11 @@ function devel_theme() {
 function devel_init() {
   if (!devel_silent()) {
     if (user_access('access devel information')) {
-      devel_set_handler(devel_get_handlers());
+      // Override the default error handler if any option is set.
+      if ($handlers = devel_get_handlers()) {
+        devel_set_handler($handlers);
+      }
+
       // We want to include the class early so that anyone may call krumo() as needed. See http://krumo.sourceforge.net/
       has_krumo();
 
@@ -415,7 +419,7 @@ function has_krumo() {
  * @return boolean
  */
 function merits_krumo($input) {
-  return (is_object($input) || is_array($input)) && has_krumo() && config_get('devel.settings', 'krumo_skin') != 'disabled';
+  return (is_object($input) || is_array($input)) && has_krumo();
 }
 
 /**
@@ -487,9 +491,6 @@ function devel_watchdog(array $log_entry) {
 
 function devel_get_handlers() {
   $error_handlers = config_get('devel.settings', 'devel_error_handlers');
-  if (!empty($error_handlers)) {
-    unset($error_handlers[DEVEL_ERROR_HANDLER_NONE]);
-  }
   return $error_handlers;
 }
 
@@ -497,13 +498,11 @@ function devel_set_handler($handlers) {
   if (empty($handlers)) {
     restore_error_handler();
   }
-  elseif (count($handlers) == 1 && isset($handlers[DEVEL_ERROR_HANDLER_STANDARD])) {
+  elseif (count($handlers) == 1 && in_array(DEVEL_ERROR_HANDLER_STANDARD, $handlers)) {
     // do nothing
   }
-  else {
-    if (has_krumo()) {
-      set_error_handler('backtrace_error_handler');
-    }
+  elseif (has_krumo()) {
+    set_error_handler('backtrace_error_handler');
   }
 }
 
@@ -638,14 +637,14 @@ function backtrace_error_handler($error_level, $message, $filename, $line, $cont
     // Show only if error reporting level is "some" or "all".
     if (config_get('system.core', 'error_level') == ERROR_REPORTING_DISPLAY_SOME || config_get('system.core', 'error_level') == ERROR_REPORTING_DISPLAY_ALL) {
       $error_handlers = devel_get_handlers();
-      if (!empty($error_handlers[DEVEL_ERROR_HANDLER_STANDARD])) {
+      if (in_array(DEVEL_ERROR_HANDLER_STANDARD, $error_handlers)) {
         backdrop_set_message($msg, ($type[1] <= WATCHDOG_ERROR ? 'error' : 'warning'));
       }
-      if (!empty($error_handlers[DEVEL_ERROR_HANDLER_BACKTRACE_KRUMO])) {
+      if (in_array(DEVEL_ERROR_HANDLER_BACKTRACE_KRUMO, $error_handlers)) {
         print $msg ." =&gt;\n";
         ddebug_backtrace(FALSE, 1);
       }
-      if (!empty($error_handlers[DEVEL_ERROR_HANDLER_BACKTRACE_DPM])) {
+      if (in_array(DEVEL_ERROR_HANDLER_BACKTRACE_DPM, $error_handlers)) {
         dpm(ddebug_backtrace(TRUE, 1), $msg, 'warning');
       }
     }
