@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Devel generate support for File module.
+ */
 
 function file_devel_generate($object, $field, $instance, $bundle) {
   if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {

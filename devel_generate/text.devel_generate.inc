@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Devel generate support for Text module.
+ */
 
 function text_devel_generate($object, $field, $instance, $bundle) {
   if (field_behaviors_widget('multiple values', $instance) == FIELD_BEHAVIOR_CUSTOM) {
