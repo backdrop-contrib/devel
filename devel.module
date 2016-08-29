@@ -54,6 +54,14 @@ function devel_menu() {
     'page arguments' => array('devel_switch_user_form'),
     'access arguments' => array('switch users'),
   );
+  // Redirect from easily-accessible settings page to the official location.
+  $items['devel/settings'] = array(
+    'title' => 'Devel settings',
+    'description' =>  'Configure query logging, XHProf, debugging messages, and other developer features.',
+    'page callback' => 'backdrop_goto',
+    'page arguments' => array('admin/config/development/devel'),
+    'access arguments' => array('administer site configuration'),
+  );
 
   /**
    * Informational menu callbacks.
@@ -149,7 +157,7 @@ function devel_menu() {
   );
   $items['admin/config/development/devel'] = array(
     'title' => 'Devel settings',
-    'description' =>  'Helper functions, pages, and blocks to assist developers. The devel blocks can be managed via the <a href="' . url('admin/structure/layouts') . '">Layout administration</a> page.',
+    'description' =>  'Configure query logging, XHProf, debugging messages, and other developer features.',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('devel_admin_settings'),
     'file' => 'devel.admin.inc',
