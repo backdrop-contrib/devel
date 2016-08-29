@@ -27,7 +27,7 @@ function devel_node_access_menu() {
   $items = array();
 
   // Create a callback for use by devel_node_access_user_ajax().
-  $items['devel/node_access/by_user/%/%'] = array(
+  $items['admin/devel/node_access/by_user/%/%'] = array(
     'page callback'    => 'devel_node_access_user_ajax',
     'page arguments'   => array(3, 4),
     'access arguments' => array(DNA_ACCESS_VIEW),
@@ -35,7 +35,7 @@ function devel_node_access_menu() {
   );
 
   // Add this to the custom menu 'devel' created by the devel module.
-  $items['devel/node_access/summary'] = array(
+  $items['admin/devel/node_access/summary'] = array(
     'title'            => 'Node_access summary',
     'page callback'    => 'dna_summary',
     'access arguments' => array(DNA_ACCESS_VIEW),
@@ -110,7 +110,7 @@ function dna_summary() {
   if ($num) {
     $output .= '<h3>' . t('Legacy Nodes') . "</h3>\n";
     $output .= '<p>' .
-      t('You have !num nodes in your node table which are not represented in your node_access table.  If you have an access control module installed, these nodes may be hidden from all users.  This could be caused by publishing nodes before enabling the access control module.  If this is the case, manually updating each node should add it to the node_access table and fix the problem.', array('!num' => l($num, 'devel/node_access/view/NULL')))
+      t('You have !num nodes in your node table which are not represented in your node_access table.  If you have an access control module installed, these nodes may be hidden from all users.  This could be caused by publishing nodes before enabling the access control module.  If this is the case, manually updating each node should add it to the node_access table and fix the problem.', array('!num' => l($num, 'admin/devel/node_access/view/NULL')))
       . "</p>\n";
     if (!empty($access_granted_to_all_nodes)) {
       $output .= '<p>' .

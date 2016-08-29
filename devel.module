@@ -18,12 +18,11 @@ define('DEVEL_MIN_TEXTAREA', 50);
  * Implements hook_menu().
  */
 function devel_menu() {
-  $items['devel'] = array(
+  $items['admin/devel'] = array(
     'title' => 'Development',
     'access arguments' => array('access devel information'),
     'page callback' => 'system_admin_menu_block_page',
-    'weight' => 9,
-    'menu_name' => 'management',
+    'weight' => 5,
     'file' => 'system.admin.inc',
     'file path' => backdrop_get_path('module', 'system'),
   );
@@ -31,7 +30,7 @@ function devel_menu() {
   /**
    * General utilities are at the top-level.
    */
-  $items['devel/reinstall'] = array(
+  $items['admin/devel/reinstall'] = array(
     'title' => 'Reinstall modules',
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('devel_reinstall'),
@@ -39,7 +38,7 @@ function devel_menu() {
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
-  $items['devel/php'] = array(
+  $items['admin/devel/php'] = array(
     'title' => 'Execute PHP Code',
     'description' => 'Execute arbitrary PHP code.',
     'page callback' => 'backdrop_get_form',
@@ -47,7 +46,7 @@ function devel_menu() {
     'access arguments' => array('execute php code'),
     'file' => 'devel.pages.inc',
   );
-  $items['devel/switch-user'] = array(
+  $items['admin/devel/switch-user'] = array(
     'title' => 'Switch user account',
     'description' => 'Change the currently logged in user to another account.',
     'page callback' => 'backdrop_get_form',
@@ -55,7 +54,7 @@ function devel_menu() {
     'access arguments' => array('switch users'),
   );
   // Redirect from easily-accessible settings page to the official location.
-  $items['devel/settings'] = array(
+  $items['admin/devel/settings'] = array(
     'title' => 'Devel settings',
     'description' =>  'Configure query logging, XHProf, debugging messages, and other developer features.',
     'page callback' => 'backdrop_goto',
@@ -66,7 +65,7 @@ function devel_menu() {
   /**
    * Informational menu callbacks.
    */
-  $items['devel/info'] = array(
+  $items['admin/devel/info'] = array(
     'title' => 'Information',
     'description' => 'Deep inspection tools for Backdrop internals.',
     'access arguments' => array('access devel information'),
@@ -76,42 +75,42 @@ function devel_menu() {
     'file' => 'system.admin.inc',
     'file path' => backdrop_get_path('module', 'system'),
   );
-  $items['devel/info/reference'] = array(
+  $items['admin/devel/info/reference'] = array(
     'title' => 'Function reference',
     'description' => 'View a list of currently defined user functions with documentation links.',
     'page callback' => 'devel_function_reference',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
-  $items['devel/info/theme'] = array(
+  $items['admin/devel/info/theme'] = array(
     'title' => 'Theme registry',
     'description' => 'View a list of available theme functions across the whole site.',
     'page callback' => 'devel_theme_registry',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
-  $items['devel/info/entity'] = array(
+  $items['admin/devel/info/entity'] = array(
     'title' => 'Entity info',
     'description' => 'View entity information across the whole site.',
     'page callback' => 'devel_entity_info_page',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
-  $items['devel/info/field'] = array(
+  $items['admin/devel/info/field'] = array(
     'title' => 'Field info',
     'description' => 'View fields information across the whole site.',
     'page callback' => 'devel_field_info_page',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
-  $items['devel/info/elements'] = array(
+  $items['admin/devel/info/elements'] = array(
     'title' => 'Form API elements',
     'description' => 'View the active form/render elements for this site.',
     'page callback' => 'devel_elements_page',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
-  $items['devel/info/session'] = array(
+  $items['admin/devel/info/session'] = array(
     'title' => 'Session viewer',
     'description' => 'List the contents of $_SESSION.',
     'page callback' => 'devel_session',
@@ -122,7 +121,7 @@ function devel_menu() {
   /**
    * Menu callbacks that are accessed directly without menu links.
    */
-  $items['devel/switch'] = array(
+  $items['admin/devel/switch'] = array(
     'title' => 'Switch user',
     'page callback' => 'devel_switch_user',
     'access callback' => '_devel_switch_user_access',
@@ -130,7 +129,7 @@ function devel_menu() {
     'file' => 'devel.pages.inc',
     'type' => MENU_CALLBACK,
   );
-  $items['devel/menu/item'] = array(
+  $items['admin/devel/menu/item'] = array(
     'title' => 'Menu item',
     'description' => 'Details about a given menu item.',
     'page callback' => 'devel_menu_item',
@@ -139,7 +138,7 @@ function devel_menu() {
     'menu_name' => 'management',
     'type' => MENU_CALLBACK,
   );
-  $items['devel/explain'] = array(
+  $items['admin/devel/explain'] = array(
     'title' => 'Explain query',
     'page callback' => 'devel_querylog_explain',
     'description' => 'Run an EXPLAIN on a given query. Used by query log',
@@ -147,7 +146,7 @@ function devel_menu() {
     'file' => 'devel.pages.inc',
     'type' => MENU_CALLBACK
   );
-  $items['devel/arguments'] = array(
+  $items['admin/devel/arguments'] = array(
     'title' => 'Arguments query',
     'page callback' => 'devel_querylog_arguments',
     'description' => 'Return a given query, with arguments instead of placeholders. Used by query log',
@@ -272,8 +271,6 @@ function _devel_switch_user_access($name) {
  */
 function devel_admin_paths() {
   $paths = array(
-    'devel' => TRUE,
-    'devel/*' => TRUE,
     'node/*/devel' => TRUE,
     'node/*/devel/*' => TRUE,
     'comment/*/devel' => TRUE,
@@ -298,7 +295,7 @@ function devel_config_info() {
 }
 
 function devel_menu_need_destination() {
-  return array('devel/cache/clear', 'devel/reinstall', 'devel/menu/reset', 'devel/variable', 'admin/reports/status/run-cron');
+  return array('admin/devel/cache/clear', 'admin/devel/reinstall', 'admin/devel/menu/reset', 'admin/devel/variable', 'admin/reports/status/run-cron');
 }
 
 /**
@@ -308,7 +305,7 @@ function devel_menu_need_destination() {
  *
  **/
 function devel_menu_link_alter(&$item) {
-  if (in_array($item['link_path'], devel_menu_need_destination()) || $item['link_path'] == 'devel/menu/item') {
+  if (in_array($item['link_path'], devel_menu_need_destination()) || $item['link_path'] == 'admin/devel/menu/item') {
     $item['options']['alter'] = TRUE;
   }
 }
@@ -322,7 +319,7 @@ function devel_translated_menu_link_alter(&$item) {
   if (in_array($item['href'], devel_menu_need_destination())) {
     $item['localized_options']['query'] = backdrop_get_destination();
   }
-  elseif ($item['href'] == 'devel/menu/item') {
+  elseif ($item['href'] == 'admin/devel/menu/item') {
     $item['localized_options']['query'] = array('path' => $_GET['q']);
   }
 }
@@ -804,7 +801,7 @@ function devel_switch_user_list($settings) {
     $accounts = user_load_multiple($uids);
 
     foreach ($accounts as $account) {
-      $path = 'devel/switch/'. $account->name;
+      $path = 'admin/devel/switch/'. $account->name;
       $links[$account->uid] = array(
         'title' => backdrop_placeholder(user_format_name($account)),
         'href' => $path,
@@ -820,7 +817,7 @@ function devel_switch_user_list($settings) {
       $uids = db_query_range('SELECT uid FROM {users} WHERE uid > 0 AND uid NOT IN (:uids) AND status > 0 ORDER BY access DESC', 0, $list_size - $num_links, array(':uids' => array_keys($links)))->fetchCol();
       $accounts = user_load_multiple($uids);
       foreach ($accounts as $account) {
-        $path = 'devel/switch/'. $account->name;
+        $path = 'admin/devel/switch/'. $account->name;
         $links[$account->uid] = array(
           'title' => user_format_name($account),
           'href' => $path,
@@ -832,7 +829,7 @@ function devel_switch_user_list($settings) {
       uasort($links, '_devel_switch_user_list_cmp');
     }
     if ($include_anon) {
-      $path = 'devel/switch';
+      $path = 'admin/devel/switch';
       $link = array(
         'title' => user_format_name(backdrop_anonymous_user()),
         'href' => $path,
@@ -908,7 +905,7 @@ function devel_switch_user_form_validate($form, &$form_state) {
 }
 
 function devel_switch_user_form_submit($form, &$form_state) {
-  $path = 'devel/switch/' . $form_state['values']['username'];
+  $path = 'admin/devel/switch/' . $form_state['values']['username'];
   $form_state['redirect'] = array(
     $path,
     array(
