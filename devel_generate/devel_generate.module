@@ -6,7 +6,7 @@
 function devel_generate_menu() {
   $items = array();
 
-  $items['admin/config/development/generate'] = array(
+  $items['devel/generate'] = array(
     'title' => 'Generate content',
     'description' => 'Generate sample content for theming and development purposes.',
     'page callback' => 'backdrop_get_form',
@@ -15,7 +15,7 @@ function devel_generate_menu() {
     'file' => 'devel_generate.pages.inc',
   );
 
-  $items['admin/config/development/generate/content'] = array(
+  $items['devel/generate/content'] = array(
     'title' => 'Generate nodes',
     'description' => 'Generate a given number of nodes and comments. Optionally delete current items.',
     'page callback' => 'backdrop_get_form',
@@ -25,7 +25,7 @@ function devel_generate_menu() {
     'file' => 'devel_generate.pages.inc',
     'weight' => -1,
   );
-  $items['admin/config/development/generate/user'] = array(
+  $items['devel/generate/user'] = array(
     'title' => 'Generate users',
     'description' => 'Generate a given number of users. Optionally delete current users.',
     'page callback' => 'backdrop_get_form',
@@ -36,7 +36,7 @@ function devel_generate_menu() {
     'weight' => 1,
   );
   if (module_exists('taxonomy')) {
-    $items['admin/config/development/generate/taxonomy'] = array(
+    $items['devel/generate/taxonomy'] = array(
       'title' => 'Generate terms',
       'description' => 'Generate a given number of terms. Optionally delete current terms.',
       'page callback' => 'backdrop_get_form',
@@ -46,7 +46,7 @@ function devel_generate_menu() {
       'file' => 'devel_generate.pages.inc',
       'weight' => 2,
     );
-    $items['admin/config/development/generate/vocabs'] = array(
+    $items['devel/generate/vocabs'] = array(
       'title' => 'Generate vocabularies',
       'description' => 'Generate a given number of vocabularies. Optionally delete current vocabularies.',
       'page callback' => 'backdrop_get_form',
@@ -57,7 +57,7 @@ function devel_generate_menu() {
       'weight' => 3,
     );
   }
-  $items['admin/config/development/generate/menu'] = array(
+  $items['devel/generate/menu'] = array(
     'title' => 'Generate menus',
     'description' => 'Generate a given number of menus and menu links. Optionally delete current menus.',
     'page callback' => 'backdrop_get_form',
