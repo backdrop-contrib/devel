@@ -118,6 +118,14 @@ function devel_admin_settings() {
     '#default_value' => $config->get('permission_raw_names'),
     '#description' => t('Display the language-independent machine names of the permissions in mouse-over hints on the !Permissions page and the module base file names on the @Permissions and !Modules pages.', array('!Permissions' => l(t('Permissions'), 'admin/people/permissions'), '@Permissions' => t('Permissions'), '!Modules' => l(t('Modules'), 'admin/modules'))),
   );
+  
+  $theme_debug_enabled = config_get('system.core', 'theme_debug');
+  $form['theme_debug'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable theme debug'),
+    '#default_value' => $theme_debug_enabled,
+    '#description' => t('Enable theme debug mode (core feature).'),
+  );
 
   $error_handlers = devel_get_handlers();
   $form['devel_error_handlers'] = array(
@@ -164,7 +172,10 @@ function devel_admin_settings() {
 function devel_admin_settings_submit($form, &$form_state) {
   $config = config('devel.settings');
   $values = $form_state['values'];
-
+  
+  // Save value of system variable 'theme_debug'
+  config_set('system.core', 'theme_debug', (bool) $values['theme_debug']);
+  
   $config->set('query_display', (bool) $values['query_display']);
   $config->set('query_sort', $values['query_sort']);
   $config->set('query_slow_limit', (int) $values['query_slow_limit']);
