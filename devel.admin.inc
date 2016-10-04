@@ -17,13 +17,16 @@ function devel_admin_settings() {
     '#description' => t('Enable core\'s theme debug mode.'),
   );
 
-  $form['system_core']['watchdog_enabled_severity_levels'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Watchdog severity levels'),
-    '#options' => watchdog_severity_levels(),
-    '#default_value' => $config->get('watchdog_enabled_severity_levels'),
-    '#description' => t('Show only watchdog messages with the selected severity levels.'),
-  );
+  $enabled_levels = $config->get('watchdog_enabled_severity_levels');
+  if (is_array($enabled_levels)) {
+    $form['system_core']['watchdog_enabled_severity_levels'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Watchdog severity levels'),
+      '#options' => watchdog_severity_levels(),
+      '#default_value' => $enabled_levels,
+      '#description' => t('Show only watchdog messages with the selected severity levels.'),
+    );
+  }
 
   $config = config('devel.settings');
   $form['queries'] = array(
