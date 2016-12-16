@@ -14,7 +14,7 @@ function devel_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('Enable theme debug'),
     '#default_value' => $config->get('theme_debug'),
-    '#description' => t('Enable core\'s theme debug mode.'),
+    '#description' => t('Adds HTML comments containing information about the template files used to render each part of the page. Useful for finding template suggestions when building a custom theme.'),
   );
 
   $enabled_levels = $config->get('watchdog_enabled_severity_levels');
