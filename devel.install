@@ -66,7 +66,7 @@ function devel_update_1000() {
   update_variable_del('devel_raw_names');
 
   // Error handling.
-  $config->set('error_handlers', array(DEVEL_ERROR_HANDLER_STANDARD));
+  $config->set('error_handlers', array('standard'));
   $config->set('krumo_skin', update_variable_get('krumo_skin', 'default'));
   update_variable_del('error_handlers');
   update_variable_del('krumo_skin');
