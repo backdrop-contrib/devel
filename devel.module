@@ -1694,7 +1694,7 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', 
     if ($check) {
       $output = check_plain($output);
     }
-    if (count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
+    if ((is_array($input) || $input instanceof Countable) && count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
         // don't use fapi here because sometimes fapi will not be loaded
         $printed_value = "<textarea rows=30 style=\"width: 100%;\">\n". $name . $output .'</textarea>';
     }
