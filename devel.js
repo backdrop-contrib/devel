@@ -1,6 +1,15 @@
+/**
+ * @file
+ * Behaviors for Devel.
+ */
+
 (function ($) {
 
-// Explain link in query log
+/**
+ * Explain link in query log.
+ *
+ * @type {Drupal~behavior}
+ */
 Backdrop.behaviors.devel_explain = {
   attach: function() {
     $('a.dev-explain').click(function () {
@@ -14,7 +23,11 @@ Backdrop.behaviors.devel_explain = {
   }
 }
 
-// Arguments link in query log
+/**
+ * Arguments link in query log.
+ *
+ * @type {Drupal~behavior}
+ */
 Backdrop.behaviors.devel_arguments = {
   attach: function() {
     $('a.dev-arguments').click(function () {
@@ -28,7 +41,11 @@ Backdrop.behaviors.devel_arguments = {
   }
 }
 
-// Placeholders link in query log
+/**
+ * Placeholders link in query log.
+ *
+ * @type {Drupal~behavior}
+ */
 Backdrop.behaviors.devel_placeholders = {
   attach: function() {
     $('a.dev-placeholders').click(function () {
