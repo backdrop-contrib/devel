@@ -55,7 +55,7 @@
   /**
    * Attach the access by user behavior which initiates ajax.
    *
-   * @type {Drupal~behavior}
+   * @type {Backdrop~behavior}
    */
   Backdrop.behaviors.develNodeAccessUserAjax = {
     attach: function(context) {
