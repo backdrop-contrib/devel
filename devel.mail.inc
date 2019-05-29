@@ -86,7 +86,7 @@ class DevelMailLog extends DefaultMailSystem {
    *   TRUE if the mail was successfully accepted, otherwise FALSE.
    *
    * @see http://php.net/manual/en/function.mail.php
-   * @see drupal_mail()
+   * @see backdrop_mail()
    */
   public function mail(array $message) {
     $output = $this->composeMessage($message);
