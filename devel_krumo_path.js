@@ -1,7 +1,14 @@
+/**
+ * @file
+ * Behaviors for Devel.
+ */
+
 (function ($) {
 
 /**
  * Attaches double-click behavior to toggle full path of Krumo elements.
+ *
+ * @type {Drupal~behavior}
  */
 Backdrop.behaviors.devel = {
   attach: function (context, settings) {
