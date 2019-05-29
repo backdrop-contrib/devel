@@ -1,8 +1,16 @@
 <?php
 
 /**
- * The settings form for Devel module.
+ * @file
+ * Functions for Devel administrative pages.
  */
+
+/**
+ * Form constructor for the settings form.
+ *
+ * @ingroup forms
+ */
+
 function devel_admin_settings() {
   $config = config('devel.settings');
   $form['queries'] = array(
@@ -239,6 +247,15 @@ function devel_admin_settings_submit($form, &$form_state) {
   backdrop_set_message('The configuration options have been saved.');
 }
 
+/**
+ * Demonstrates the active error handler.
+ *
+ * Generates some warnings or errors, so that the reaction of the current error
+ * handler can be observed.
+ *
+ * @param $severity
+ *   The severity level that the error handler should demonstrate.
+ */
 function devel_demonstrate_error_handlers($severity) {
   switch ($severity) {
     case 'warning':
