@@ -399,7 +399,7 @@ function devel_set_message($msg, $type = NULL) {
 }
 
 // Return boolean. No need for cache here.
-function has_krumo() {() {
+function has_krumo() {
   // See README.txt or just download from http://krumo.sourceforge.net
   @include_once BACKDROP_ROOT . '/' . backdrop_get_path('module', 'devel') . '/lib/krumo/class.krumo.php';
   if (function_exists('krumo') && !backdrop_is_cli()) {
