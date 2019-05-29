@@ -8,7 +8,7 @@
 /**
  * Explain link in query log.
  *
- * @type {Drupal~behavior}
+ * @type {Backdrop~behavior}
  */
 Backdrop.behaviors.devel_explain = {
   attach: function() {
@@ -26,7 +26,7 @@ Backdrop.behaviors.devel_explain = {
 /**
  * Arguments link in query log.
  *
- * @type {Drupal~behavior}
+ * @type {Backdrop~behavior}
  */
 Backdrop.behaviors.devel_arguments = {
   attach: function() {
@@ -44,7 +44,7 @@ Backdrop.behaviors.devel_arguments = {
 /**
  * Placeholders link in query log.
  *
- * @type {Drupal~behavior}
+ * @type {Backdrop~behavior}
  */
 Backdrop.behaviors.devel_placeholders = {
   attach: function() {
