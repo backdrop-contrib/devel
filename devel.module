@@ -521,27 +521,10 @@ function devel_silent() {
     );
 }
 
-function devel_xhprof_enable() {
-  if (devel_xhprof_is_enabled()) {
-    if ($path = config_get('devel.settings', 'xhprof_directory')) {
-      include_once $path . '/xhprof_lib/utils/xhprof_lib.php';
-      include_once $path . '/xhprof_lib/utils/xhprof_runs.php';
-      // @todo: consider a variable per-flag instead.
-      xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
-    }
-  }
-}
-
-function devel_xhprof_is_enabled() {
-  return extension_loaded('xhprof') && config_get('devel.settings', 'xhprof_enabled');
-}
-
 /**
  * Implementation of hook_boot().
  */
 function devel_boot() {
-  // Initialize XHProf.
-  devel_xhprof_enable();
 
   if (!devel_silent()) {
     if (config_get('devel.settings', 'memory_display')) {
@@ -964,11 +947,6 @@ function devel_exit() {
   global $user, $devel_run_id;
   $output = $txt = '';
 
-  $devel_run_id = devel_xhprof_is_enabled() ? devel_shutdown_xhprof(): NULL;
-  if ($devel_run_id && function_exists('drush_log')) {
-    drush_log('xhprof link: ' . devel_xhprof_link($devel_run_id, 'url'), 'notice');
-  }
-
   // Set $GLOBALS['devel_shutdown'] = FALSE in order to supress the
   // devel footer for a page.  Not necessary if your page outputs any
   // of the Content-type http headers tested below (e.g. text/xml,
@@ -1014,31 +992,10 @@ function devel_shutdown_summary($queries) {
     $output .= devel_timer();
   }
 
-  if (devel_xhprof_is_enabled()) {
-    $output .= ' ' . devel_xhprof_link($GLOBALS['devel_run_id']);
-  }
-
   $output .= devel_shutdown_memory();
 
   if ($output) {
     return '<div class="dev-query">' . $output . '</div>';
-  }
-}
-
-function devel_shutdown_xhprof() {
-  $namespace = config_get('system.core', 'site_name', '');
-  $xhprof_data = xhprof_disable();
-  $xhprof_runs = new XHProfRuns_Default();
-  return $xhprof_runs->save_run($xhprof_data, $namespace);
-}
-
-function devel_xhprof_link($run_id, $type = 'link') {
-  // @todo: render results from within Drupal.
-  $xhprof_url = config_get('devel.settings', 'xhprof_url');
-  $namespace = config_get('system.core', 'site_name');
-  if ($xhprof_url) {
-    $url  = $xhprof_url . "/index.php?run=$run_id&source=$namespace";
-    return $type == 'url' ? $url : t('<a href="@xhprof">XHProf output</a>. ', array('@xhprof' => $url));
   }
 }
 
