@@ -19,15 +19,20 @@ function _file_devel_generate($object, $field, $instance, $bundle) {
   if (empty($file)) {
     if ($path = devel_generate_textfile()) {
       $path_parts = explode("//", $path);
-      $source = new File();
-      $source->uri = $path;
-      $source->uid = 1; // TODO: randomize? use case specific.
-      $source->filemime = 'text/plain';
-      $source->filename = array_pop($path_parts);
+      $file = new File();
+      $file->uri = $path;
+      $file->uid = 1; // TODO: randomize? use case specific.
+      $file->filemime = 'text/plain';
+      $file->filename = array_pop($path_parts);
       $destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
       file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
       $destination = $destination_dir . '/' . basename($path);
-      $file = file_move($source, $destination, FILE_CREATE_DIRECTORY);
+      if ($file->uri = file_unmanaged_move($file->uri, $destination)) {
+        $file = file_save($file);
+      }
+      else {
+        return FALSE;
+      }
     }
     else {
       return FALSE;
