@@ -615,8 +615,12 @@ function devel_generate_content_pre_node(&$results) {
 /**
  * Create one node. Used by both batch and non-batch code branches.
  *
- * @param $num
- *   array of options obtained from devel_generate_content_form.
+ * @param $results
+ *   Array of options obtained from devel_generate_content_form. If calling this
+ *   function directly, $results should contain at the very least:
+ *     node_types => an associative array of node type machine names
+ *     users => an array of UIDs
+ *     title_length => max number of words in titles, for example 4.
  */
 function devel_generate_content_add_node(&$results) {
   $node = new Node();
