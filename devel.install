@@ -107,3 +107,14 @@ function devel_update_1002() {
 function devel_update_1003() {
   config('devel.settings')->clear('krumo_skin')->save();
 }
+
+/**
+ * Delete 'devel_xhprof_*' config settings, as they were removed from code.
+ */
+function devel_update_1004() {
+  config('devel.settings')
+  $config->clear('devel_xhprof_directory');
+  $config->clear('devel_xhprof_enabled');
+  $config->clear('devel_xhprof_url');
+  $config->save();
+}
