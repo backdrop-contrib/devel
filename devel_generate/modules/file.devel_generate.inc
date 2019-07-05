@@ -18,16 +18,17 @@ function _file_devel_generate($object, $field, $instance, $bundle) {
 
   if (empty($file)) {
     if ($path = devel_generate_textfile()) {
-      $path_parts = explode("//", $path);
-      $file = new File();
-      $file->uri = $path;
-      $file->uid = 1; // TODO: randomize? use case specific.
-      $file->filemime = 'text/plain';
-      $file->filename = array_pop($path_parts);
       $destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
       file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
-      $destination = $destination_dir . '/' . basename($path);
-      if ($file->uri = file_unmanaged_move($file->uri, $destination)) {
+
+      if ($uri = file_unmanaged_move($path, $destination_dir)) {
+        $file = new File();
+        $file->fid = NULL;
+        $file->uri = $uri;
+        $file->filename = backdrop_basename($uri);
+        $file->filemime = file_get_mimetype($file->uri);
+        // @todo Randomize file owner.
+        $file->uid = 1;
         $file = file_save($file);
       }
       else {
