@@ -109,7 +109,7 @@ function devel_update_1003() {
 }
 
 /**
- * Convert devel settings to config.
+ * Convert the devel_show_query_args_first variable to config.
  */
 function devel_update_1004() {
   $config = config('devel.settings');
