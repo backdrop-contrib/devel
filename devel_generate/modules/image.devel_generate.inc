@@ -30,16 +30,16 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
   // Generate a max of 5 different images.
   if (!isset($images[$extension][$min_resolution][$max_resolution]) || count($images[$extension][$min_resolution][$max_resolution]) <= DEVEL_GENERATE_IMAGE_MAX) {
     if ($path = devel_generate_image($extension, $min_resolution, $max_resolution)) {
-      $parts = explode("//", $path);
-      $file = new File();
-      $file->uri = $path;
-      $file->uid = 1; // TODO: randomize? Use case specific.
-      $file->filemime = 'image/' . pathinfo($path, PATHINFO_EXTENSION);
-      $file->filename = array_pop($parts);
-      $destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
+      destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
       file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
-      $destination = $destination_dir . '/' . basename($path);
-      if ($file->uri = file_unmanaged_move($file->uri, $destination)) {
+      if ($uri = file_unmanaged_move($path, $destination_dir)) {
+        $file = new File();
+        $file->fid = NULL;
+        $file->uri = $uri;
+        $file->filename = drupal_basename($uri);
+        $file->filemime = file_get_mimetype($file->uri);
+        // @todo Randomize file owner.
+        $file->uid = 1;
         $file = file_save($file);
         $images[$extension][$min_resolution][$max_resolution][$file->fid] = $file;
       }
