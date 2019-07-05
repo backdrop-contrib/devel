@@ -107,3 +107,14 @@ function devel_update_1002() {
 function devel_update_1003() {
   config('devel.settings')->clear('krumo_skin')->save();
 }
+
+/**
+ * Convert devel settings to config.
+ */
+function devel_update_1004() {
+  $config = config('devel.settings');
+  $config->set('show_query_args_first', update_variable_get('devel_show_query_args_first', FALSE));
+  $config->save();
+
+  update_variable_del('devel_show_query_args_first');
+}
