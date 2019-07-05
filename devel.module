@@ -974,7 +974,7 @@ function devel_exit() {
   // Content-type http headers tested below (e.g. text/xml, text/javascript,
   // etc). This is advised where applicable.
   if (!devel_silent() && !isset($GLOBALS['devel_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
-    // Try not to break non html pages.
+    // Try not to break non-html pages.
     if (function_exists('backdrop_get_http_header')) {
       $header = backdrop_get_http_header('content-type');
       if ($header) {
