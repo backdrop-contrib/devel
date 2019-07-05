@@ -20,7 +20,6 @@ function _file_devel_generate($object, $field, $instance, $bundle) {
     if ($path = devel_generate_textfile()) {
       $destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
       file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
-
       if ($uri = file_unmanaged_move($path, $destination_dir)) {
         $file = new File();
         $file->fid = NULL;
