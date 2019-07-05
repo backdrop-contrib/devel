@@ -1404,8 +1404,8 @@ function devel_query_table($queries, $counts) {
   $header = array ('ms', '#', 'where', 'ops', 'query', 'target');
   $i = 0;
   $api = config->get('api_url');
-  $db_connection = Database::getconnection();
   $slow_query_limit = config->get('query_slow_limit');
+  $db_connection = Database::getconnection();
   foreach ($queries as $query) {
     $function = !empty($query['caller']['class']) ? $query['caller']['class'] . '::' : '';
     $function .= $query['caller']['function'];
