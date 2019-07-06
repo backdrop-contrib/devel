@@ -1246,7 +1246,7 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
     $_extra = false;
     $_ = $data;
     if (strLen($data) > KRUMO_TRUNCATE_LENGTH) {
-      $_ = substr($data, 0, KRUMO_TRUNCATE_LENGTH - 3) . '...';
+      $_ = backdrop_substr($data, 0, KRUMO_TRUNCATE_LENGTH - 3) . '...';
       $_extra = true;
       }
 ?>
