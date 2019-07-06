@@ -672,7 +672,7 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
       }
 
     $css = '';
-    // DEVEL: changed for Drupal variables system
+    // DEVEL: changed for Backdrop config system.
     $skin = config_get('devel.settings', 'krumo_skin');
     if (!$skin) {
       $skin = 'default';
