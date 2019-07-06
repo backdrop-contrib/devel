@@ -32,9 +32,9 @@ function devel_menu() {
    */
   $items['admin/devel/reinstall'] = array(
     'title' => t('Reinstall modules'),
+    'description' => t('Run <code>hook_uninstall()</code> and then <code>hook_install()</code> for a given module.'),
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('devel_reinstall'),
-    'description' => t('Run <code>hook_uninstall()</code> and then <code>hook_install()</code> for a given module.'),
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
