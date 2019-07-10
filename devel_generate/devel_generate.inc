@@ -103,8 +103,8 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
 
         // Save the user record with the new picture.
         $edit = (array) $account;
-        $edit['picture'] = $file;
-        user_save($account, $edit);
+        $account->picture = $edit['picture'] = $file;
+        user_save($account);
       }
     }
   }
