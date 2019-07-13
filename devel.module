@@ -125,7 +125,7 @@ function devel_menu() {
     'title' => 'Switch user',
     'page callback' => 'devel_switch_user',
     'access callback' => '_devel_switch_user_access',
-    'access arguments' => array(2),
+    'access arguments' => array(3),
     'file' => 'devel.pages.inc',
     'type' => MENU_CALLBACK,
   );
@@ -263,7 +263,7 @@ function devel_menu() {
  */
 function _devel_switch_user_access($name) {
   // Suppress notices when on other pages when menu system still checks access.
-  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "devel/switch/$name|" . @$_GET['destination'], TRUE);
+  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "admin/devel/switch/$name|" . @$_GET['destination'], TRUE);
 }
 
 /**
