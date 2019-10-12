@@ -30,10 +30,16 @@ function devel_admin_settings() {
         ),
       ),
   );
+  $form['queries']['settings']['show_query_args_first'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show query arguments'),
+    '#default_value' => $config->get('show_query_args_first', FALSE),
+    '#description' => t('Show arguments rather than the query placeholders in the logged query.'),
+  );
   $form['queries']['settings']['query_sort'] = array(
     '#type' => 'radios',
     '#title' => t('Sort query log'),
-    '#default_value' =>   $config->get('query_sort', DEVEL_QUERY_SORT_BY_SOURCE),
+    '#default_value' => $config->get('query_sort', DEVEL_QUERY_SORT_BY_SOURCE),
     '#options' => array(t('by source'), t('by duration')),
     '#description' => t('The query table can be sorted in the order that the queries were executed or by descending duration.'),
   );
