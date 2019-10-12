@@ -125,7 +125,7 @@ function devel_menu() {
     'title' => 'Switch user',
     'page callback' => 'devel_switch_user',
     'access callback' => '_devel_switch_user_access',
-    'access arguments' => array(2),
+    'access arguments' => array(3),
     'file' => 'devel.pages.inc',
     'type' => MENU_CALLBACK,
   );
@@ -263,7 +263,7 @@ function devel_menu() {
  */
 function _devel_switch_user_access($name) {
   // Suppress notices when on other pages when menu system still checks access.
-  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "devel/switch/$name|" . @$_GET['destination'], TRUE);
+  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "admin/devel/switch/$name|", TRUE);
 }
 
 /**
@@ -387,7 +387,7 @@ function devel_init() {
     if (flood_is_allowed('devel_rebuild_registry_warning', 1)) {
       flood_register_event('devel_rebuild_registry_warning');
       if (!devel_silent() && user_access('access devel information')) {
-        backdrop_set_message(t('The theme registry is being rebuilt on every request. Remember to <a href="!url">turn off</a> this feature on production websites.', array("!url" => url('admin/config/development/devel'))));
+        backdrop_set_message(t('The theme registry is being rebuilt on every request. Remember to <a href="!url">turn off</a> this feature on production websites.', array('!url' => url('admin/config/development/devel', array('fragment' => 'edit-rebuild-theme-registry')))));
       }
     }
   }
@@ -805,7 +805,7 @@ function devel_switch_user_list($settings) {
       $links[$account->uid] = array(
         'title' => backdrop_placeholder(user_format_name($account)),
         'href' => $path,
-        'query' => array($dest, 'token' => backdrop_get_token($path . '|' . $dest['destination'])),
+        'query' => $dest + array('token' => backdrop_get_token($path)),
         'attributes' => array('title' => t('This user can switch back.')),
         'html' => TRUE,
         'last_access' => $account->access,
@@ -821,7 +821,7 @@ function devel_switch_user_list($settings) {
         $links[$account->uid] = array(
           'title' => user_format_name($account),
           'href' => $path,
-          'query' => array($dest, 'token' => backdrop_get_token($path . '|' . $dest['destination'])),
+          'query' => array('token' => backdrop_get_token($path)),
           'attributes' => array('title' => t('Caution: this user will be unable to switch back.')),
           'last_access' => $account->access,
         );
@@ -833,7 +833,7 @@ function devel_switch_user_list($settings) {
       $link = array(
         'title' => user_format_name(backdrop_anonymous_user()),
         'href' => $path,
-        'query' => array($dest, 'token' => backdrop_get_token($path . '/|' . $dest['destination'])),
+        'query' => $dest + array('token' => backdrop_get_token($path)),
         'attributes' => array('title' => t('Caution: the anonymous user will be unable to switch back.')),
       );
       if (user_access('switch users', backdrop_anonymous_user())) {
@@ -911,8 +911,10 @@ function devel_switch_user_form_submit($form, &$form_state) {
     array(
       'query' => array(
         'destination' => '',
-        'token' => backdrop_get_token($path . '|'),
-  )));
+        'token' => backdrop_get_token($path),
+      )
+    )
+  );
 }
 
 /**
@@ -969,12 +971,12 @@ function devel_exit() {
     drush_log('xhprof link: ' . devel_xhprof_link($devel_run_id, 'url'), 'notice');
   }
 
-  // Set $GLOBALS['devel_shutdown'] = FALSE in order to supress the
-  // devel footer for a page.  Not necessary if your page outputs any
-  // of the Content-type http headers tested below (e.g. text/xml,
-  // text/javascript, etc).  This is is advised where applicable.
+  // Set $GLOBALS['devel_shutdown'] = FALSE, in order to supress the devel
+  // footer for a page. Not necessary if your page outputs any of the
+  // Content-type http headers tested below (e.g. text/xml, text/javascript,
+  // etc). This is advised where applicable.
   if (!devel_silent() && !isset($GLOBALS['devel_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
-    // Try not to break non html pages.
+    // Try not to break non-html pages.
     if (function_exists('backdrop_get_http_header')) {
       $header = backdrop_get_http_header('content-type');
       if ($header) {
@@ -989,6 +991,12 @@ function devel_exit() {
 
     if (isset($user) && user_access('access devel information')) {
       $queries = (devel_query_enabled() ? Database::getLog('devel', 'default') : NULL);
+      if (!empty($queries)) {
+        // Remove caller args to avoid recursion.
+        foreach ($queries as &$query) {
+          unset($query['caller']['args']);
+        }
+      }
       $output .= devel_shutdown_summary($queries);
       $output .= devel_shutdown_query($queries);
     }
@@ -1399,11 +1407,13 @@ function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FA
  * generate the page.
  */
 function devel_query_table($queries, $counts) {
+  $config = config('devel.settings');
   $version = devel_get_core_version(BACKDROP_VERSION);
   $header = array ('ms', '#', 'where', 'ops', 'query', 'target');
   $i = 0;
-  $api = config_get('devel.settings', 'api_url');
-  $slow_query_limit = config_get('devel.settings', 'query_slow_limit');
+  $api = config->get('api_url');
+  $slow_query_limit = config->get('query_slow_limit');
+  $db_connection = Database::getconnection();
   foreach ($queries as $query) {
     $function = !empty($query['caller']['class']) ? $query['caller']['class'] . '::' : '';
     $function .= $query['caller']['function'];
@@ -1426,8 +1436,19 @@ function devel_query_table($queries, $counts) {
     }
     $cell[$i][] = implode(' ', $ops);
     // 3 divs for each variation of the query. Last 2 are hidden by default.
-    $placeholders = '<div class="dev-placeholders">' . check_plain($query['query']) . "</div>\n";
-    $args = '<div class="dev-arguments" style="display: none;"></div>' . "\n";
+    if (config->get('show_query_args_first')) {
+      $placeholders = '<div class="dev-placeholders" style="display: none;">' . check_plain($query['query']) . "</div>\n";
+      $quoted = array();
+      foreach ($query['args'] as $key => $val) {
+        $quoted[$key] = $db_connection->quote($val);
+      }
+      $output = strtr($query['query'], $quoted);
+      $args = '<div class="dev-arguments">' . $output . '</div>' . "\n";
+    }
+    else {
+      $placeholders = '<div class="dev-placeholders">' . check_plain($query['query']) . "</div>\n";
+      $args = '<div class="dev-arguments" style="display: none;"></div>' . "\n";
+    }
     $explain = '<div class="dev-explain" style="display: none;"></div>' . "\n";
     $cell[$i][] = array(
       'id' => "devel-query-$i",
@@ -1437,7 +1458,7 @@ function devel_query_table($queries, $counts) {
     $i++;
     unset($diff, $count, $ops);
   }
-  if (config_get('devel.settings', 'query_sort') === 'source') {
+  if (config->get('query_sort') === 'source') {
     usort($cell, '_devel_table_sort');
   }
   return theme('devel_querylog', array('header' => $header, 'rows' => $cell));
@@ -1515,9 +1536,13 @@ function devel_timer() {
   return t_safe(' Page execution time was @time ms.', array('@time' => $time));
 }
 
-// An alias for drupal_debug().
-function dd($data, $label = NULL) {
-  return drupal_debug($data, $label);
+if (!function_exists('dd')) {
+  /**
+   * An alias for drupal_debug().
+   */
+  function dd($data, $label = NULL) {
+    return drupal_debug($data, $label);
+  }
 }
 
 /**
@@ -1870,5 +1895,25 @@ function devel_form_system_modules_alter(&$form, &$form_state) {
         }
       }
     }
+  }
+}
+
+/**
+ * Implements hook_query_TAG_alter().
+ *
+ * Makes debugging EntityFieldQuery much easier.
+ *
+ * Example usage:
+ *   $q = new EntityFieldQuery;
+ *   $q->entityCondition('entity_type', 'node')
+ *     ->addTag('debug')
+ *     ->execute();
+ *
+ * @param QueryAlterableInterface $query
+ */
+function devel_query_debug_alter(QueryAlterableInterface $query) {
+  if (!$query->hasTag('debug-semaphore')) {
+    $query->addTag('debug-semaphore');
+    dpq($query);
   }
 }

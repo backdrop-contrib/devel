@@ -103,8 +103,8 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
 
         // Save the user record with the new picture.
         $edit = (array) $account;
-        $edit['picture'] = $file;
-        user_save($account, $edit);
+        $account->picture = $edit['picture'] = $file;
+        user_save($account);
       }
     }
   }
@@ -615,8 +615,12 @@ function devel_generate_content_pre_node(&$results) {
 /**
  * Create one node. Used by both batch and non-batch code branches.
  *
- * @param $num
- *   array of options obtained from devel_generate_content_form.
+ * @param $results
+ *   Array of options obtained from devel_generate_content_form. If calling this
+ *   function directly, $results should contain at the very least:
+ *     node_types => an associative array of node type machine names
+ *     users => an array of UIDs
+ *     title_length => max number of words in titles, for example 4.
  */
 function devel_generate_content_add_node(&$results) {
   $node = new Node();
@@ -628,7 +632,17 @@ function devel_generate_content_add_node(&$results) {
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
   $type = node_type_get_type($node);
-  $node->title = $type->has_title ? devel_create_greeking(mt_rand(2, $results['title_length']), TRUE) : '';
+  
+  if (!$type || $type->has_title) {
+    // We should not use the random function if the value is not random.
+    if ($results['title_length'] < 2) {
+      $node->title = devel_create_greeking(1, TRUE);
+    }
+    else {
+      $node->title = devel_create_greeking(mt_rand(1, $results['title_length']), TRUE);
+    }
+  }
+
   $node->sticky = 0;
   $node->revision = empty($type->settings['revision_enabled']) ? 0 : mt_rand(0,1);
   $node->promote = empty($type->settings['promote_enabled']) ? 0 : mt_rand(0, 1);

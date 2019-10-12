@@ -109,9 +109,20 @@ function devel_update_1003() {
 }
 
 /**
- * Convert renamed 7.x variables to config.
+ * Convert the devel_show_query_args_first variable to config.
  */
 function devel_update_1004() {
+  $config = config('devel.settings');
+  $config->set('show_query_args_first', update_variable_get('devel_show_query_args_first', FALSE));
+  $config->save();
+
+  update_variable_del('devel_show_query_args_first');
+}
+
+/**
+ * Convert renamed 7.x variables to config.
+ */
+function devel_update_1005() {
   $config = config('devel.settings');
   // These variables were renamed from `dev_timer` and `dev_mem` in the 7.x
   // version of devel. In devel_update_1000(), we only account for the former
