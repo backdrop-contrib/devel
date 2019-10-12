@@ -125,7 +125,7 @@ function devel_menu() {
     'title' => 'Switch user',
     'page callback' => 'devel_switch_user',
     'access callback' => '_devel_switch_user_access',
-    'access arguments' => array(2),
+    'access arguments' => array(3),
     'file' => 'devel.pages.inc',
     'type' => MENU_CALLBACK,
   );
@@ -263,7 +263,7 @@ function devel_menu() {
  */
 function _devel_switch_user_access($name) {
   // Suppress notices when on other pages when menu system still checks access.
-  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "devel/switch/$name", TRUE);
+  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "admin/devel/switch/$name|", TRUE);
 }
 
 /**
@@ -387,7 +387,7 @@ function devel_init() {
     if (flood_is_allowed('devel_rebuild_registry_warning', 1)) {
       flood_register_event('devel_rebuild_registry_warning');
       if (!devel_silent() && user_access('access devel information')) {
-        backdrop_set_message(t('The theme registry is being rebuilt on every request. Remember to <a href="!url">turn off</a> this feature on production websites.', array("!url" => url('admin/config/development/devel'))));
+        backdrop_set_message(t('The theme registry is being rebuilt on every request. Remember to <a href="!url">turn off</a> this feature on production websites.', array('!url' => url('admin/config/development/devel', array('fragment' => 'edit-rebuild-theme-registry')))));
       }
     }
   }
@@ -911,8 +911,10 @@ function devel_switch_user_form_submit($form, &$form_state) {
     array(
       'query' => array(
         'destination' => '',
-        'token' => backdrop_get_token($path . '|'),
-  )));
+        'token' => backdrop_get_token($path),
+      )
+    )
+  );
 }
 
 /**

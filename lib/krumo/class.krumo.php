@@ -672,7 +672,7 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
       }
 
     $css = '';
-    // DEVEL: changed for Drupal variables system
+    // DEVEL: changed for Backdrop config system.
     $skin = config_get('devel.settings', 'krumo_skin');
     if (!$skin) {
       $skin = 'default';
@@ -976,6 +976,29 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
   <ul class="krumo-node">
   <?php
 
+  if ($_is_object && get_class($data) != 'stdClass') {
+    // this part for protected/private properties only
+    $refl = new ReflectionClass($data);
+    foreach ($refl->getProperties() as $property) {
+      $k = $property->getName();
+      if ($k === $_recursion_marker || $property->isPublic()) {
+        continue;
+      }
+
+      // add key indicators
+      if ($property->isProtected()) {
+        $k .= ':protected';
+      }
+      elseif ($property->isPrivate()) {
+        $k .= ':private';
+      }
+
+      $property->setAccessible(TRUE);
+      $v = $property->getValue($data);
+      krumo::_dump($v, $k);
+    }
+  }
+
   // keys ?
   //
   $keys = ($_is_object)
@@ -1246,7 +1269,7 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
     $_extra = false;
     $_ = $data;
     if (strLen($data) > KRUMO_TRUNCATE_LENGTH) {
-      $_ = substr($data, 0, KRUMO_TRUNCATE_LENGTH - 3) . '...';
+      $_ = backdrop_substr($data, 0, KRUMO_TRUNCATE_LENGTH - 3) . '...';
       $_extra = true;
       }
 ?>
