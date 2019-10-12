@@ -1,14 +1,23 @@
 <?php
 
-// Menu callback that shows menu item.
+/**
+ * @file
+ * Page callbacks for Devel.
+ */
+
+/**
+ * Page callback: Shows a menu item.
+ */
 function devel_menu_item() {
   $item = menu_get_item($_GET['path']);
   return kdevel_print_object($item);
 }
 
 /**
- * Returns a list of all currently defined user functions in the current
- * request lifecycle, with links their documentation.
+ * Page callback: Returns a list of all currently defined user functions.
+ *
+ * Returns a list of all currently defined user functions in the current request
+ * lifecycle, with links to their documentation.
  */
 function devel_function_reference() {
   $functions = get_defined_functions();
@@ -22,7 +31,9 @@ function devel_function_reference() {
   return theme('item_list', array('items' => $links));
 }
 
-// A menu callback. Called by the AJAX link in query log.
+/**
+ * Page callback: Called by the AJAX link in query log.
+ */
 function devel_querylog_explain($request_id, $qid) {
   if (!is_numeric($request_id)) {
     return MENU_ACCESS_DENIED;
@@ -61,7 +72,9 @@ function devel_querylog_explain($request_id, $qid) {
   $GLOBALS['devel_shutdown'] = FALSE;
 }
 
-// A menu callback. Called by the AJAX link in query log.
+/**
+ * Page callback: Called by the AJAX link in query log.
+ */
 function devel_querylog_arguments($request_id, $qid) {
   if (!is_numeric($request_id)) {
     return MENU_ACCESS_DENIED;
@@ -87,13 +100,17 @@ function devel_querylog_arguments($request_id, $qid) {
 
   }
 
-  // print and return nothing thus avoiding page wrapper.
+  // Print and return nothing thus avoiding page wrapper.
   print $output;
   $GLOBALS['devel_shutdown'] = FALSE;
 }
 
 /**
- * Display a dropdown of installed modules with the option to reinstall them.
+ * Form constructor for reinstalling any module from a dropdown.
+ *
+ * @see devel_reinstall_submit()
+ *
+ * @ingroup forms
  */
 function devel_reinstall($form, &$form_state) {
   $output = '';
@@ -113,7 +130,7 @@ function devel_reinstall($form, &$form_state) {
 }
 
 /**
- * Process reinstall menu form submissions.
+ * Form submission callback for devel_reinstall().
  */
 function devel_reinstall_submit($form, &$form_state) {
   // require_once './includes/install.inc';
@@ -124,7 +141,9 @@ function devel_reinstall_submit($form, &$form_state) {
   backdrop_set_message(t('Uninstalled and installed: %names.', array('%names' => implode(', ', $modules))));
 }
 
-// Menu callback.
+/**
+ * Page callback: Rebuilds the theme registry.
+ */
 function devel_theme_registry() {
   backdrop_theme_initialize();
   $hooks = theme_get_registry();
@@ -132,14 +151,26 @@ function devel_theme_registry() {
   return kprint_r($hooks, TRUE);
 }
 
-// Menu callback. $entity_type argument not currently used in the UI.
+/**
+ * Page callback: Returns information from hook_entity_info().
+ *
+ * @param string $entity_type
+ *   (optional) Limit results to the specified entity type. The default is to
+ *   return information about all entity types. The $entity_type argument is not
+ *   currently used in the UI.
+ *
+ * @return
+ *   The results from kprint_r().
+ */
 function devel_entity_info_page($entity_type = NULL) {
   $info = entity_get_info($entity_type);
   ksort($info);
   return kprint_r($info, TRUE);
 }
 
-// Menu callback.
+/**
+ * Page callback: Returns information about fields.
+ */
 function devel_field_info_page() {
   $info = field_info_fields();
   $output = kprint_r($info, TRUE, t('Fields'));
@@ -151,7 +182,7 @@ function devel_field_info_page() {
 }
 
 /**
- * Menu callback: display the session.
+ * Page callback: Displays the session.
  */
 function devel_session() {
   global $user;
@@ -162,7 +193,7 @@ function devel_session() {
 }
 
 /**
- * Menu callback; prints the loaded structure of the current node/user.
+ * Page callback: Prints the loaded structure of the current node/user.
  */
 function devel_load_object($type, $object, $name = NULL) {
   $name = isset($name) ? $name : $type;
@@ -170,7 +201,17 @@ function devel_load_object($type, $object, $name = NULL) {
 }
 
 /**
- * Menu callback; prints the render structure of the current object (currently node or user).
+ * Page callback: Prints the render structure of the current object.
+ *
+ * @param string $type
+ *   The type of entity that will be displayed.
+ * @param object $object
+ *   The entity to display.
+ * @param string $name
+ *   (optional) The label to use when displaying the entity.
+ *
+ * @return
+ *   The results from kdevel_print_object().
  */
 function devel_render_object($type, $object, $name = NULL) {
   $name = isset($name) ? $name : $type;
@@ -189,10 +230,16 @@ function devel_render_object($type, $object, $name = NULL) {
   return kdevel_print_object($build, '$'. $name .'->');
 }
 
+/**
+ * Page callback: Returns information from hook_elements().
+ */
 function devel_elements_page() {
   return kdevel_print_object(module_invoke_all('element_info'));
 }
 
+/**
+ * Page callback: Returns the results from phpinfo().
+ */
 function devel_phpinfo() {
   print phpinfo();
   backdrop_exit();
