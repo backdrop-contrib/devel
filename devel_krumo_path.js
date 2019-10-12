@@ -7,7 +7,7 @@ Backdrop.behaviors.devel = {
   attach: function (context, settings) {
 
     // Add hint to footnote
-    $('.krumo-footnote .krumo-call').before('<img style="vertical-align: middle;" title="Click to expand. Double-click to show path." src="' + Backdrop.settings.basePath + 'core/misc/help.png"/>');
+    $('.krumo-footnote .krumo-call', context).once().before('<img style="vertical-align: middle;" title="Click to expand. Double-click to show path." src="' + Backdrop.settings.basePath + 'core/misc/help.png"/>');
 
     var krumo_name = [];
     var krumo_type = [];
