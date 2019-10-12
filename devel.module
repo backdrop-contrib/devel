@@ -263,7 +263,7 @@ function devel_menu() {
  */
 function _devel_switch_user_access($name) {
   // Suppress notices when on other pages when menu system still checks access.
-  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "admin/devel/switch/$name|" . @$_GET['destination'], TRUE);
+  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "admin/devel/switch/$name|", TRUE);
 }
 
 /**
@@ -805,7 +805,7 @@ function devel_switch_user_list($settings) {
       $links[$account->uid] = array(
         'title' => backdrop_placeholder(user_format_name($account)),
         'href' => $path,
-        'query' => array($dest, 'token' => backdrop_get_token($path . '|' . $dest['destination'])),
+        'query' => $dest + array('token' => backdrop_get_token($path)),
         'attributes' => array('title' => t('This user can switch back.')),
         'html' => TRUE,
         'last_access' => $account->access,
@@ -821,7 +821,7 @@ function devel_switch_user_list($settings) {
         $links[$account->uid] = array(
           'title' => user_format_name($account),
           'href' => $path,
-          'query' => array($dest, 'token' => backdrop_get_token($path . '|' . $dest['destination'])),
+          'query' => array('token' => backdrop_get_token($path)),
           'attributes' => array('title' => t('Caution: this user will be unable to switch back.')),
           'last_access' => $account->access,
         );
@@ -833,7 +833,7 @@ function devel_switch_user_list($settings) {
       $link = array(
         'title' => user_format_name(backdrop_anonymous_user()),
         'href' => $path,
-        'query' => array($dest, 'token' => backdrop_get_token($path . '/|' . $dest['destination'])),
+        'query' => $dest + array('token' => backdrop_get_token($path)),
         'attributes' => array('title' => t('Caution: the anonymous user will be unable to switch back.')),
       );
       if (user_access('switch users', backdrop_anonymous_user())) {
