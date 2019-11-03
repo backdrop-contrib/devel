@@ -1070,8 +1070,8 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
 ?>
 <li class="krumo-child">
 
-  <div class="krumo-element<?php echo count($data) > 0 ? ' krumo-expand' : '';?>"
-    <?php if (count($data) > 0) {?> onClick="krumo.toggle(this);"<?php } ?>
+  <div class="krumo-element<?php echo !empty($data) ? ' krumo-expand' : '';?>"
+    <?php if (!empty($data)) {?> onClick="krumo.toggle(this);"<?php } ?>
     onMouseOver="krumo.over(this);"
     onMouseOut="krumo.out(this);">
 
@@ -1101,9 +1101,9 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
 
   </div>
 
-  <?php if (count($data)) {
+  <?php 
     krumo::_vars($data);
-    } ?>
+    ?>
 </li>
 <?php
     }
@@ -1122,10 +1122,11 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
 ?>
 <li class="krumo-child">
 
-  <div class="krumo-element<?php echo count($data) > 0 ? ' krumo-expand' : '';?>"
-    <?php if (count($data) > 0) {?> onClick="krumo.toggle(this);"<?php } ?>
+  <div class="krumo-element<?php echo !empty($data) ? ' krumo-expand' : '';?>"
+    <?php if (!empty($data)) {?> onClick="krumo.toggle(this);"<?php } ?>
     onMouseOver="krumo.over(this);"
     onMouseOut="krumo.out(this);">
+
 
       <?php /* DEVEL: added htmlSpecialChars */ ?>
       <a class="krumo-name"><?php echo htmlSpecialChars($name);?></a>
@@ -1133,9 +1134,9 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
       <strong class="krumo-class"><?php echo get_class($data);?></strong>
   </div>
 
-  <?php if (count($data)) {
+  <?php
     krumo::_vars($data);
-    } ?>
+    ?>
 </li>
 <?php
     }
