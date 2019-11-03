@@ -1411,8 +1411,8 @@ function devel_query_table($queries, $counts) {
   $version = devel_get_core_version(BACKDROP_VERSION);
   $header = array ('ms', '#', 'where', 'ops', 'query', 'target');
   $i = 0;
-  $api = config->get('api_url');
-  $slow_query_limit = config->get('query_slow_limit');
+  $api = config_get('api_url');
+  $slow_query_limit = config_get('query_slow_limit');
   $db_connection = Database::getconnection();
   foreach ($queries as $query) {
     $function = !empty($query['caller']['class']) ? $query['caller']['class'] . '::' : '';
@@ -1436,7 +1436,7 @@ function devel_query_table($queries, $counts) {
     }
     $cell[$i][] = implode(' ', $ops);
     // 3 divs for each variation of the query. Last 2 are hidden by default.
-    if (config->get('show_query_args_first')) {
+    if (config_get('show_query_args_first')) {
       $placeholders = '<div class="dev-placeholders" style="display: none;">' . check_plain($query['query']) . "</div>\n";
       $quoted = array();
       foreach ($query['args'] as $key => $val) {
@@ -1458,7 +1458,7 @@ function devel_query_table($queries, $counts) {
     $i++;
     unset($diff, $count, $ops);
   }
-  if (config->get('query_sort') === 'source') {
+  if (config_get('query_sort') === 'source') {
     usort($cell, '_devel_table_sort');
   }
   return theme('devel_querylog', array('header' => $header, 'rows' => $cell));
