@@ -1719,7 +1719,7 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', 
     if ($check) {
       $output = check_plain($output);
     }
-    if (count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
+    if ((is_array($input) || $input instanceof Countable) && count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
         // don't use fapi here because sometimes fapi will not be loaded
         $printed_value = "<textarea rows=30 style=\"width: 100%;\">\n". $name . $output .'</textarea>';
     }
@@ -1762,9 +1762,11 @@ function ddebug_backtrace($return = FALSE, $pop = 0) {
       array_shift($backtrace);
     }
     $counter = count($backtrace);
-    $path = $backtrace[$counter - 1]['file'];
-    $path = substr($path, 0, strlen($path) - 10);
-    $paths[$path] = strlen($path) + 1;
+    if (!empty($backtrace[$counter - 1]['file'])) {
+      $path = $backtrace[$counter - 1]['file'];
+      $path = substr($path, 0, strlen($path) - 10);
+      $paths[$path] = strlen($path) + 1;
+    }
     $paths[BACKDROP_ROOT] = strlen(BACKDROP_ROOT) + 1;
     $nbsp = "\xC2\xA0";
 
