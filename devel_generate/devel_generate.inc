@@ -11,8 +11,11 @@
  *  The max age of each randomly-generated user, in seconds.
  * @param $roles
  *  An array of role IDs that the users should receive.
+ * @param $pass
+ *  A string to be used as common password for all generated users. Defaults to
+ *  NULL (no password avoids user_hash_password() which is expensive).
  */
-function devel_create_users($num, $kill, $age = 0, $roles = array()) {
+function devel_create_users($num, $kill, $age = 0, $roles = array(), $pass = NULL) {
   $url = parse_url($GLOBALS['base_url']);
   if ($kill) {
     $uids = db_select('users', 'u')
@@ -45,15 +48,15 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
       $edit = array(
         'uid'     => NULL,
         'name'    => $name,
-        'pass'    => NULL, // No password avoids user_hash_password() which is expensive.
-        'mail'    => $name . '@' . $url['host'],
+        'pass'    => $pass,
+        'mail'    => $name . '@' . $url['host'] . '.invalid',
         'status'  => 1,
         'created' => REQUEST_TIME - mt_rand(0, $age),
         'roles' => backdrop_map_assoc($roles),
         'devel_generate' => TRUE // A flag to let hook_user_* know that this is a generated user.
       );
 
-      // Populate all core fields on behalf of field.module
+      // Populate all core fields on behalf of field.module.
       module_load_include('inc', 'devel_generate', 'devel_generate.fields');
       $edit = (object) $edit;
       $edit->language = LANGUAGE_NONE;
@@ -69,7 +72,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
         $im = imagecreatetruecolor(200, 200);
 
         // Randomize the foreground using the md5 of the user id, then invert it
-        // for the background color so there's enough contrast to read the text.
+        // for the background color, so there's enough contrast to read the text.
         $parts = array_map('hexdec', str_split(md5($account->uid), 2));
         $fg = imagecolorallocate($im, $parts[1], $parts[3], $parts[5]);
         $bg = imagecolorallocate($im, 255 - $parts[0], 255 - $parts[1], 255 - $parts[2]);
@@ -80,21 +83,21 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
         imagestring($im, 5, 5, 25, $account->name, $fg);
 
 
-        // Create an empty, managed file where we want the user's picture to
-        // be so we can have GD overwrite it with the image.
+        // Create an empty, managed file where we want the user's picture to be,
+        // so we can have GD overwrite it with the image.
         $picture_directory =  file_default_scheme() . '://' . config_get('system.core', 'user_picture_path');
         file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
         $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '.png');
         $file = file_save_data('', $destination);
 
-        // GD doesn't like stream wrapped paths so convert the URI to a normal
+        // GD doesn't like stream wrapped paths, so convert the URI to a normal
         // file system path.
         if (isset($file) && $wrapper = file_stream_wrapper_get_instance_by_uri($file->uri)) {
           imagepng($im, $wrapper->realpath());
         }
         imagedestroy($im);
 
-        // Clear the cached filesize, set the owner and MIME-type then re-save
+        // Clear the cached filesize, set the owner and MIME-type, then re-save
         // the file.
         clearstatcache();
         $file->uid = $account->uid;
@@ -102,9 +105,11 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
         $file = file_save($file);
 
         // Save the user record with the new picture.
-        $edit = (array) $account;
-        $account->picture = $edit['picture'] = $file;
-        user_save($account);
+        $account->picture = $file;
+        // Reassign password, as it is replaced with the hashed version in
+        // $account.
+        $account->password = $pass;
+        $account->save();
       }
     }
   }
@@ -115,8 +120,11 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
 /**
  * The main API function for creating content.
  *
- * See devel_generate_content_form() for the supported keys in $form_state['values'].
- * Other modules may participate by form_alter() on that form and then handling their data during hook_nodeapi('pre_save') or in own submit handler for the form.
+ * See devel_generate_content_form() for the supported keys in
+ * $form_state['values'].
+ * Other modules may participate by form_alter() on that form, and then handling
+ * their data during hook_node_insert(), or in their own submit handler for the
+ * form.
  *
  * @param string $form_state
  * @return void
