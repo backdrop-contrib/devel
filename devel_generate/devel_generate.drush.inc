@@ -53,7 +53,7 @@ function devel_generate_drush_command() {
     ),
     'options' => array(
       'kill' => 'Delete all content before generating new content.',
-      'types' => 'A comma delimited list of content types to create. Defaults to page,article.',
+      'types' => 'A comma delimited list of content types to create. Defaults to page,post.',
       'feedback' => 'An integer representing interval for insertion rate logging. Defaults to 500',
       'skip-fields' => 'A comma delimited list of fields to omit when generating random values',
       'languages' => 'A comma-separated list of language codes',
@@ -153,7 +153,7 @@ function drush_devel_generate_content($num_nodes = NULL, $max_comments = NULL) {
   $values['values']['title_length'] = 6;
   $values['values']['num_nodes'] = $num_nodes;
   $values['values']['max_comments'] = $max_comments;
-  $values['values']['node_types'] = backdrop_map_assoc(explode(',', drush_get_option('types', 'page,article')));
+  $values['values']['node_types'] = backdrop_map_assoc(explode(',', drush_get_option('types', 'page,post')));
   drush_generate_include_devel();
   devel_generate_content($values);
   drush_log(t('Generated @num_nodes nodes, @max_comments comments (or less) per node.', array('@num_nodes' => (int)$num_nodes, '@max_comments' => (int)$max_comments)), 'success');

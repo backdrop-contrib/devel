@@ -310,22 +310,6 @@ function devel_generate_node_insert($node) {
 }
 
 /**
- * Set a message for either drush or the web interface.
- *
- * @param $msg
- *  The message to display.
- * @param $type
- *  The message type, as defined by backdrop_set_message().
- *
- * @return
- *  Context-appropriate message output.
- */
-function devel_generate_set_message($msg, $type = 'status') {
-  $function  = function_exists('drush_log') ? 'drush_log' : 'backdrop_set_message';
-  $function($msg, $type);
-}
-
-/**
  * Generates menus using FormAPI.
  */
 function devel_generate_menu_form() {

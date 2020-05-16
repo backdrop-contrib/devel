@@ -36,11 +36,11 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
         $file = new File();
         $file->fid = NULL;
         $file->uri = $uri;
-        $file->filename = drupal_basename($uri);
+        $file->filename = backdrop_basename($uri);
         $file->filemime = file_get_mimetype($file->uri);
         // @todo Randomize file owner.
         $file->uid = 1;
-        $file = file_save($file);
+        file_save($file);
         $images[$extension][$min_resolution][$max_resolution][$file->fid] = $file;
       }
       else {

@@ -24,7 +24,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array(), $pass = NUL
             ->execute()
             ->fetchAllAssoc('uid');
     user_delete_multiple(array_keys($uids));
-    backdrop_set_message(format_plural(count($uids), '1 user deleted', '@count users deleted.'));
+    devel_generate_set_message(format_plural(count($uids), '1 user deleted', '@count users deleted.'));
   }
   // Determine if we should create user pictures.
   $pic_config = FALSE;
@@ -113,7 +113,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array(), $pass = NUL
       }
     }
   }
-  backdrop_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
+  devel_generate_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
 }
 
 
@@ -298,12 +298,12 @@ function devel_generate_term_data($vocabs, $num_terms, $title_length, $kill) {
     foreach (devel_generate_get_terms(array_keys($vocabs)) as $tid) {
       taxonomy_term_delete($tid);
     }
-    backdrop_set_message(t('Deleted existing terms.'));
+    devel_generate_set_message(t('Deleted existing terms.'));
   }
 
   $new_terms = devel_generate_terms($num_terms, $vocabs, $title_length);
   if (!empty($new_terms)) {
-    backdrop_set_message(t('Created the following new terms: !terms', array('!terms' => theme('item_list', array('items' => $new_terms)))));
+    devel_generate_set_message(t('Created the following new terms: !terms', array('!terms' => devel_generate_list($new_terms))));
   }
 }
 
@@ -313,12 +313,12 @@ function devel_generate_vocab_data($num_vocab, $title_length, $kill) {
     foreach (taxonomy_get_vocabularies() as $vocabulary_name => $vocab) {
       taxonomy_vocabulary_delete($vocabulary_name);
     }
-    backdrop_set_message(t('Deleted existing vocabularies.'));
+    devel_generate_set_message(t('Deleted existing vocabularies.'));
   }
 
   $new_vocs = devel_generate_vocabs($num_vocab, $title_length);
   if (!empty($new_vocs)) {
-    backdrop_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => theme('item_list', array('items' => $new_vocs)))));
+    devel_generate_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => devel_generate_list($new_vocs))));
   }
 }
 
@@ -343,19 +343,19 @@ function devel_generate_menu_data($num_menus, $existing_menus, $num_links, $titl
     foreach ($result as $link) {
       menu_link_delete($link->mlid);
     }
-    backdrop_set_message(t('Deleted existing menus and links.'));
+    devel_generate_set_message(t('Deleted existing menus and links.'));
   }
 
   // Generate new menus.
   $new_menus = devel_generate_menus($num_menus, $title_length);
   if (!empty($new_menus)) {
-    backdrop_set_message(t('Created the following new menus: !menus', array('!menus' => theme('item_list', array('items' => $new_menus)))));
+    devel_generate_set_message(t('Created the following new menus: !menus', array('!menus' => devel_generate_list($new_menus))));
   }
 
   // Generate new menu links.
   $menus = $new_menus + $existing_menus;
   $new_links = devel_generate_links($num_links, $menus, $title_length, $link_types, $max_depth, $max_width);
-  backdrop_set_message(t('Created @count new menu links.', array('@count' => count($new_links))));
+  devel_generate_set_message(t('Created @count new menu links.', array('@count' => count($new_links))));
 }
 
 /**
@@ -602,7 +602,7 @@ function devel_generate_content_kill($values) {
 
   if (!empty($nids)) {
     node_delete_multiple($nids);
-    backdrop_set_message(t('Deleted %count nodes.', array('%count' => count($nids))));
+    devel_generate_set_message(t('Deleted %count nodes.', array('%count' => count($nids))));
   }
 }
 
@@ -641,7 +641,7 @@ function devel_generate_content_add_node(&$results) {
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
   $type = node_type_get_type($node);
-  
+
   if (!$type || $type->has_title) {
     // We should not use the random function if the value is not random.
     if ($results['title_length'] < 2) {
@@ -687,5 +687,41 @@ function devel_generate_set_language($results, $object) {
   else {
     $default = language_default();
     $object->language =  $default == 'en' ? LANGUAGE_NONE : $default;
+  }
+}
+
+/**
+ * Set a message for either drush or the web interface.
+ *
+ * @param $msg
+ *  The message to display.
+ * @param $type
+ *  The message type, as defined by backdrop_set_message().
+ *
+ * @return
+ *  Context-appropriate message output.
+ */
+function devel_generate_set_message($msg, $type = 'status') {
+  $function  = function_exists('drush_log') ? 'drush_log' : 'backdrop_set_message';
+  $function($msg, $type);
+}
+
+/**
+ * Print an item list either for drush or the web interface.
+ *
+ * @param array $items
+ *  Items to display in a list.
+ *
+ * @return
+ *  Context-appropriate message output.
+ */
+function devel_generate_list(array $items) {
+  $is_drush  = function_exists('drush_log');
+  if ($is_drush) {
+    $glue = "\n  * ";
+    return $glue . implode($glue, $items) . "\n";
+  }
+  else {
+    return theme('item_list', array('items' => $items));
   }
 }

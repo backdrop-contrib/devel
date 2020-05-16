@@ -9,12 +9,6 @@
  * Implements hook_drush_command().
  */
 function devel_drush_command() {
-  $items['devel-download'] = array(
-    'description' => dt('Downloads the FirePHP library from http://firephp.org/.'),
-    'arguments' => array(
-      'path' => dt('Optional. A path to the download folder. If omitted Drush will use the default location (sites/all/libraries/firephp).'),
-    ),
-  );
   $items['devel-reinstall'] = array(
     'description' => dt('Disable, Uninstall, and Install a list of projects.'),
     'arguments' => array(
