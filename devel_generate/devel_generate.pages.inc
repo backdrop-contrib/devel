@@ -191,10 +191,10 @@ function devel_generate_content_form_submit($form_id, &$form_state) {
  */
 function devel_generate_term_form($form, &$form_state) {
   $options = array();
-  foreach (taxonomy_get_vocabularies() as $vid => $vocab) {
-    $options[$vid] = $vocab->name;
+  foreach (taxonomy_get_vocabularies() as $vocab_machine_name => $vocab) {
+    $options[$vocab_machine_name] = $vocab->name;
   }
-  $form['vids'] = array(
+  $form['vocabularies'] = array(
     '#type' => 'checkboxes',
     '#multiple' => TRUE,
     '#title' => t('Generate terms for these vocabularies'),
@@ -264,7 +264,8 @@ function devel_generate_vocab_form($form, &$form_state) {
  */
 function devel_generate_term_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate');
-  $vocabs = taxonomy_vocabulary_load_multiple($form_state['values']['vids']);
+  $vocab_names = array_keys(array_filter($form_state['values']['vocabularies']));
+  $vocabs = taxonomy_vocabulary_load_multiple($vocab_names);
   devel_generate_term_data($vocabs, $form_state['values']['num_terms'], $form_state['values']['title_length'], $form_state['values']['kill_taxonomy']);
 }
 

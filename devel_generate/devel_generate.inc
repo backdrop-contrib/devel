@@ -276,6 +276,9 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
       if ($i < 20) {
         $terms[] = $term->name;
       }
+      elseif ($i === 20) {
+        $terms[] = t('...and @count more', array('@count' => $records - 20));
+      }
 
       unset($term);
     }
