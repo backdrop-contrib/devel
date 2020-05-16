@@ -400,10 +400,15 @@ function devel_set_message($msg, $type = NULL) {
 
 // Return boolean. No need for cache here.
 function has_krumo() {
-  // see README.txt or just download from http://krumo.sourceforge.net/
+  // See README.txt or just download from http://krumo.sourceforge.net
   @include_once BACKDROP_ROOT . '/' . backdrop_get_path('module', 'devel') . '/lib/krumo/class.krumo.php';
   if (function_exists('krumo') && !backdrop_is_cli()) {
-    backdrop_add_js(backdrop_get_path('module', 'devel') . '/devel_krumo_path.js');
+    backdrop_add_js(backdrop_get_path('module', 'devel') . '/devel_krumo.js');
+    backdrop_add_css(backdrop_get_path('module', 'devel') . '/devel_krumo.css');
+    // If dpm() is called after status messages have been rendered, they will
+    // instead appear on the next page load. So ensure the krumo CSS and
+    // Javascript files are included.
+    krumo::addCssJs();
     return TRUE;
   }
   return FALSE;
