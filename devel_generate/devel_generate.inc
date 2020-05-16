@@ -11,8 +11,11 @@
  *  The max age of each randomly-generated user, in seconds.
  * @param $roles
  *  An array of role IDs that the users should receive.
+ * @param $pass
+ *  A string to be used as common password for all generated users. Defaults to
+ *  NULL (no password avoids user_hash_password() which is expensive).
  */
-function devel_create_users($num, $kill, $age = 0, $roles = array()) {
+function devel_create_users($num, $kill, $age = 0, $roles = array(), $pass = NULL) {
   $url = parse_url($GLOBALS['base_url']);
   if ($kill) {
     $uids = db_select('users', 'u')
@@ -21,7 +24,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
             ->execute()
             ->fetchAllAssoc('uid');
     user_delete_multiple(array_keys($uids));
-    backdrop_set_message(format_plural(count($uids), '1 user deleted', '@count users deleted.'));
+    devel_generate_set_message(format_plural(count($uids), '1 user deleted', '@count users deleted.'));
   }
   // Determine if we should create user pictures.
   $pic_config = FALSE;
@@ -45,15 +48,15 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
       $edit = array(
         'uid'     => NULL,
         'name'    => $name,
-        'pass'    => NULL, // No password avoids user_hash_password() which is expensive.
-        'mail'    => $name . '@' . $url['host'],
+        'pass'    => $pass,
+        'mail'    => $name . '@' . $url['host'] . '.invalid',
         'status'  => 1,
         'created' => REQUEST_TIME - mt_rand(0, $age),
         'roles' => backdrop_map_assoc($roles),
         'devel_generate' => TRUE // A flag to let hook_user_* know that this is a generated user.
       );
 
-      // Populate all core fields on behalf of field.module
+      // Populate all core fields on behalf of field.module.
       module_load_include('inc', 'devel_generate', 'devel_generate.fields');
       $edit = (object) $edit;
       $edit->language = LANGUAGE_NONE;
@@ -69,7 +72,7 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
         $im = imagecreatetruecolor(200, 200);
 
         // Randomize the foreground using the md5 of the user id, then invert it
-        // for the background color so there's enough contrast to read the text.
+        // for the background color, so there's enough contrast to read the text.
         $parts = array_map('hexdec', str_split(md5($account->uid), 2));
         $fg = imagecolorallocate($im, $parts[1], $parts[3], $parts[5]);
         $bg = imagecolorallocate($im, 255 - $parts[0], 255 - $parts[1], 255 - $parts[2]);
@@ -80,21 +83,21 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
         imagestring($im, 5, 5, 25, $account->name, $fg);
 
 
-        // Create an empty, managed file where we want the user's picture to
-        // be so we can have GD overwrite it with the image.
+        // Create an empty, managed file where we want the user's picture to be,
+        // so we can have GD overwrite it with the image.
         $picture_directory =  file_default_scheme() . '://' . config_get('system.core', 'user_picture_path');
         file_prepare_directory($picture_directory, FILE_CREATE_DIRECTORY);
         $destination = file_stream_wrapper_uri_normalize($picture_directory . '/picture-' . $account->uid . '.png');
         $file = file_save_data('', $destination);
 
-        // GD doesn't like stream wrapped paths so convert the URI to a normal
+        // GD doesn't like stream wrapped paths, so convert the URI to a normal
         // file system path.
         if (isset($file) && $wrapper = file_stream_wrapper_get_instance_by_uri($file->uri)) {
           imagepng($im, $wrapper->realpath());
         }
         imagedestroy($im);
 
-        // Clear the cached filesize, set the owner and MIME-type then re-save
+        // Clear the cached filesize, set the owner and MIME-type, then re-save
         // the file.
         clearstatcache();
         $file->uid = $account->uid;
@@ -102,21 +105,26 @@ function devel_create_users($num, $kill, $age = 0, $roles = array()) {
         $file = file_save($file);
 
         // Save the user record with the new picture.
-        $edit = (array) $account;
-        $edit['picture'] = $file;
-        user_save($account, $edit);
+        $account->picture = $file;
+        // Reassign password, as it is replaced with the hashed version in
+        // $account.
+        $account->password = $pass;
+        $account->save();
       }
     }
   }
-  backdrop_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
+  devel_generate_set_message(t('!num_users created.', array('!num_users' => format_plural($num, '1 user', '@count users'))));
 }
 
 
 /**
  * The main API function for creating content.
  *
- * See devel_generate_content_form() for the supported keys in $form_state['values'].
- * Other modules may participate by form_alter() on that form and then handling their data during hook_nodeapi('pre_save') or in own submit handler for the form.
+ * See devel_generate_content_form() for the supported keys in
+ * $form_state['values'].
+ * Other modules may participate by form_alter() on that form, and then handling
+ * their data during hook_node_insert(), or in their own submit handler for the
+ * form.
  *
  * @param string $form_state
  * @return void
@@ -247,6 +255,7 @@ function devel_generate_terms($records, $vocabs, $maxlength = 12) {
     $term->format = filter_fallback_format();
     $term->weight = mt_rand(0, 10);
     $term->language = LANGUAGE_NONE;
+    $term->devel_generate = TRUE;  // Flag the term as generated by devel_generate.
 
     // Populate all core fields on behalf of field.module
     module_load_include('inc', 'devel_generate', 'devel_generate.fields');
@@ -289,12 +298,12 @@ function devel_generate_term_data($vocabs, $num_terms, $title_length, $kill) {
     foreach (devel_generate_get_terms(array_keys($vocabs)) as $tid) {
       taxonomy_term_delete($tid);
     }
-    backdrop_set_message(t('Deleted existing terms.'));
+    devel_generate_set_message(t('Deleted existing terms.'));
   }
 
   $new_terms = devel_generate_terms($num_terms, $vocabs, $title_length);
   if (!empty($new_terms)) {
-    backdrop_set_message(t('Created the following new terms: !terms', array('!terms' => theme('item_list', array('items' => $new_terms)))));
+    devel_generate_set_message(t('Created the following new terms: !terms', array('!terms' => devel_generate_list($new_terms))));
   }
 }
 
@@ -304,12 +313,12 @@ function devel_generate_vocab_data($num_vocab, $title_length, $kill) {
     foreach (taxonomy_get_vocabularies() as $vocabulary_name => $vocab) {
       taxonomy_vocabulary_delete($vocabulary_name);
     }
-    backdrop_set_message(t('Deleted existing vocabularies.'));
+    devel_generate_set_message(t('Deleted existing vocabularies.'));
   }
 
   $new_vocs = devel_generate_vocabs($num_vocab, $title_length);
   if (!empty($new_vocs)) {
-    backdrop_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => theme('item_list', array('items' => $new_vocs)))));
+    devel_generate_set_message(t('Created the following new vocabularies: !vocs', array('!vocs' => devel_generate_list($new_vocs))));
   }
 }
 
@@ -334,19 +343,19 @@ function devel_generate_menu_data($num_menus, $existing_menus, $num_links, $titl
     foreach ($result as $link) {
       menu_link_delete($link->mlid);
     }
-    backdrop_set_message(t('Deleted existing menus and links.'));
+    devel_generate_set_message(t('Deleted existing menus and links.'));
   }
 
   // Generate new menus.
   $new_menus = devel_generate_menus($num_menus, $title_length);
   if (!empty($new_menus)) {
-    backdrop_set_message(t('Created the following new menus: !menus', array('!menus' => theme('item_list', array('items' => $new_menus)))));
+    devel_generate_set_message(t('Created the following new menus: !menus', array('!menus' => devel_generate_list($new_menus))));
   }
 
   // Generate new menu links.
   $menus = $new_menus + $existing_menus;
   $new_links = devel_generate_links($num_links, $menus, $title_length, $link_types, $max_depth, $max_width);
-  backdrop_set_message(t('Created @count new menu links.', array('@count' => count($new_links))));
+  devel_generate_set_message(t('Created @count new menu links.', array('@count' => count($new_links))));
 }
 
 /**
@@ -593,7 +602,7 @@ function devel_generate_content_kill($values) {
 
   if (!empty($nids)) {
     node_delete_multiple($nids);
-    backdrop_set_message(t('Deleted %count nodes.', array('%count' => count($nids))));
+    devel_generate_set_message(t('Deleted %count nodes.', array('%count' => count($nids))));
   }
 }
 
@@ -615,8 +624,12 @@ function devel_generate_content_pre_node(&$results) {
 /**
  * Create one node. Used by both batch and non-batch code branches.
  *
- * @param $num
- *   array of options obtained from devel_generate_content_form.
+ * @param $results
+ *   Array of options obtained from devel_generate_content_form. If calling this
+ *   function directly, $results should contain at the very least:
+ *     node_types => an associative array of node type machine names
+ *     users => an array of UIDs
+ *     title_length => max number of words in titles, for example 4.
  */
 function devel_generate_content_add_node(&$results) {
   $node = new Node();
@@ -628,7 +641,17 @@ function devel_generate_content_add_node(&$results) {
   $users = $results['users'];
   $node->uid = $users[array_rand($users)];
   $type = node_type_get_type($node);
-  $node->title = $type->has_title ? devel_create_greeking(mt_rand(2, $results['title_length']), TRUE) : '';
+
+  if (!$type || $type->has_title) {
+    // We should not use the random function if the value is not random.
+    if ($results['title_length'] < 2) {
+      $node->title = devel_create_greeking(1, TRUE);
+    }
+    else {
+      $node->title = devel_create_greeking(mt_rand(1, $results['title_length']), TRUE);
+    }
+  }
+
   $node->sticky = 0;
   $node->revision = empty($type->settings['revision_enabled']) ? 0 : mt_rand(0,1);
   $node->promote = empty($type->settings['promote_enabled']) ? 0 : mt_rand(0, 1);
@@ -664,5 +687,41 @@ function devel_generate_set_language($results, $object) {
   else {
     $default = language_default();
     $object->language =  $default == 'en' ? LANGUAGE_NONE : $default;
+  }
+}
+
+/**
+ * Set a message for either drush or the web interface.
+ *
+ * @param $msg
+ *  The message to display.
+ * @param $type
+ *  The message type, as defined by backdrop_set_message().
+ *
+ * @return
+ *  Context-appropriate message output.
+ */
+function devel_generate_set_message($msg, $type = 'status') {
+  $function  = function_exists('drush_log') ? 'drush_log' : 'backdrop_set_message';
+  $function($msg, $type);
+}
+
+/**
+ * Print an item list either for drush or the web interface.
+ *
+ * @param array $items
+ *  Items to display in a list.
+ *
+ * @return
+ *  Context-appropriate message output.
+ */
+function devel_generate_list(array $items) {
+  $is_drush  = function_exists('drush_log');
+  if ($is_drush) {
+    $glue = "\n  * ";
+    return $glue . implode($glue, $items) . "\n";
+  }
+  else {
+    return theme('item_list', array('items' => $items));
   }
 }

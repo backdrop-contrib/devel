@@ -29,6 +29,14 @@ function devel_generate_users_form($form, &$form_state) {
     '#options' => $options,
   );
 
+  $form['pass'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Password to be set'),
+    '#default_value' => NULL,
+    '#size' => 32,
+    '#description' => t('Leave this field empty, if you do not need to set a password.'),
+  );
+
   $options = array(1 => t('Now'));
   foreach (array(3600, 86400, 604800, 2592000, 31536000) as $interval) {
     $options[$interval] = format_interval($interval, 1) . ' ' . t('ago');
@@ -54,7 +62,7 @@ function devel_generate_users_form($form, &$form_state) {
 function devel_generate_users_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate');
   $values = $form_state['values'];
-  devel_create_users($values['num'], $values['kill_users'], $values['time_range'], $values['roles']);
+  devel_create_users($values['num'], $values['kill_users'], $values['time_range'], $values['roles'], $values['pass']);
 }
 
 /**
@@ -299,22 +307,6 @@ function devel_generate_node_insert($node) {
       }
     }
   }
-}
-
-/**
- * Set a message for either drush or the web interface.
- *
- * @param $msg
- *  The message to display.
- * @param $type
- *  The message type, as defined by backdrop_set_message().
- *
- * @return
- *  Context-appropriate message output.
- */
-function devel_generate_set_message($msg, $type = 'status') {
-  $function  = function_exists('drush_log') ? 'drush_log' : 'backdrop_set_message';
-  $function($msg, $type);
 }
 
 /**

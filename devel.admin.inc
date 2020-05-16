@@ -1,8 +1,16 @@
 <?php
 
 /**
- * The settings form for Devel module.
+ * @file
+ * Functions for Devel administrative pages.
  */
+
+/**
+ * Form constructor for the settings form.
+ *
+ * @ingroup forms
+ */
+
 function devel_admin_settings() {
   $config = config('devel.settings');
   $form['queries'] = array(
@@ -30,10 +38,16 @@ function devel_admin_settings() {
         ),
       ),
   );
+  $form['queries']['settings']['show_query_args_first'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show query arguments'),
+    '#default_value' => $config->get('show_query_args_first', FALSE),
+    '#description' => t('Show arguments rather than the query placeholders in the logged query.'),
+  );
   $form['queries']['settings']['query_sort'] = array(
     '#type' => 'radios',
     '#title' => t('Sort query log'),
-    '#default_value' =>   $config->get('query_sort', DEVEL_QUERY_SORT_BY_SOURCE),
+    '#default_value' => $config->get('query_sort', DEVEL_QUERY_SORT_BY_SOURCE),
     '#options' => array(t('by source'), t('by duration')),
     '#description' => t('The query table can be sorted in the order that the queries were executed or by descending duration.'),
   );
@@ -191,6 +205,15 @@ function devel_admin_settings_submit($form, &$form_state) {
   backdrop_set_message('The configuration options have been saved.');
 }
 
+/**
+ * Demonstrates the active error handler.
+ *
+ * Generates some warnings or errors, so that the reaction of the current error
+ * handler can be observed.
+ *
+ * @param $severity
+ *   The severity level that the error handler should demonstrate.
+ */
 function devel_demonstrate_error_handlers($severity) {
   switch ($severity) {
     case 'warning':
