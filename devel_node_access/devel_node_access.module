@@ -491,21 +491,13 @@ function devel_node_access_block_info() {
 function devel_node_access_block_view($delta) {
   global $user;
   global $theme_key;
-  static $block1_visible, $hint = '';
-  if (!isset($block1_visible)) {
-    $block1_visible = db_query("SELECT status FROM {block} WHERE module = 'devel_node_access' AND delta = 'dna_user' AND theme = :theme", array(
-      ':theme' => $theme_key,
-    ))->fetchField();
-    if (!$block1_visible) {
-      $hint = t('For per-user access permissions enable the <a href="@link">%DNAbU block</a>.', array('@link' => url('admin/structure/block'), '%DNAbU' => t('Devel Node Access by User')));
-    }
-  }
 
   if (!user_access(DNA_ACCESS_VIEW)) {
     return;
   }
 
   $output = array();
+  $hint = '';
 
   switch ($delta) {
     case 'dna_node':
@@ -885,7 +877,7 @@ function devel_node_access_block_view($delta) {
           $accounts[] = $user;
         }
         // Only for single nodes.
-        if (arg(0) == 'node' && is_numeric(arg(1)) && !$block1_visible) {
+        if (arg(0) == 'node' && is_numeric(arg(1))) {
           // Anonymous, too.
           if (user_is_logged_in()) {
             $accounts[] = user_load(0);
