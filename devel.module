@@ -19,7 +19,7 @@ define('DEVEL_MIN_TEXTAREA', 50);
  */
 function devel_menu() {
   $items['admin/devel'] = array(
-    'title' => 'Development',
+    'title' => t('Development'),
     'access arguments' => array('access devel information'),
     'page callback' => 'system_admin_menu_block_page',
     'weight' => 5,
@@ -31,32 +31,32 @@ function devel_menu() {
    * General utilities are at the top-level.
    */
   $items['admin/devel/reinstall'] = array(
-    'title' => 'Reinstall modules',
+    'title' => t('Reinstall modules'),
+    'description' => t('Run <code>hook_uninstall()</code> and then <code>hook_install()</code> for a given module.'),
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('devel_reinstall'),
-    'description' => 'Run hook_uninstall() and then hook_install() for a given module.',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
   $items['admin/devel/php'] = array(
-    'title' => 'Execute PHP Code',
-    'description' => 'Execute arbitrary PHP code.',
+    'title' => t('Execute PHP Code'),
+    'description' => t('Execute arbitrary PHP code.'),
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('devel_execute_form'),
     'access arguments' => array('execute php code'),
     'file' => 'devel.pages.inc',
   );
   $items['admin/devel/switch-user'] = array(
-    'title' => 'Switch user account',
-    'description' => 'Change the currently logged in user to another account.',
+    'title' => t('Switch user account'),
+    'description' => t('Change the currently logged in user to another account.'),
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('devel_switch_user_form'),
     'access arguments' => array('switch users'),
   );
   // Redirect from easily-accessible settings page to the official location.
   $items['admin/devel/settings'] = array(
-    'title' => 'Devel settings',
-    'description' =>  'Configure query logging, XHProf, debugging messages, and other developer features.',
+    'title' => t('Devel settings'),
+    'description' => t('Configure query logging, XHProf, debugging messages, and other developer features.'),
     'page callback' => 'backdrop_goto',
     'page arguments' => array('admin/config/development/devel'),
     'access arguments' => array('administer site configuration'),
@@ -66,8 +66,8 @@ function devel_menu() {
    * Informational menu callbacks.
    */
   $items['admin/devel/info'] = array(
-    'title' => 'Information',
-    'description' => 'Deep inspection tools for Backdrop internals.',
+    'title' => t('Information'),
+    'description' => t('Deep inspection tools for Backdrop internals.'),
     'access arguments' => array('access devel information'),
     'page callback' => 'system_admin_menu_block_page',
     'weight' => 9,
@@ -76,43 +76,43 @@ function devel_menu() {
     'file path' => backdrop_get_path('module', 'system'),
   );
   $items['admin/devel/info/reference'] = array(
-    'title' => 'Function reference',
-    'description' => 'View a list of currently defined user functions with documentation links.',
+    'title' => t('Function reference'),
+    'description' => t('View a list of currently defined user functions with documentation links.'),
     'page callback' => 'devel_function_reference',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
   $items['admin/devel/info/theme'] = array(
-    'title' => 'Theme registry',
-    'description' => 'View a list of available theme functions across the whole site.',
+    'title' => t('Theme registry'),
+    'description' => t('View a list of available theme functions across the whole site.'),
     'page callback' => 'devel_theme_registry',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
   $items['admin/devel/info/entity'] = array(
-    'title' => 'Entity info',
-    'description' => 'View entity information across the whole site.',
+    'title' => t('Entity info'),
+    'description' => t('View entity information across the whole site.'),
     'page callback' => 'devel_entity_info_page',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
   $items['admin/devel/info/field'] = array(
-    'title' => 'Field info',
-    'description' => 'View fields information across the whole site.',
+    'title' => t('Field info'),
+    'description' => t('View fields information across the whole site.'),
     'page callback' => 'devel_field_info_page',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
   $items['admin/devel/info/elements'] = array(
-    'title' => 'Form API elements',
-    'description' => 'View the active form/render elements for this site.',
+    'title' => t('Form API elements'),
+    'description' => t('View the active form/render elements for this site.'),
     'page callback' => 'devel_elements_page',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
   );
   $items['admin/devel/info/session'] = array(
-    'title' => 'Session viewer',
-    'description' => 'List the contents of $_SESSION.',
+    'title' => t('Session viewer'),
+    'description' => t('List the contents of <code>$_SESSION</code>.'),
     'page callback' => 'devel_session',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
@@ -122,16 +122,16 @@ function devel_menu() {
    * Menu callbacks that are accessed directly without menu links.
    */
   $items['admin/devel/switch'] = array(
-    'title' => 'Switch user',
+    'title' => t('Switch user'),
     'page callback' => 'devel_switch_user',
     'access callback' => '_devel_switch_user_access',
-    'access arguments' => array(2),
+    'access arguments' => array(3),
     'file' => 'devel.pages.inc',
     'type' => MENU_CALLBACK,
   );
   $items['admin/devel/menu/item'] = array(
-    'title' => 'Menu item',
-    'description' => 'Details about a given menu item.',
+    'title' => t('Menu item'),
+    'description' => t('Details about a given menu item.'),
     'page callback' => 'devel_menu_item',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
@@ -139,24 +139,24 @@ function devel_menu() {
     'type' => MENU_CALLBACK,
   );
   $items['admin/devel/explain'] = array(
-    'title' => 'Explain query',
+    'title' => t('Explain query'),
+    'description' => t('Run an <code>EXPLAIN</code> on a given query. Used by query log'),
     'page callback' => 'devel_querylog_explain',
-    'description' => 'Run an EXPLAIN on a given query. Used by query log',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
     'type' => MENU_CALLBACK
   );
   $items['admin/devel/arguments'] = array(
-    'title' => 'Arguments query',
+    'title' => t('Arguments query'),
+    'description' => t('Return a given query, with arguments instead of placeholders. Used by query log'),
     'page callback' => 'devel_querylog_arguments',
-    'description' => 'Return a given query, with arguments instead of placeholders. Used by query log',
     'access arguments' => array('access devel information'),
     'file' => 'devel.pages.inc',
     'type' => MENU_CALLBACK
   );
   $items['admin/config/development/devel'] = array(
-    'title' => 'Devel settings',
-    'description' =>  'Configure query logging, XHProf, debugging messages, and other developer features.',
+    'title' => t('Devel settings'),
+    'description' => t('Configure query logging, XHProf, debugging messages, and other developer features.'),
     'page callback' => 'backdrop_get_form',
     'page arguments' => array('devel_admin_settings'),
     'file' => 'devel.admin.inc',
@@ -167,7 +167,7 @@ function devel_menu() {
    * Information displayed as local tasks on various entities.
    */
   $items['node/%node/devel'] = array(
-    'title' => 'Devel',
+    'title' => t('Devel'),
     'page callback' => 'devel_load_object',
     'page arguments' => array('node', 1),
     'access arguments' => array('access devel information'),
@@ -176,11 +176,11 @@ function devel_menu() {
     'weight' => 100,
   );
   $items['node/%node/devel/load'] = array(
-    'title' => 'Load',
+    'title' => t('Load'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['node/%node/devel/render'] = array(
-    'title' => 'Render',
+    'title' => t('Render'),
     'page callback' => 'devel_render_object',
     'page arguments' => array('node', 1),
     'access arguments' => array('access devel information'),
@@ -189,7 +189,7 @@ function devel_menu() {
     'weight' => 100,
   );
   $items['comment/%comment/devel'] = array(
-    'title' => 'Devel',
+    'title' => t('Devel'),
     'page callback' => 'devel_load_object',
     'page arguments' => array('comment', 1),
     'access arguments' => array('access devel information'),
@@ -198,11 +198,11 @@ function devel_menu() {
     'weight' => 100,
   );
   $items['comment/%comment/devel/load'] = array(
-    'title' => 'Load',
+    'title' => t('Load'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['comment/%comment/devel/render'] = array(
-    'title' => 'Render',
+    'title' => t('Render'),
     'page callback' => 'devel_render_object',
     'page arguments' => array('comment', 1),
     'access arguments' => array('access devel information'),
@@ -211,7 +211,7 @@ function devel_menu() {
     'weight' => 100,
   );
   $items['user/%user/devel'] = array(
-    'title' => 'Devel',
+    'title' => t('Devel'),
     'page callback' => 'devel_load_object',
     'page arguments' => array('user', 1),
     'access arguments' => array('access devel information'),
@@ -220,11 +220,11 @@ function devel_menu() {
     'weight' => 100,
   );
   $items['user/%user/devel/load'] = array(
-    'title' => 'Load',
+    'title' => t('Load'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['user/%user/devel/render'] = array(
-    'title' => 'Render',
+    'title' => t('Render'),
     'page callback' => 'devel_render_object',
     'page arguments' => array('user', 1),
     'access arguments' => array('access devel information'),
@@ -233,7 +233,7 @@ function devel_menu() {
     'weight' => 100,
   );
   $items['taxonomy/term/%taxonomy_term/devel'] = array(
-    'title' => 'Devel',
+    'title' => t('Devel'),
     'page callback' => 'devel_load_object',
     'page arguments' => array('taxonomy_term', 2, 'term'),
     'access arguments' => array('access devel information'),
@@ -242,11 +242,11 @@ function devel_menu() {
     'weight' => 100,
   );
   $items['taxonomy/term/%taxonomy_term/devel/load'] = array(
-    'title' => 'Load',
+    'title' => t('Load'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['taxonomy/term/%taxonomy_term/devel/render'] = array(
-    'title' => 'Render',
+    'title' => t('Render'),
     'page callback' => 'devel_render_object',
     'page arguments' => array('taxonomy_term', 2, 'term'),
     'access arguments' => array('access devel information'),
@@ -263,7 +263,7 @@ function devel_menu() {
  */
 function _devel_switch_user_access($name) {
   // Suppress notices when on other pages when menu system still checks access.
-  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "devel/switch/$name|" . @$_GET['destination'], TRUE);
+  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "admin/devel/switch/$name|", TRUE);
 }
 
 /**
@@ -387,7 +387,7 @@ function devel_init() {
     if (flood_is_allowed('devel_rebuild_registry_warning', 1)) {
       flood_register_event('devel_rebuild_registry_warning');
       if (!devel_silent() && user_access('access devel information')) {
-        backdrop_set_message(t('The theme registry is being rebuilt on every request. Remember to <a href="!url">turn off</a> this feature on production websites.', array("!url" => url('admin/config/development/devel'))));
+        backdrop_set_message(t('The theme registry is being rebuilt on every request. Remember to <a href="!url">turn off</a> this feature on production websites.', array('!url' => url('admin/config/development/devel', array('fragment' => 'edit-rebuild-theme-registry')))));
       }
     }
   }
@@ -526,27 +526,10 @@ function devel_silent() {
     );
 }
 
-function devel_xhprof_enable() {
-  if (devel_xhprof_is_enabled()) {
-    if ($path = config_get('devel.settings', 'xhprof_directory')) {
-      include_once $path . '/xhprof_lib/utils/xhprof_lib.php';
-      include_once $path . '/xhprof_lib/utils/xhprof_runs.php';
-      // @todo: consider a variable per-flag instead.
-      xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
-    }
-  }
-}
-
-function devel_xhprof_is_enabled() {
-  return extension_loaded('xhprof') && config_get('devel.settings', 'xhprof_enabled');
-}
-
 /**
  * Implementation of hook_boot().
  */
 function devel_boot() {
-  // Initialize XHProf.
-  devel_xhprof_enable();
 
   if (!devel_silent()) {
     if (config_get('devel.settings', 'memory_display')) {
@@ -810,7 +793,7 @@ function devel_switch_user_list($settings) {
       $links[$account->uid] = array(
         'title' => backdrop_placeholder(user_format_name($account)),
         'href' => $path,
-        'query' => array($dest, 'token' => backdrop_get_token($path . '|' . $dest['destination'])),
+        'query' => $dest + array('token' => backdrop_get_token($path)),
         'attributes' => array('title' => t('This user can switch back.')),
         'html' => TRUE,
         'last_access' => $account->access,
@@ -826,7 +809,7 @@ function devel_switch_user_list($settings) {
         $links[$account->uid] = array(
           'title' => user_format_name($account),
           'href' => $path,
-          'query' => array($dest, 'token' => backdrop_get_token($path . '|' . $dest['destination'])),
+          'query' => array('token' => backdrop_get_token($path)),
           'attributes' => array('title' => t('Caution: this user will be unable to switch back.')),
           'last_access' => $account->access,
         );
@@ -838,7 +821,7 @@ function devel_switch_user_list($settings) {
       $link = array(
         'title' => user_format_name(backdrop_anonymous_user()),
         'href' => $path,
-        'query' => array($dest, 'token' => backdrop_get_token($path . '/|' . $dest['destination'])),
+        'query' => $dest + array('token' => backdrop_get_token($path)),
         'attributes' => array('title' => t('Caution: the anonymous user will be unable to switch back.')),
       );
       if (user_access('switch users', backdrop_anonymous_user())) {
@@ -916,8 +899,10 @@ function devel_switch_user_form_submit($form, &$form_state) {
     array(
       'query' => array(
         'destination' => '',
-        'token' => backdrop_get_token($path . '|'),
-  )));
+        'token' => backdrop_get_token($path),
+      )
+    )
+  );
 }
 
 /**
@@ -969,17 +954,12 @@ function devel_exit() {
   global $user, $devel_run_id;
   $output = $txt = '';
 
-  $devel_run_id = devel_xhprof_is_enabled() ? devel_shutdown_xhprof(): NULL;
-  if ($devel_run_id && function_exists('drush_log')) {
-    drush_log('xhprof link: ' . devel_xhprof_link($devel_run_id, 'url'), 'notice');
-  }
-
-  // Set $GLOBALS['devel_shutdown'] = FALSE in order to supress the
-  // devel footer for a page.  Not necessary if your page outputs any
-  // of the Content-type http headers tested below (e.g. text/xml,
-  // text/javascript, etc).  This is is advised where applicable.
+  // Set $GLOBALS['devel_shutdown'] = FALSE, in order to supress the devel
+  // footer for a page. Not necessary if your page outputs any of the
+  // Content-type http headers tested below (e.g. text/xml, text/javascript,
+  // etc). This is advised where applicable.
   if (!devel_silent() && !isset($GLOBALS['devel_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
-    // Try not to break non html pages.
+    // Try not to break non-html pages.
     if (function_exists('backdrop_get_http_header')) {
       $header = backdrop_get_http_header('content-type');
       if ($header) {
@@ -994,6 +974,12 @@ function devel_exit() {
 
     if (isset($user) && user_access('access devel information')) {
       $queries = (devel_query_enabled() ? Database::getLog('devel', 'default') : NULL);
+      if (!empty($queries)) {
+        // Remove caller args to avoid recursion.
+        foreach ($queries as &$query) {
+          unset($query['caller']['args']);
+        }
+      }
       $output .= devel_shutdown_summary($queries);
       $output .= devel_shutdown_query($queries);
     }
@@ -1019,31 +1005,10 @@ function devel_shutdown_summary($queries) {
     $output .= devel_timer();
   }
 
-  if (devel_xhprof_is_enabled()) {
-    $output .= ' ' . devel_xhprof_link($GLOBALS['devel_run_id']);
-  }
-
   $output .= devel_shutdown_memory();
 
   if ($output) {
     return '<div class="dev-query">' . $output . '</div>';
-  }
-}
-
-function devel_shutdown_xhprof() {
-  $namespace = config_get('system.core', 'site_name', '');
-  $xhprof_data = xhprof_disable();
-  $xhprof_runs = new XHProfRuns_Default();
-  return $xhprof_runs->save_run($xhprof_data, $namespace);
-}
-
-function devel_xhprof_link($run_id, $type = 'link') {
-  // @todo: render results from within Drupal.
-  $xhprof_url = config_get('devel.settings', 'xhprof_url');
-  $namespace = config_get('system.core', 'site_name');
-  if ($xhprof_url) {
-    $url  = $xhprof_url . "/index.php?run=$run_id&source=$namespace";
-    return $type == 'url' ? $url : t('<a href="@xhprof">XHProf output</a>. ', array('@xhprof' => $url));
   }
 }
 
@@ -1404,11 +1369,13 @@ function _devel_print_object($obj, $prefix = NULL, $parents = NULL, $object = FA
  * generate the page.
  */
 function devel_query_table($queries, $counts) {
+  $config = config('devel.settings');
   $version = devel_get_core_version(BACKDROP_VERSION);
   $header = array ('ms', '#', 'where', 'ops', 'query', 'target');
   $i = 0;
-  $api = config_get('devel.settings', 'api_url');
-  $slow_query_limit = config_get('devel.settings', 'query_slow_limit');
+  $api = $config->get('api_url');
+  $slow_query_limit = $config->get('query_slow_limit');
+  $db_connection = Database::getconnection();
   foreach ($queries as $query) {
     $function = !empty($query['caller']['class']) ? $query['caller']['class'] . '::' : '';
     $function .= $query['caller']['function'];
@@ -1431,8 +1398,19 @@ function devel_query_table($queries, $counts) {
     }
     $cell[$i][] = implode(' ', $ops);
     // 3 divs for each variation of the query. Last 2 are hidden by default.
-    $placeholders = '<div class="dev-placeholders">' . check_plain($query['query']) . "</div>\n";
-    $args = '<div class="dev-arguments" style="display: none;"></div>' . "\n";
+    if ($config->get('show_query_args_first')) {
+      $placeholders = '<div class="dev-placeholders" style="display: none;">' . check_plain($query['query']) . "</div>\n";
+      $quoted = array();
+      foreach ($query['args'] as $key => $val) {
+        $quoted[$key] = $db_connection->quote($val);
+      }
+      $output = strtr($query['query'], $quoted);
+      $args = '<div class="dev-arguments">' . $output . '</div>' . "\n";
+    }
+    else {
+      $placeholders = '<div class="dev-placeholders">' . check_plain($query['query']) . "</div>\n";
+      $args = '<div class="dev-arguments" style="display: none;"></div>' . "\n";
+    }
     $explain = '<div class="dev-explain" style="display: none;"></div>' . "\n";
     $cell[$i][] = array(
       'id' => "devel-query-$i",
@@ -1442,7 +1420,7 @@ function devel_query_table($queries, $counts) {
     $i++;
     unset($diff, $count, $ops);
   }
-  if (config_get('devel.settings', 'query_sort') === 'source') {
+  if ($config->get('query_sort') === 'source') {
     usort($cell, '_devel_table_sort');
   }
   return theme('devel_querylog', array('header' => $header, 'rows' => $cell));
@@ -1520,9 +1498,13 @@ function devel_timer() {
   return t_safe(' Page execution time was @time ms.', array('@time' => $time));
 }
 
-// An alias for drupal_debug().
-function dd($data, $label = NULL) {
-  return drupal_debug($data, $label);
+if (!function_exists('dd')) {
+  /**
+   * An alias for drupal_debug().
+   */
+  function dd($data, $label = NULL) {
+    return drupal_debug($data, $label);
+  }
 }
 
 /**
@@ -1699,7 +1681,7 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', 
     if ($check) {
       $output = check_plain($output);
     }
-    if (count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
+    if ((is_array($input) || $input instanceof Countable) && count($input, COUNT_RECURSIVE) > DEVEL_MIN_TEXTAREA) {
         // don't use fapi here because sometimes fapi will not be loaded
         $printed_value = "<textarea rows=30 style=\"width: 100%;\">\n". $name . $output .'</textarea>';
     }
@@ -1742,9 +1724,11 @@ function ddebug_backtrace($return = FALSE, $pop = 0) {
       array_shift($backtrace);
     }
     $counter = count($backtrace);
-    $path = $backtrace[$counter - 1]['file'];
-    $path = substr($path, 0, strlen($path) - 10);
-    $paths[$path] = strlen($path) + 1;
+    if (!empty($backtrace[$counter - 1]['file'])) {
+      $path = $backtrace[$counter - 1]['file'];
+      $path = substr($path, 0, strlen($path) - 10);
+      $paths[$path] = strlen($path) + 1;
+    }
     $paths[BACKDROP_ROOT] = strlen(BACKDROP_ROOT) + 1;
     $nbsp = "\xC2\xA0";
 
@@ -1875,5 +1859,25 @@ function devel_form_system_modules_alter(&$form, &$form_state) {
         }
       }
     }
+  }
+}
+
+/**
+ * Implements hook_query_TAG_alter().
+ *
+ * Makes debugging EntityFieldQuery much easier.
+ *
+ * Example usage:
+ *   $q = new EntityFieldQuery;
+ *   $q->entityCondition('entity_type', 'node')
+ *     ->addTag('debug')
+ *     ->execute();
+ *
+ * @param QueryAlterableInterface $query
+ */
+function devel_query_debug_alter(QueryAlterableInterface $query) {
+  if (!$query->hasTag('debug-semaphore')) {
+    $query->addTag('debug-semaphore');
+    dpq($query);
   }
 }
