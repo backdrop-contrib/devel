@@ -917,12 +917,34 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
       // stain it
       //
       $_recursion_marker = krumo::_marker();
-      (is_object($bee))
-        ? (empty($bee->$_recursion_marker) ? ($bee->$_recursion_marker = 1) : $bee->$_recursion_marker++)
-        : @($bee[$_recursion_marker]++);
-
-      $_[0][] =& $bee;
+      if (is_object($bee)) {
+        if (method_exists($bee, '__set') || method_exists($bee, '__get')) {
+          // Objects with setters and getters can block our attempts to stain
+          // or detect the stain on an object.  Use a stunt object, instead.
+          $obj_hash = spl_object_hash($bee);
+          if (array_key_exists($obj_hash, $_[0])) {
+            $_[0][$obj_hash]->$_recursion_marker++;
+          }
+          else {
+            $stunt_object = new stdClass();
+            $stunt_object->$_recursion_marker = 1;
+            $_[0][$obj_hash] = $stunt_object;
+          }
+        }
+        else {
+          // Stain everything else directly.
+          empty($bee->$_recursion_marker) ?
+            ($bee->$_recursion_marker = 1) :
+            $bee->$_recursion_marker++;
+          $_[0][] =& $bee;
+        }
       }
+      else {
+        // Stain an array.
+        @($bee[$_recursion_marker]++);
+        $_[0][] =& $bee;
+      }
+    }
 
     // return all bees
     //
@@ -930,6 +952,35 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
     }
 
   // -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+  /**
+   * Detect if an object has been stained.  For objects with getters or setters,
+   * we look for the stunt object in the hive.
+   *
+   * @param midex &$data
+   * @access private
+   * @static
+   */
+  Private Static Function _isStained($data) {
+    $_recursion_marker = krumo::_marker();
+
+    if (is_object($data)) {
+      if (method_exists($data, '__set') || method_exists($data, '__get')) {
+        // Objects with getters or setters have a stunt object in the hive.
+        $dummy = NULL;
+        $hive = krumo::_hive($dummy);
+        return !empty($hive[spl_object_hash($data)]->$_recursion_marker);
+      }
+      else {
+        return !empty($data->$_recursion_marker);
+      }
+    }
+    elseif (is_array($data)) {
+      return !empty($data[$_recursion_marker]);
+    }
+
+    return FALSE;
+  }
 
   /**
   * Render a dump for the properties of an array or objeect
@@ -942,18 +993,9 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
 
     $_is_object = is_object($data);
 
-    // test for references in order to
-    // prevent endless recursion loops
-    //
-    $_recursion_marker = krumo::_marker();
-    $_r = ($_is_object)
-      ? @$data->$_recursion_marker
-      : @$data[$_recursion_marker] ;
-    $_r = (integer) $_r;
-
     // recursion detected
     //
-    if ($_r > 0) {
+    if (krumo::_isStained($data)) {
       return krumo::_recursion();
       }
 
@@ -999,6 +1041,7 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
 
   // itterate
   //
+  $_recursion_marker = krumo::_marker();
   foreach($keys as $k) {
 
     // skip marker
