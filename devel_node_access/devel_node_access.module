@@ -49,6 +49,17 @@ function devel_node_access_menu() {
 }
 
 /**
+ * Implements hook_config_info().
+ */
+function devel_node_access_config_info() {
+  $prefixes['devel_node_access.settings'] = array(
+    'label' => t('Devel Node Access settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
+/**
  * Implements hook_form_alter().
  *
  * Adds form elements to devel_admin_settings() and
