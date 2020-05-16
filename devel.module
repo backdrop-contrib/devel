@@ -263,7 +263,7 @@ function devel_menu() {
  */
 function _devel_switch_user_access($name) {
   // Suppress notices when on other pages when menu system still checks access.
-  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "admin/devel/switch/$name|", TRUE);
+  return user_access('switch users') && backdrop_valid_token(@$_GET['token'], "admin/devel/switch/$name", TRUE);
 }
 
 /**
