@@ -100,50 +100,6 @@ function devel_admin_settings() {
     '#default_value' => $config->get('rebuild_theme_registry'),
   );
 
-  $form['xhprof'] = array(
-    '#type' => 'fieldset',
-    '#title' => 'XHProf',
-    '#description' => t('XHProf is a php extension which is essential for profiling your site. It pinpoints slow functions, and also memory hogging functions.'),
-  );
-  $description = extension_loaded('xhprof') ? t('Profile requests with the xhprof php extension.') : '<span class="warning">' . t('You must enable the <a href="!url">xhprof php extension</a> to use this feature.', array('!url' => url('http://techportal.ibuildings.com/2009/12/01/profiling-with-xhprof/'))) . '</span>';
-  $form['xhprof']['xhprof_enabled'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable profiling of all page views and <a href="!drush">drush</a> requests.', array('!drush' => url('http://drush.ws'))),
-    '#default_value' => $config->get('xhprof_enabled'),
-    '#description' => $description,
-    '#disabled' => !extension_loaded('xhprof'),
-  );
-  $form['xhprof']['settings'] = array(
-    '#type' => 'container',
-    '#states' => array(
-      'invisible' => array(
-        'input[name="xhprof_enabled"]' => array('checked' => FALSE),
-      ),
-    ),
-  );
-  $form['xhprof']['settings']['xhprof_directory'] = array(
-    '#type' => 'textfield',
-    '#title' => 'xhprof directory',
-    '#description' => t('Location of the xhprof source code on your system, usually somewhere in /usr/local/share or /usr/share, include the leading forward slash.'),
-    '#default_value' => $config->get('xhprof_directory'),
-    '#states' => array(
-      'invisible' => array(
-        'input[name="xhprof_enabled"]' => array('checked' => FALSE),
-      ),
-    ),
-  );
-  $form['xhprof']['settings']['xhprof_url'] = array(
-    '#type' => 'textfield',
-    '#title' => 'XHProf URL',
-    '#description' => t('Path to the publically accessible xhprof_html - required to display profiler reports. You will need to set this up outside your site directory, for example at http://xhprof.localhost/xhprof_html'),
-    '#default_value' => $config->get('xhprof_url'),
-    '#states' => array(
-      'invisible' => array(
-        'input[name="xhprof_enabled"]' => array('checked' => FALSE),
-      ),
-    ),
-  );
-
   $form['errors'] = array(
     '#type' => 'fieldset',
     '#title' => t('Error handling'),
@@ -234,10 +190,6 @@ function devel_admin_settings_submit($form, &$form_state) {
   $config->set('query_display', (bool) $values['query_display']);
   $config->set('query_sort', $values['query_sort']);
   $config->set('query_slow_limit', (int) $values['query_slow_limit']);
-
-  $config->set('xhprof_enabled', (bool) $values['xhprof_enabled']);
-  $config->set('xhprof_directory', $values['xhprof_directory']);
-  $config->set('xhprof_url', $values['xhprof_url']);
 
   $config->set('api_url', $values['api_url']);
 

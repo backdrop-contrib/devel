@@ -135,3 +135,14 @@ function devel_update_1005() {
   update_variable_del('devel_query_sort');
   update_variable_del('devel_execution');
 }
+
+/**
+ * Delete 'devel_xhprof_*' config settings, as they were removed from code.
+ */
+function devel_update_1006() {
+  $config = config('devel.settings');
+  $config->clear('xhprof_directory');
+  $config->clear('xhprof_enabled');
+  $config->clear('xhprof_url');
+  $config->save();
+}
