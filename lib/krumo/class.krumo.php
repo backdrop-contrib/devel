@@ -1040,7 +1040,7 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
     ? array_keys(get_object_vars($data))
     : array_keys($data);
 
-  // itterate
+  // iterate
   //
   foreach($keys as $k) {
 
