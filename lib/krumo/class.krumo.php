@@ -1150,10 +1150,14 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
   * @static
   */
   Private Static Function _object(&$data, $name) {
+    $count = 1;
+    if (is_array($data) || $data instanceof Countable) {
+      $count = count($data);
+    }
 ?>
 <li class="krumo-child">
 
-  <div class="krumo-element<?php echo count($data) > 0 ? ' krumo-expand' : '';?>">
+  <div class="krumo-element<?php echo $count > 0 ? ' krumo-expand' : '';?>">
 
       <?php /* DEVEL: added htmlSpecialChars */ ?>
       <a class="krumo-name"><?php echo htmlSpecialChars($name);?></a>
