@@ -1097,39 +1097,28 @@ function devel_get_core_version($version) {
   return $version_parts[0];
 }
 
-// See http://drupal.org/node/126098
+/**
+ * This function has introduced as part of http://drupal.org/node/126098 for the
+ * original Drupal version of this module, but it's not required in Backdrop; it
+ * is retained only for the purpose of backwards compatibility.
+ *
+ * The original version of this function would parse the buffered output of
+ * phpinfo(), then look for a line that contains the string "Zend Optimizer"
+ * plus its version, and then return TRUE if the version is equal to or grater
+ * than 3.2.8, or if Zend Optimizer was not installed; FALSE otherwise.
+ *
+ * In the meantime, since PHP v5.3, Zend Optimizer has been deprecated, and was
+ * replaced by Zend Guard.
+ *
+ * Because of all the above, and since Backdrop supports only PHP 5.3.2+ (see:
+ * https://backdropcms.org/requirements), this function now returns TRUE if the
+ * detected PHP version is equal to or greater than 5.3.2, FALSE otherwise.
+ */
 function devel_is_compatible_optimizer() {
-   ob_start();
-   phpinfo();
-   $info = ob_get_contents();
-   ob_end_clean();
-
-   // Match the Zend Optimizer version in the phpinfo information
-   $found = preg_match('/Zend&nbsp;Optimizer&nbsp;v([0-9])\.([0-9])\.([0-9])/', $info, $matches);
-
-   if ($matches) {
-     $major = $matches[1];
-     $minor = $matches[2];
-     $build = $matches[3];
-
-     if ($major >= 3) {
-       if ($minor >= 3) {
-         return TRUE;
-       }
-       elseif ($minor == 2 && $build >= 8) {
-         return TRUE;
-       }
-       else {
-         return FALSE;
-       }
-    }
-    else {
-      return FALSE;
-    }
+  if (version_compare(phpversion(), BACKDROP_MINIMUM_PHP) < 0) {
+    return FALSE;
   }
-  else {
-    return TRUE;
-  }
+  return TRUE;
 }
 
 /**
