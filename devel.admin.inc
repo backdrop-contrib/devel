@@ -19,15 +19,11 @@ function devel_admin_settings() {
   );
 
   $description = t('Display a log of the database queries needed to generate the current page, and the execution time for each. Also, queries which are repeated during a single page view are summed in the # column, and printed in red since they are candidates for caching.');
-  if (!devel_is_compatible_optimizer()) {
-    $description = t('You must disable or upgrade the php Zend Optimizer extension in order to enable this feature. The minimum required version is 3.2.8. Earlier versions of Zend Optimizer are <a href="!url">horribly buggy and segfault your Apache</a> ... ', array('!url' => url('http://drupal.org/node/126098'))) . $description;
-  }
   $form['queries']['query_display'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display query log'),
     '#default_value' => $config->get('query_display', 0),
     '#description' => $description,
-    '#disabled' => !devel_is_compatible_optimizer(),
   );
   $form['queries']['settings'] = array(
     '#type' => 'container',
