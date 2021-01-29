@@ -159,7 +159,7 @@ function devel_generate_add_comments($node, $users, $max_comments, $title_length
     $comment->cid = NULL;
     $comment->name = 'devel generate';
     $comment->mail = 'devel_generate@example.com';
-    $comment->timestamp = mt_rand($node->created, REQUEST_TIME);
+    $comment->created = mt_rand($node->created, REQUEST_TIME);
 
     switch ($i % 3) {
       case 1:
