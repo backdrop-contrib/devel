@@ -1604,6 +1604,31 @@ function dpm($input, $name = NULL, $type = 'status') {
 }
 
 /**
+ * Execute dpm() only once.
+ *
+ * @param $input
+ *   An arbitrary value to output.
+ * @param string $name
+ *   Optional name for identifying the output.
+ * @param string $type
+ *   Optional message type for backdrop_set_message(), defaults to 'status'.
+ *
+ * @return input
+ *   The unaltered input value.
+ *
+ * @see dpm()
+ */
+function dpm_once($input, $name = NULL, $type = 'status') {
+  $backtrace = debug_backtrace();
+  $caller = array_shift($backtrace);
+  $executed = &backdrop_static(__FUNCTION__ . $caller['file'] . $caller['line'], FALSE);
+  if (!$executed) {
+    dpm($input, $name, $type);
+    $executed = TRUE;
+  }
+}
+
+/**
  * backdrop_var_export() a variable to the 'message' area of the page.
  *
  * Uses backdrop_set_message().
