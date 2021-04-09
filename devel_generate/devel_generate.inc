@@ -677,6 +677,9 @@ function devel_generate_content_add_node(&$results) {
 
   // See devel_generate_nodeapi() for actions that happen before and after this save.
   node_save($node);
+  
+  // Generate comments.
+  devel_generate_add_comments($node, $users, $results['max_comments'], $results['title_length']);
 }
 
 /*
