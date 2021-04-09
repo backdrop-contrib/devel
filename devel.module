@@ -1184,6 +1184,9 @@ function devel_execute_form_submit($form, &$form_state) {
 function devel_switch_user($name = NULL) {
   global $user;
 
+  cache('cache_entity_node')->flush();
+  cache('page')->flush();
+
   if ($user->uid) {
     module_invoke_all('user_logout', $user);
   }
