@@ -254,6 +254,28 @@ function devel_menu() {
     'file' => 'devel.pages.inc',
     'weight' => 100,
   );
+  $items['file/%file/devel'] = array(
+    'title' => t('Devel'),
+    'page callback' => 'devel_load_object',
+    'page arguments' => array('file', 1),
+    'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
+  $items['file/%file/devel/load'] = array(
+    'title' => t('Load'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['file/%file/devel/render'] = array(
+    'title' => t('Render'),
+    'page callback' => 'devel_render_object',
+    'page arguments' => array('file', 1),
+    'access arguments' => array('access devel information'),
+    'file' => 'devel.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
 
   return $items;
 }
