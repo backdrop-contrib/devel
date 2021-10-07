@@ -152,6 +152,11 @@ function devel_generate_content($form_state) {
 }
 
 function devel_generate_add_comments($node, $users, $max_comments, $title_length = 8) {
+  // Exit early, if max comments was set to 0.
+  if ($max_comments == 0) {
+    return;
+  }
+
   $num_comments = mt_rand(1, $max_comments);
   for ($i = 1; $i <= $num_comments; $i++) {
     $comment = new Comment();
