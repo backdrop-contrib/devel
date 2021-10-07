@@ -1554,7 +1554,13 @@ function dargs($always = TRUE) {
   static $printed;
   if ($always || !$printed) {
     $bt = debug_backtrace();
-    print kdevel_print_object($bt[1]['args']);
+    $print = kdevel_print_object($bt[1]['args']);
+    if (Database::getConnectionInfo('simpletest_original_default')) {
+      trigger_error($print);
+    }
+    else {
+      print $print;
+    }
     $printed = TRUE;
   }
 }
@@ -1609,7 +1615,14 @@ function dpq($query, $return = FALSE, $name = NULL) {
 function dpm($input, $name = NULL, $type = 'status') {
   if (user_access('access devel information')) {
     $export = kprint_r($input, TRUE, $name);
-    backdrop_set_message($export, $type);
+    if (Database::getConnectionInfo('simpletest_original_default')) {
+      // Simpletest is running. Trigger error to send debug information to the
+      // test report page.
+      trigger_error($export);
+    }
+    else {
+      backdrop_set_message($export, $type);
+    }
   }
   return $input;
 }
@@ -1654,7 +1667,14 @@ function dpm_once($input, $name = NULL, $type = 'status') {
 function dvm($input, $name = NULL) {
   if (user_access('access devel information')) {
     $export = dprint_r($input, TRUE, $name, 'backdrop_var_export', FALSE);
-    backdrop_set_message($export);
+    if (Database::getConnectionInfo('simpletest_original_default')) {
+      // Simpletest is running. Trigger error to send debug information to the
+      // test report page.
+      trigger_error($export);
+    }
+    else {
+      backdrop_set_message($export);
+    }
   }
   return $input;
 }
@@ -1730,6 +1750,9 @@ function dprint_r($input, $return = FALSE, $name = NULL, $function = 'print_r', 
 
     if ($return) {
       return $printed_value;
+    }
+    elseif (Database::getConnectionInfo('simpletest_original_default')) {
+      trigger_error($printed_value);
     }
     else {
       print $printed_value;
