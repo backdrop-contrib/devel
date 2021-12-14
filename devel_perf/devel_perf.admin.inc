@@ -44,7 +44,7 @@ function devel_perf_settings_form($form, &$form_state) {
   $form['queries']['settings']['query_sort'] = array(
     '#type' => 'radios',
     '#title' => t('Sort query log'),
-    '#default_value' => $config->get('query_sort', DEVEL_QUERY_SORT_BY_SOURCE),
+    '#default_value' => $config->get('query_sort', DEVEL_PERF_QUERY_SORT_BY_SOURCE),
     '#options' => array(t('by source'), t('by duration')),
     '#description' => t('The query table can be sorted in the order that the queries were executed or by descending duration.'),
   );
