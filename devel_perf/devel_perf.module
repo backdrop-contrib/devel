@@ -23,6 +23,21 @@ function devel_perf_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
+  $items['admin/devel_perf/explain'] = array(
+    'title' => t('Explain query'),
+    'description' => t('Run an <code>EXPLAIN</code> on a given query. Used by query log'),
+    'page callback' => 'devel_perf_querylog_explain',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK
+  );
+  $items['admin/devel_perf/arguments'] = array(
+    'title' => t('Arguments query'),
+    'description' => t('Return a given query, with arguments instead of placeholders. Used by query log'),
+    'page callback' => 'devel_perf_querylog_arguments',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_CALLBACK
+  );
+
   return $items;
 }
 
@@ -374,4 +389,78 @@ function _devel_perf_table_sort($a, $b) {
 function devel_perf_timer() {
   $time = timer_read('page');
   return t_safe(' Page execution time was @time ms.', array('@time' => $time));
+}
+
+/**
+ * Page callback: Called by the AJAX link in query log.
+ */
+function devel_perf_querylog_explain($request_id, $qid) {
+  if (!is_numeric($request_id)) {
+    return MENU_ACCESS_DENIED;
+  }
+
+  $path = "temporary://devel_perf_querylog/$request_id.txt";
+  $path = file_stream_wrapper_uri_normalize($path);
+
+  $output = t('No explain log found.');
+
+  if (file_exists($path)) {
+    $queries = json_decode(file_get_contents($path));
+
+    if ($queries !== FALSE && isset($queries[$qid])) {
+      $header = $rows = array();
+
+      $query = $queries[$qid];
+      $result = db_query('EXPLAIN ' . $query->query, (array)$query->args)->fetchAllAssoc('table');
+      $i = 1;
+      foreach ($result as $row) {
+        $row = (array)$row;
+        if ($i == 1) {
+          $header = array_keys($row);
+        }
+        $rows[] = array_values($row);
+        $i++;
+      }
+
+      $output = theme('table', array('header' => $header, 'rows' => $rows));
+
+    }
+  }
+
+  // Print and return nothing thus avoiding page wrapper.
+  print $output;
+  $GLOBALS['devel_shutdown'] = FALSE;
+}
+
+/**
+ * Page callback: Called by the AJAX link in query log.
+ */
+function devel_perf_querylog_arguments($request_id, $qid) {
+  if (!is_numeric($request_id)) {
+    return MENU_ACCESS_DENIED;
+  }
+
+  $path = "temporary://devel_perf_querylog/$request_id.txt";
+  $path = file_stream_wrapper_uri_normalize($path);
+
+  $output = t('No arguments log found.');
+
+  if (file_exists($path)) {
+    $queries = json_decode(file_get_contents($path));
+
+    if ($queries !== FALSE && isset($queries[$qid])) {
+      $query = $queries[$qid];
+      $conn = Database::getConnection();
+      $quoted = array();
+      foreach ((array)$query->args as $key => $val) {
+        $quoted[$key] = $conn->quote($val);
+      }
+      $output = strtr($query->query, $quoted);
+    }
+
+  }
+
+  // Print and return nothing thus avoiding page wrapper.
+  print $output;
+  $GLOBALS['devel_shutdown'] = FALSE;
 }

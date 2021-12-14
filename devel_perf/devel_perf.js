@@ -15,7 +15,7 @@ Backdrop.behaviors.devel_explain = {
     $('a.dev-explain').click(function () {
       qid = $(this).attr("qid");
       cell = $('#devel-perf-query-' + qid);
-      $('.dev-explain', cell).load(Backdrop.settings.basePath + '?q=devel/explain/' + Backdrop.settings.devel.request_id + '/' + qid).show();
+      $('.dev-explain', cell).load(Backdrop.settings.basePath + '?q=admin/devel_perf/explain/' + Backdrop.settings.devel_perf.request_id + '/' + qid).show();
       $('.dev-placeholders', cell).hide();
       $('.dev-arguments', cell).hide();
       return false;
@@ -33,7 +33,7 @@ Backdrop.behaviors.devel_arguments = {
     $('a.dev-arguments').click(function () {
       qid = $(this).attr("qid");
       cell = $('#devel-perf-query-' + qid);
-      $('.dev-arguments', cell).load(Backdrop.settings.basePath + '?q=devel/arguments/' + Backdrop.settings.devel.request_id + '/' + qid).show();
+      $('.dev-arguments', cell).load(Backdrop.settings.basePath + '?q=admin/devel_perf/arguments/' + Backdrop.settings.devel_perf.request_id + '/' + qid).show();
       $('.dev-placeholders', cell).hide();
       $('.dev-explain', cell).hide();
       return false;

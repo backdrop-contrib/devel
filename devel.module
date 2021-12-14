@@ -135,22 +135,6 @@ function devel_menu() {
     'menu_name' => 'management',
     'type' => MENU_CALLBACK,
   );
-  $items['admin/devel/explain'] = array(
-    'title' => t('Explain query'),
-    'description' => t('Run an <code>EXPLAIN</code> on a given query. Used by query log'),
-    'page callback' => 'devel_querylog_explain',
-    'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'type' => MENU_CALLBACK
-  );
-  $items['admin/devel/arguments'] = array(
-    'title' => t('Arguments query'),
-    'description' => t('Return a given query, with arguments instead of placeholders. Used by query log'),
-    'page callback' => 'devel_querylog_arguments',
-    'access arguments' => array('access devel information'),
-    'file' => 'devel.pages.inc',
-    'type' => MENU_CALLBACK
-  );
   $items['admin/config/development/devel'] = array(
     'title' => t('Devel settings'),
     'description' => t('Configure query logging, XHProf, debugging messages, and other developer features.'),
