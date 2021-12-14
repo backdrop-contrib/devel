@@ -146,3 +146,27 @@ function devel_update_1006() {
   $config->clear('xhprof_url');
   $config->save();
 }
+
+/**
+ * Moving settings to the devel_perf module.
+ */
+function devel_update_1007() {
+  module_enable(array('devel_perf'));
+
+  $config = config('devel.settings');
+  $new_config = config('devel_perf.settings');
+
+  foreach (array(
+    'query_display',
+    'query_sort',
+    'query_slow_limit',
+    'timer_display',
+    'memory_display',
+  ) as $setting) {
+    $new_config->set($setting, $config->get($setting));
+    $config->clear($setting);
+  }
+
+  $config->save();
+  $new_config->save();
+}

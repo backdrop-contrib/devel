@@ -1,0 +1,8 @@
+name = Devel Performance
+description = Functions to help see what is taking so long on your pages.
+package = Development
+backdrop = 1.x
+configure = admin/config/development/devel/performance
+tags[] = developer
+type = module
+dependencies[] = devel

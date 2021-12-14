@@ -1,0 +1,376 @@
+<?php
+/**
+ * @file
+ * Tools for performance monitoring and optimization.
+ */
+
+define('DEVEL_PERF_QUERY_SORT_BY_SOURCE', 'source');
+define('DEVEL_PERF_QUERY_SORT_BY_DURATION', 'duration');
+
+/**
+ * Implements hook_menu().
+ */
+function devel_perf_menu() {
+  $items = array();
+
+  $items['admin/config/development/devel/performance'] = array(
+    'title' => t('Devel Performance settings'),
+    'description' => t('Configure performance monitoring features.'),
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('devel_perf_settings_form'),
+    'file' => 'devel_perf.admin.inc',
+    'access arguments' => array('administer site configuration'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function devel_perf_theme() {
+  return array(
+    'devel_perf_querylog' => array(
+      'variables' => array('header' => array(), 'rows' => array()),
+    ),
+    'devel_perf_querylog_row' => array(
+      'variables' => array('row' => array()),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_init().
+ */
+function devel_perf_init() {
+  if (!devel_silent()) {
+    if (user_access('access devel information')) {
+      // Add CSS for query log if should be displayed.
+      if (config_get('devel_perf.settings', 'query_display')) {
+        backdrop_add_css(backdrop_get_path('module', 'devel_perf') . '/devel_perf.css');
+        backdrop_add_js(backdrop_get_path('module', 'devel_perf') . '/devel_perf.js');
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_boot().
+ */
+function devel_perf_boot() {
+
+  if (!devel_silent()) {
+    if (config_get('devel_perf.settings', 'memory_display')) {
+      global $memory_init;
+      $memory_init = memory_get_usage();
+    }
+
+    if (devel_perf_query_enabled()) {
+      @include_once BACKDROP_ROOT . '/core/includes/database/log.inc';
+      Database::startLog('devel_perf');;
+    }
+  }
+
+  // We need user_access() in the shutdown function. make sure it gets loaded.
+  // Also prime the backdrop_get_filename() static with user.module's location to
+  // avoid a stray query.
+  backdrop_get_filename('module', 'user', 'modules/user/user.module');
+  backdrop_load('module', 'user');
+}
+
+// AJAX render reponses sometimers are sent as text/html so we have to catch them here
+// and disable our footer stuff.
+function devel_perf_ajax_render_alter() {
+  $GLOBALS['devel_perf_shutdown'] = FALSE;
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function devel_perf_module_implements_alter(&$implementations, $hook) {
+  // Make devel_perf_exit() run last after all other modules.
+  if ($hook == 'exit') {
+    $group = $implementations['devel_perf'];
+    unset($implementations['devel_perf']);
+    $implementations['devel_perf'] = $group;
+  }
+}
+
+/**
+ * Implements hook_exit().
+ */
+function devel_perf_exit() {
+  global $user, $devel_perf_run_id;
+  $output = $txt = '';
+
+  // Set $GLOBALS['devel_perf_shutdown'] = FALSE, in order to supress the devel
+  // footer for a page. Not necessary if your page outputs any of the
+  // Content-type http headers tested below (e.g. text/xml, text/javascript,
+  // etc). This is advised where applicable.
+  if (!devel_silent() && !isset($GLOBALS['devel_perf_shutdown']) && !isset($GLOBALS['devel_redirecting'])) {
+    // Try not to break non-html pages.
+    if (function_exists('backdrop_get_http_header')) {
+      $header = backdrop_get_http_header('content-type');
+      if ($header) {
+        $formats = array('xml', 'javascript', 'json', 'plain', 'image', 'application', 'csv', 'x-comma-separated-values');
+        foreach ($formats as $format) {
+          if (strstr($header, $format)) {
+            return;
+          }
+        }
+      }
+    }
+
+    if (isset($user) && user_access('access devel information')) {
+      $queries = (devel_perf_query_enabled() ? Database::getLog('devel_perf', 'default') : NULL);
+      if (!empty($queries)) {
+        // Remove caller args to avoid recursion.
+        foreach ($queries as &$query) {
+          unset($query['caller']['args']);
+        }
+      }
+      $output .= devel_perf_shutdown_summary($queries);
+      $output .= devel_perf_shutdown_query($queries);
+    }
+
+    if ($output) {
+      print '<div class="devel-perf-footer-output">' . $output . '</div>';
+    }
+  }
+}
+
+function devel_perf_shutdown_summary($queries) {
+  $sum = 0;
+  $output = '';
+  list($counts, $query_summary) = devel_perf_query_summary($queries);
+
+  if (config_get('devel_perf.settings', 'query_display')) {
+    // Query log on.
+    $output .= $query_summary;
+    $output .= t_safe(' Queries exceeding @threshold ms are <span class="marker">highlighted</span>.', array('@threshold' => config_get('devel_perf.settings', 'query_slow_limit')));
+  }
+
+  if (config_get('devel_perf.settings', 'timer_display')) {
+    $output .= devel_perf_timer();
+  }
+
+  $output .= devel_perf_shutdown_memory();
+
+  if ($output) {
+    return '<div class="dev-query">' . $output . '</div>';
+  }
+}
+
+function devel_perf_shutdown_memory() {
+  global $memory_init;
+
+  if (config_get('devel_perf.settings', 'memory_display')) {
+    $memory_shutdown = memory_get_usage();
+    $args = array('@memory_boot' => round($memory_init / 1024 / 1024, 2), '@memory_shutdown' => round($memory_shutdown / 1024 / 1024, 2), '@memory_peak' => round(memory_get_peak_usage(TRUE) / 1024 / 1024, 2));
+    $msg = '<span class="dev-memory-usages"> Memory used at: devel_perf_boot()=<strong>@memory_boot</strong> MB, devel_perf_shutdown()=<strong>@memory_shutdown</strong> MB, PHP peak=<strong>@memory_peak</strong> MB.</span>';
+    // theme() may not be available. not t() either.
+    return t_safe($msg, $args);
+  }
+}
+
+function devel_perf_shutdown_query($queries) {
+  if (!empty($queries)) {
+    if (function_exists('theme_get_registry') && theme_get_registry()) {
+      // Safe to call theme('table).
+      list($counts, $query_summary) = devel_perf_query_summary($queries);
+      $output = devel_perf_query_table($queries, $counts);
+
+      // Save all queries to a file in temp dir. Retrieved via AJAX.
+      devel_perf_query_put_contents($queries);
+    }
+    else {
+      $output = dprint_r($queries, TRUE);
+    }
+    return $output;
+  }
+}
+
+// Write the variables information to the a file. It will be retrieved on demand via AJAX.
+function devel_perf_query_put_contents($queries) {
+  $request_id = mt_rand(1, 1000000);
+  $path = "temporary://devel_perf_querylog";
+
+  // Create the devel_perf_querylog within the temp folder, if needed.
+  file_prepare_directory($path, FILE_CREATE_DIRECTORY);
+
+  // Occassionally wipe the querylog dir so that files don't accumulate.
+  if (mt_rand(1, 1000) == 401) {
+    devel_perf_empty_dir($path);
+  }
+
+  $path .= "/$request_id.txt";
+  $path = file_stream_wrapper_uri_normalize($path);
+  // Save queries as a json array. Suppress errors due to recursion ()
+  file_put_contents($path, @json_encode($queries));
+  $settings['devel_perf'] = array(
+    // A random string that is sent to the browser. It enables the AJAX to retrieve queries from this request.
+    'request_id' => $request_id,
+  );
+  print '<script type="text/javascript">jQuery.extend(Backdrop.settings, '.  json_encode($settings) .");</script>\n";
+}
+
+function devel_perf_query_enabled() {
+  return method_exists('Database', 'getLog') && config_get('devel_perf.settings', 'query_display');
+}
+
+function devel_perf_query_summary($queries) {
+  if (config_get('devel_perf.settings', 'query_display') && is_array($queries)) {
+    $sum = 0;
+    foreach ($queries as $query) {
+      $text[] = $query['query'];
+      $sum += $query['time'];
+    }
+    $counts = array_count_values($text);
+    return array($counts, t_safe('Executed @queries queries in @time ms.', array('@queries' => count($queries), '@time' => round($sum * 1000, 2))));
+  }
+}
+
+function t_safe($string, $args) {
+  // get_t caused problems here with theme registry after changing on admin/build/modules. the theme_get_registry call is needed.
+  if (function_exists('t') && function_exists('theme_get_registry')) {
+    theme_get_registry();
+    return t($string, $args);
+  }
+  else {
+    strtr($string, $args);
+  }
+}
+
+/**
+ * Adds a table at the bottom of the page cataloguing data on all the database queries that were made to
+ * generate the page.
+ */
+function devel_perf_query_table($queries, $counts) {
+  $config = config('devel_perf.settings');
+  $version = devel_get_core_version(BACKDROP_VERSION);
+  $header = array ('ms', '#', 'where', 'ops', 'query', 'target');
+  $i = 0;
+  $api = $config->get('api_url');
+  $slow_query_limit = $config->get('query_slow_limit');
+  $db_connection = Database::getconnection();
+  foreach ($queries as $query) {
+    $function = !empty($query['caller']['class']) ? $query['caller']['class'] . '::' : '';
+    $function .= $query['caller']['function'];
+    $count = isset($counts[$query['query']]) ? $counts[$query['query']] : 0;
+
+    $diff = round($query['time'] * 1000, 2);
+    if ($diff > $slow_query_limit) {
+      $cell[$i][] = array ('data' => $diff, 'class' => 'marker');
+    }
+    else {
+      $cell[$i][] = $diff;
+    }
+    $cell[$i][] = $count;
+    $cell[$i][] = l($function, "http://$api/api/function/$function/$version");
+    $ops[] = l('P', '', array('attributes' => array('title' => 'Show placeholders', 'class' => 'dev-placeholders', 'qid' => $i)));
+    $ops[] = l('A', '', array('attributes' => array('title' => 'Show arguments', 'class' => 'dev-arguments', 'qid' => $i)));
+    // EXPLAIN only valid for select queries.
+    if (strpos($query['query'], 'UPDATE') === FALSE && strpos($query['query'], 'INSERT') === FALSE && strpos($query['query'], 'DELETE') === FALSE) {
+      $ops[] = l('E', '', array('attributes' => array('title' => 'Show EXPLAIN', 'class' => 'dev-explain', 'qid' => $i)));
+    }
+    $cell[$i][] = implode(' ', $ops);
+    // 3 divs for each variation of the query. Last 2 are hidden by default.
+    if ($config->get('show_query_args_first')) {
+      $placeholders = '<div class="dev-placeholders" style="display: none;">' . check_plain($query['query']) . "</div>\n";
+      $quoted = array();
+      foreach ($query['args'] as $key => $val) {
+        $quoted[$key] = $db_connection->quote($val);
+      }
+      $output = strtr($query['query'], $quoted);
+      $args = '<div class="dev-arguments">' . $output . '</div>' . "\n";
+    }
+    else {
+      $placeholders = '<div class="dev-placeholders">' . check_plain($query['query']) . "</div>\n";
+      $args = '<div class="dev-arguments" style="display: none;"></div>' . "\n";
+    }
+    $explain = '<div class="dev-explain" style="display: none;"></div>' . "\n";
+    $cell[$i][] = array(
+      'id' => "devel-perf-query-$i",
+      'data' => $placeholders . $args . $explain,
+    );
+    $cell[$i][] = $query['target'];
+    $i++;
+    unset($diff, $count, $ops);
+  }
+  if ($config->get('query_sort') === 'source') {
+    usort($cell, '_devel_perf_table_sort');
+  }
+  return theme('devel_perf_querylog', array('header' => $header, 'rows' => $cell));
+}
+
+function theme_devel_perf_querylog_row($variables) {
+  $row = $variables['row'];
+  $i = 0;
+  $output = '';
+  foreach ($row as $cell) {
+    $i++;
+
+    if (is_array($cell)) {
+      $data = !empty($cell['data']) ? $cell['data'] : '';
+      unset($cell['data']);
+      $attr = $cell;
+    }
+    else {
+      $data = $cell;
+      $attr = array();
+    }
+
+    if (!empty($attr['class'])) {
+      $attr['class'] .= " cell cell-$i";
+    }
+    else {
+      $attr['class'] = "cell cell-$i";
+    }
+    $attr = backdrop_attributes($attr);
+
+    $output .= "<div $attr>$data</div>";
+  }
+  return $output;
+}
+
+function theme_devel_perf_querylog($variables) {
+  $header = $variables['header'];
+  $rows = $variables['rows'];
+  $output = '';
+  if (!empty($header)) {
+    $output .= "<div class='devel-querylog devel-querylog-header clear-block'>";
+    $output .= theme('devel_perf_querylog_row', array('row' => $header));
+    $output .= "</div>";
+  }
+  if (!empty($rows)) {
+    $i = 0;
+    foreach ($rows as $row) {
+      $i++;
+      $zebra = ($i % 2) == 0 ? 'even' : 'odd';
+      $output .= "<div class='devel-querylog devel-querylog-$zebra clear-block'>";
+      $output .= theme('devel_perf_querylog_row', array('row' => $row));
+      $output .= "</div>";
+    }
+  }
+  return $output;
+}
+
+function _devel_perf_table_sort($a, $b) {
+  $a = is_array($a[0]) ? $a[0]['data'] : $a[0];
+  $b = is_array($b[0]) ? $b[0]['data'] : $b[0];
+  if ($a < $b) {
+    return 1;
+  }
+  if ($a > $b) {
+    return -1;
+  }
+  return 0;
+}
+
+/**
+ * Displays page execution time at the bottom of the page.
+ */
+function devel_perf_timer() {
+  $time = timer_read('page');
+  return t_safe(' Page execution time was @time ms.', array('@time' => $time));
+}

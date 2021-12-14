@@ -1,0 +1,9 @@
+{
+    "_config_name": "devel_perf.settings",
+    "_config_static": true,
+    "query_display": false,
+    "query_sort": "source",
+    "query_slow_limit": 5,
+    "timer_display": false,
+    "memory_display": false
+}
