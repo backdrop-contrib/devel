@@ -20,6 +20,7 @@ function devel_perf_menu() {
     'page arguments' => array('devel_perf_settings_form'),
     'file' => 'devel_perf.admin.inc',
     'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
   );
 
   return $items;
@@ -67,7 +68,7 @@ function devel_perf_boot() {
 
     if (devel_perf_query_enabled()) {
       @include_once BACKDROP_ROOT . '/core/includes/database/log.inc';
-      Database::startLog('devel_perf');;
+      Database::startLog('devel_perf');
     }
   }
 

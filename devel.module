@@ -158,6 +158,12 @@ function devel_menu() {
     'page arguments' => array('devel_admin_settings'),
     'file' => 'devel.admin.inc',
     'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/config/development/devel/configure'] = array(
+    'title' => t('Devel settings'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -1,
   );
 
   /**
