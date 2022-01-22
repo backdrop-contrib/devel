@@ -1,5 +1,5 @@
 /**
-* Krumo "Green" Skin
+* Krumo `Kaloyan.info` Skin
 * @author Kaloyan K. Tsvetkov <kaloyan@kaloyan.info>
 */
 
@@ -8,6 +8,7 @@
 ul.krumo-node {
 	margin: 0;
 	padding: 0;
+	background-color: white;
 	}
 ul.krumo-node ul {
 	margin-left: 20px;
@@ -20,10 +21,8 @@ div.krumo-root {
 	margin: 1em 0;
 	}
 ul.krumo-first {
-	font: normal 12px arial;
-	border: solid 2px white;
-	border-top-width:1px;
-	background: url(data:image/gif;base64,R0lGODlhWgAJALMAAP///wBmAACxAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAAAALAAAAABaAAkAAAQ6UIQg6az4astz314Ijl/pkaKJrmqbvivssnJN358973qPn7yfMEi0+YrDoxLJXDZxyehzCnNapVdLBAA7);
+	font: normal 11px tahoma, verdana;
+	border: solid 1px white;
 	}
 
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
@@ -37,56 +36,64 @@ li.krumo-child {
 	}
 div.krumo-element {
 	cursor:default;
-
-	line-height: 24px;
 	display:block;
-
 	clear:both;
 	white-space:nowrap;
 
-	border-top: solid 1px white;
-	background: #D7F4CA;
-	padding-left: 10px;
+	background-color: white;
+	background-image: url(data:image/gif;base64,R0lGODlhCQAJALMAAP////8AAICAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAAAALAAAAAAJAAkAAAQSEAAhq6VWUpx3n+AVVl42ilkEADs=);
+	background-repeat: no-repeat;
+	background-position: 6px 5px;
+	padding: 2px 0 3px 20px;
 	}
 * html div.krumo-element {
 	padding-bottom: 3px;
+	line-height: 13px;
 	}
 div.krumo-element:hover {
-	background: gold;
+	background-color: #BFDFFF;
+	}
+div.krumo-expand {
+	background-image: url(data:image/gif;base64,R0lGODlhCQAJALMAAP///wAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAAAALAAAAAAJAAkAAAQTEIAna33USpwt79vncRpZgpcGRAA7);
+	cursor:pointer;
+	}
+div.krumo-opened {
+	background-image: url(data:image/gif;base64,R0lGODlhCQAJALMAAP///wAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAAAALAAAAAAJAAkAAAQQEMhJ63w4Z6C37JUXWmQJRAA7);
 	}
 a.krumo-name {
-	color:#004000;
-	font: bold 13px Arial;
+	color:navy;
+	font: bold 13px courier new;
+	line-height:12px;
 	}
 a.krumo-name big {
-	font: bold 20pt Console, "Courier New";
-	line-height: 14px;
+	font: bold 16pt Console, "Courier New";
+	line-height: 10px;
 	position:relative;
 	top:2px;
 	left:-2px;
 	}
 * html a.krumo-name big {
-	font: bold 19pt Console, "Courier New";
-	top: 5px;
+	font: bold 15pt Console, "Courier New";
+	float:left;
+	top: -5px;
 	left: 0;
-	line-height: 9px;
-	height: 12px;
 	padding: 0;
 	margin: 0;
 	}
-div.krumo-expand {
-	background: #C0EEAC;
-	cursor:pointer;
+em.krumo-type {
+	font-style:normal;
+	margin: 0 2px;
 	}
 
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
 div.krumo-preview {
 	font: normal 13px courier new;
-	padding: 5px 5px 14px 5px;
-	background: white;
-	border-top: 0;
+	padding: 5px ;
+	background: lightyellow;
+	border: solid 1px #808000;
 	overflow:auto;
+	margin: 5px 1em 1em 0;
 	white-space:pre;
 	}
 * html div.krumo-preview {
@@ -96,11 +103,9 @@ div.krumo-preview {
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
 li.krumo-footnote {
-	background:white;
-	padding: 2px 5px;
+	background: white url(data:image/gif;base64,R0lGODlhCgACALMAAP///8DAwP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAAAALAAAAAAKAAIAAAQIEMhJA7D4gggAOw==) repeat-x;
+	padding: 4px 5px 3px 5px;
 	list-style:none;
-	border-top: solid 1px #bebebe;
-	margin-top:2px;
 	cursor:default;
 	}
 * html li.krumo-footnote {
@@ -114,7 +119,7 @@ li.krumo-footnote h6 {
 	font: bold 11px verdana;
 	margin: 0;
 	padding: 0;
-	color:#008040;
+	color:navy;
 	display:inline;
 	}
 * html li.krumo-footnote h6 {
@@ -129,6 +134,7 @@ li.krumo-footnote a:hover {
 	color:black;
 	}
 
+
 li.krumo-footnote span.krumo-call {
 	white-space:nowrap;
 	font:normal 11px tahoma, verdana;
@@ -142,7 +148,7 @@ li.krumo-footnote span.krumo-call code {
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
 div.krumo-title {
-	font: normal 11px verdana ;
+	font: normal 11px tahoma, verdana;
 	position:relative;
 	top:9px;
 	cursor:default;
@@ -154,6 +160,7 @@ div.krumo-title {
 strong.krumo-array-length,
 strong.krumo-string-length {
 	font-weight: normal;
+	color: #000099;
 	}
 
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
