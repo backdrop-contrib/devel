@@ -1,0 +1,5 @@
+{
+    "_config_name": "devel_db.settings",
+    "export_compress": 1,
+    "export_filename": "database_export"
+}

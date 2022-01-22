@@ -1,0 +1,99 @@
+<?php
+
+/**
+ * Implements hook_config_info().
+ */
+function devel_db_config_info() {
+  return array(
+    'devel_db.settings' => array(
+      'label' => t('Devel database settings'),
+      'group' => t('Configuration'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function devel_db_menu() {
+  return array(
+    'admin/devel/database' => array(
+      'title' => 'Database tools',
+      'description' => 'Tools for interacting with the database.',
+      'page callback' => 'backdrop_get_form',
+      'page arguments' => array('devel_db_form'),
+      'access arguments' => array('access database tools'),
+      'weight' => 5,
+    ),
+  );
+}
+
+/**
+ * Implement hook_permission().
+ */
+function devel_db_permission() {
+  return array(
+    'access database tools' => array(
+      'title' => t('Access database tools'),
+      'description' => t('Use the database tools, like making or importing a backup of the database.'),
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+/**
+ * Generates the database form.
+ */
+function devel_db_form() {
+  $config = config('devel_db.settings');
+
+  $form['export'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Export'),
+    '#description' => t('Export a copy of the database as an SQL file.'),
+  );
+  $form['export']['compress'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Compress the SQL file'),
+    '#description' => t("Compress the exported SQL file for a smaller download (uses 'gzip')."),
+    '#default_value' => $config->get('export_compress', TRUE),
+  );
+  $form['export']['filename'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Filename'),
+    '#default_value' => $config->get('export_filename', 'database_export'),
+  );
+  $form['export']['export'] = array(
+    '#type' => 'submit',
+    '#value' => t('Export'),
+  );
+
+  $form['import'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Import'),
+    '#description' => t('Import an SQL file into the database.<br>WARNING: This will overwrite the current database which may result in data loss.'),
+  );
+  $form['import']['import'] = array(
+    '#type' => 'submit',
+    '#value' => t('Import'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit handler for devel_db_form().
+ */
+function devel_db_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+
+  if ($values['op'] == t('Export')) {
+    // Save config.
+    $config = config('devel_db.settings');
+    $config->set('export_compress', $values['compress']);
+    $config->save();
+  }
+  elseif ($values['op'] == t('Import')) {
+
+  }
+}

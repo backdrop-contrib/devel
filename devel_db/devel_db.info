@@ -1,0 +1,7 @@
+name = Devel Database
+description = Tools for interacting with the database.
+package = Development
+backdrop = 1.x
+dependencies[] = devel
+configure = devel/database
+type = module
