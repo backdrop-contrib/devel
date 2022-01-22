@@ -1,14 +1,13 @@
 /**
 * Krumo "Orange" Skin
-*
-* @author Kaloyan K. Tsvetkov <mrasnika@users.sourceforge.net>
+* @author Kaloyan K. Tsvetkov <kaloyan@kaloyan.info>
 */
 
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
 ul.krumo-node {
-	margin: 0px;
-	padding: 0px;
+	margin: 0;
+	padding: 0;
 	}
 ul.krumo-node ul {
 	margin-left: 20px;
@@ -18,13 +17,13 @@ ul.krumo-node ul {
 	}
 div.krumo-root {
 	border: solid 1px black;
-	margin: 1em 0em;
+	margin: 1em 0;
 	}
 ul.krumo-first {
 	font: normal 12px arial;
 	border: solid 2px white;
 	border-top-width:1px;
-	background: url(%url%bg.gif);
+	background: url(data:image/gif;base64,R0lGODlhWgAJALMAAP////+/AP/eAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAAAALAAAAABaAAkAAAQ6UIQg6az4astz314Ijl/pkaKJrmqbvivssnJN358973qPn7yfMEi0+YrDoxLJXDZxyehzCnNapVdLBAA7);
 	}
 
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
@@ -32,8 +31,8 @@ ul.krumo-first {
 li.krumo-child {
 	display:block;
 	list-style: none;
-	padding: 0px;
-	margin: 0px;
+	padding: 0;
+	margin: 0;
 	overflow:hidden;
 	}
 div.krumo-element {
@@ -41,10 +40,10 @@ div.krumo-element {
 
 	line-height: 24px;
 	display:block;
-	
+
 	clear:both;
 	white-space:nowrap;
-	
+
 	border-top: solid 1px white;
 	background: #FCEBA9;
 	padding-left: 10px;
@@ -52,32 +51,32 @@ div.krumo-element {
 * html div.krumo-element {
 	padding-bottom: 3px;
 	}
+div.krumo-element:hover {
+	background: #FF8A4B;
+	}
 a.krumo-name {
 	color:#404000;
 	font: bold 13px Arial;
 	}
 a.krumo-name big {
-	font: bold 20pt Georgia;
+	font: bold 20pt Console, "Courier New";
 	line-height: 14px;
 	position:relative;
 	top:2px;
 	left:-2px;
 	}
 * html a.krumo-name big {
-	font: bold 19pt Georgia;
+	font: bold 19pt Console, "Courier New";
 	top: 5px;
-	left: 0px;
+	left: 0;
 	line-height: 9px;
 	height: 12px;
-	padding: 0px;
-	margin: 0px;
+	padding: 0;
+	margin: 0;
 	}
 div.krumo-expand {
 	background: #FADB61;
 	cursor:pointer;
-	}
-div.krumo-hover {
-	background: #FF8A4B;
 	}
 
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
@@ -86,9 +85,9 @@ div.krumo-preview {
 	font: normal 13px courier new;
 	padding: 5px 5px 14px 5px;
 	background: white;
-	border-top: 0px;
+	border-top: 0;
 	overflow:auto;
-	white-space: pre;
+	white-space:pre;
 	}
 * html div.krumo-preview {
 	padding-top: 2px;
@@ -108,12 +107,13 @@ li.krumo-footnote {
 	line-height: 13px;
 	}
 div.krumo-version {
+	white-space:nowrap;
 	float:right;
 	}
 li.krumo-footnote h6 {
 	font: bold 11px verdana;
-	margin: 0px;
-	padding: 0px;
+	margin: 0;
+	padding: 0;
 	color:#E87400;
 	display:inline;
 	}
