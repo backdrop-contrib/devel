@@ -371,7 +371,8 @@ function devel_init() {
         devel_set_handler($handlers);
       }
 
-      // We want to include the class early so that anyone may call krumo() as needed. See http://krumo.sourceforge.net/
+      // We want to include the class early so that anyone may call krumo() as
+      // needed. See https://github.com/kktsvetkov/krumo
       has_krumo();
 
       // See http://www.firephp.org/HQ/Install.htm
@@ -422,16 +423,10 @@ function devel_set_message($msg, $type = NULL) {
 
 // Return boolean. No need for cache here.
 function has_krumo() {
-  // See README.txt or just download from http://krumo.sourceforge.net
+  // See README.txt or just download from https://github.com/kktsvetkov/krumo
   @include_once BACKDROP_ROOT . '/' . backdrop_get_path('module', 'devel') . '/lib/krumo/class.krumo.php';
   if (function_exists('krumo') && !backdrop_is_cli()) {
     krumo::$skin = 'default';
-    // backdrop_add_js(backdrop_get_path('module', 'devel') . '/devel_krumo.js');
-    backdrop_add_css(backdrop_get_path('module', 'devel') . '/devel_krumo.css');
-    // If dpm() is called after status messages have been rendered, they will
-    // instead appear on the next page load. So ensure the krumo CSS and
-    // Javascript files are included.
-    // krumo::addCssJs();
     return TRUE;
   }
   return FALSE;
