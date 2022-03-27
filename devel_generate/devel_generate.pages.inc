@@ -62,7 +62,8 @@ function devel_generate_users_form($form, &$form_state) {
 function devel_generate_users_form_submit($form_id, &$form_state) {
   module_load_include('inc', 'devel_generate');
   $values = $form_state['values'];
-  devel_create_users($values['num'], $values['kill_users'], $values['time_range'], $values['roles'], $values['pass']);
+  $roles = array_keys(array_filter($values['roles']));
+  devel_create_users($values['num'], $values['kill_users'], $values['time_range'], $roles, $values['pass']);
 }
 
 /**
