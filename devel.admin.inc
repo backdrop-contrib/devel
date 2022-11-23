@@ -44,7 +44,10 @@ function devel_admin_settings() {
     '#type' => 'radios',
     '#title' => t('Sort query log'),
     '#default_value' => $config->get('query_sort', DEVEL_QUERY_SORT_BY_SOURCE),
-    '#options' => array(t('by source'), t('by duration')),
+    '#options' => array(
+      DEVEL_QUERY_SORT_BY_SOURCE => t('by source'),
+      DEVEL_QUERY_SORT_BY_DURATION => t('by duration')
+    ),
     '#description' => t('The query table can be sorted in the order that the queries were executed or by descending duration.'),
   );
   $form['queries']['settings']['query_slow_limit'] = array('#type' => 'textfield',
