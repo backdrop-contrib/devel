@@ -37,15 +37,20 @@ function date_devel_generate($entity, $field, $instance, $bundle) {
   $max_days = $leap ? 366 : 365;
   $seconds = mt_rand(0, ($max_days * 86400));
   date_modify($start, "+$seconds seconds");
-  $increment = $instance['widget']['settings']['increment'];
-  date_increment_round($start, $increment);
+  // Round the date to match increment settings if the widget supports it.
+  if (isset($instance['widget']['settings']['increment'])) {
+    $increment = $instance['widget']['settings']['increment'];
+    date_increment_round($start, $increment);
+  }
 
   // Modify End date by 1 hour to 3 days, shorter for repeating dates
   // longer for others.
   $start2 = clone($start);
   $max = empty($field['settings']['repeat']) ? 240 : 4320;
   date_modify($start2, '+' . mt_rand(60, $max) . ' minutes');
-  date_increment_round($start2, $increment);
+  if (isset($increment)) {
+    date_increment_round($start2, $increment);
+  }
 
   if ($field['settings']['tz_handling'] == 'date') {
     // Choose a random timezone.
