@@ -19,7 +19,7 @@ define('DEVEL_MIN_TEXTAREA', 50);
  */
 function devel_menu() {
   $items['admin/devel'] = array(
-    'title' => t('Development'),
+    'title' => t('Devel tools'),
     'access arguments' => array('access devel information'),
     'page callback' => 'system_admin_menu_block_page',
     'weight' => 5,
