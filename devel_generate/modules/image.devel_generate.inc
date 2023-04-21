@@ -22,14 +22,14 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
   $object_field = array();
   static $images = array();
 
-  $min_resolution = empty($instance['settings']['min_resolution']) ? '100x100' : $instance['settings']['min_resolution'];
-  $max_resolution = empty($instance['settings']['max_resolution']) ? '600x600' : $instance['settings']['max_resolution'];
+  $min_size = empty($instance['settings']['min_size']) ? '100x100' : $instance['settings']['min_size'];
+  $max_size = empty($instance['settings']['max_resolution']) ? '600x600' : $instance['settings']['max_resolution'];
   $extensions = array_intersect(explode(' ', $instance['settings']['file_extensions']), array('png', 'jpg'));
   $extension = array_rand(backdrop_map_assoc($extensions));
 
   // Generate a max of 5 different images.
-  if (!isset($images[$extension][$min_resolution][$max_resolution]) || count($images[$extension][$min_resolution][$max_resolution]) <= DEVEL_GENERATE_IMAGE_MAX) {
-    if ($path = devel_generate_image($extension, $min_resolution, $max_resolution)) {
+  if (!isset($images[$extension][$min_size][$max_size]) || count($images[$extension][$min_size][$max_size]) <= DEVEL_GENERATE_IMAGE_MAX) {
+    if ($path = devel_generate_image($extension, $min_size, $max_size)) {
       $destination_dir = $field['settings']['uri_scheme'] . '://' . $instance['settings']['file_directory'];
       file_prepare_directory($destination_dir, FILE_CREATE_DIRECTORY);
       if ($uri = file_unmanaged_move($path, $destination_dir)) {
@@ -41,7 +41,7 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
         // @todo Randomize file owner.
         $file->uid = 1;
         file_save($file);
-        $images[$extension][$min_resolution][$max_resolution][$file->fid] = $file;
+        $images[$extension][$min_size][$max_size][$file->fid] = $file;
       }
       else {
         return FALSE;
@@ -54,7 +54,7 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
   else {
     // Select one of the images we've already generated for this field.
     $file = new File();
-    $file->fid = array_rand($images[$extension][$min_resolution][$max_resolution]);
+    $file->fid = array_rand($images[$extension][$min_size][$max_size]);
   }
 
   $object_field['fid'] = $file->fid;
@@ -68,36 +68,39 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
  *
  * This function only works with the GD toolkit. ImageMagick is not supported.
  */
-function devel_generate_image($extension = 'png', $min_resolution, $max_resolution) {
+function devel_generate_image($extension = 'png', $min_size = array(), $max_size = array()) {
   if ($tmp_file = backdrop_tempnam('temporary://', 'imagefield_')) {
     $destination = $tmp_file . '.' . $extension;
     file_unmanaged_move($tmp_file, $destination, FILE_CREATE_DIRECTORY);
 
-    $min = explode('x', $min_resolution);
-    $max = explode('x', $max_resolution);
+    $min = explode('x', $min_size);
+    $max = explode('x', $max_size);
 
     $width = rand((int)$min[0], (int)$max[0]);
     $height = rand((int)$min[1], (int)$max[1]);
+
+    $half_width = (int)($width/2);
+    $half_height = (int)($height/2);
 
     // Make an image split into 4 sections with random colors.
     $im = imagecreate($width, $height);
     for ($n = 0; $n < 4; $n++) {
       $color = imagecolorallocate($im, rand(0, 255), rand(0, 255), rand(0, 255));
-      $x = $width/2 * ($n % 2);
-      $y = $height/2 * (int) ($n >= 2);
-      imagefilledrectangle($im, $x, $y, $x + $width/2, $y + $height/2, $color);
+      $x = (int)($half_width * ($n % 2));
+      $y = (int)($half_height * (int) ($n >= 2));
+      imagefilledrectangle($im, $x, $y, $x + $half_width, $y + $half_height, $color);
     }
 
     // Make a perfect circle in the image middle.
     $color = imagecolorallocate($im, rand(0, 255), rand(0, 255), rand(0, 255));
     $smaller_dimension = min($width, $height);
-    $smaller_dimension = ($smaller_dimension % 2) ? $smaller_dimension : $smaller_dimension;
-    imageellipse($im, $width/2, $height/2, $smaller_dimension, $smaller_dimension, $color);
+    $smaller_dimension = (int)(($smaller_dimension % 2) ? $smaller_dimension : $smaller_dimension);
+    imageellipse($im, $half_width, $half_height, $smaller_dimension, $smaller_dimension, $color);
 
     $save_function = 'image'. ($extension == 'jpg' ? 'jpeg' : $extension);
     $save_function($im, backdrop_realpath($destination));
 
-    $images[$extension][$min_resolution][$max_resolution][$destination] = $destination;
+    $images[$extension][$min_size][$max_size][$destination] = $destination;
   }
   return $destination;
 }
