@@ -1512,20 +1512,11 @@ function devel_timer() {
   return t_safe(' Page execution time was @time ms.', array('@time' => $time));
 }
 
-if (!function_exists('dd')) {
-  /**
-   * An alias for drupal_debug().
-   */
-  function dd($data, $label = NULL) {
-    return drupal_debug($data, $label);
-  }
-}
-
 /**
- * Logs a variable to a drupal_debug.txt in the site's temp directory.
+ * Logs a variable to a backdrop_debug.txt in the site's temp directory.
  *
  * @param $data
- *   The variable to log to the drupal_debug.txt log file.
+ *   The variable to log to the backdrop_debug.txt log file.
  * @param $label
  *   (optional) If set, a label to output before $data in the log file.
  *
@@ -1533,17 +1524,55 @@ if (!function_exists('dd')) {
  *   No return value if successful, FALSE if the log file could not be written
  *   to.
  *
- * @see dd()
- * @see http://drupal.org/node/314112
+ * @see bd().
  */
-function drupal_debug($data, $label = NULL) {
+function backdrop_debug($data, $label = NULL) {
   $out = ($label ? $label . ': ' : '') . print_r($data, TRUE) . "\n";
 
   // The temp directory does vary across multiple simpletest instances.
-  $file = 'temporary://drupal_debug.txt';
+  $file = 'temporary://backdrop_debug.txt';
   if (file_put_contents($file, $out, FILE_APPEND) === FALSE) {
     backdrop_set_message(t('The file could not be written.'), 'error');
     return FALSE;
+  }
+}
+
+/**
+ * An alias for backdrop_debug().
+ *
+ * @see backdrop_debug().
+ */
+if (!function_exists('bd')) {
+  /**
+   * An alias for backdrop_debug().
+   */
+  function bd($data, $label = NULL) {
+    return backdrop_debug($data, $label);
+  }
+}
+
+/**
+ * Backwards-compatible wrapper function for backdrop_debug().
+ *
+ * @todo remove when bc layer is removed from core.
+ *
+ * @see backdrop_debug().
+ */
+function drupal_debug($data, $label = NULL) {
+  return backdrop_debug($data, $label);
+}
+
+/**
+ * A backwards-compatible alias for backdrop_debug().
+ *
+ * @todo remove when bc layer is removed from core.
+ *
+ * @see bd().
+ * @see backdrop_debug().
+ */
+if (!function_exists('dd')) {
+  function dd($data, $label = NULL) {
+    return backdrop_debug($data, $label);
   }
 }
 
