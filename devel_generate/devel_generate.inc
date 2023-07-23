@@ -474,7 +474,7 @@ function devel_generate_links($num_links, $menus, $title_length, $link_types, $m
 }
 
 function devel_generate_word($length){
-  mt_srand((double)microtime()*1000000);
+  mt_srand(intval((double)microtime()*1000000));
 
   $vowels = array("a", "e", "i", "o", "u");
   $cons = array("b", "c", "d", "g", "h", "j", "k", "l", "m", "n", "p", "r", "s", "t", "u", "v", "w", "tr",
