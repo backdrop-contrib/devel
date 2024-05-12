@@ -68,13 +68,13 @@ function _image_devel_generate($object, $field, $instance, $bundle) {
  *
  * This function only works with the GD toolkit. ImageMagick is not supported.
  */
-function devel_generate_image($extension = 'png', $min_size = array(), $max_size = array()) {
+function devel_generate_image($extension = 'png', $min_resolution = 0, $max_resolution = 100000) {
   if ($tmp_file = backdrop_tempnam('temporary://', 'imagefield_')) {
     $destination = $tmp_file . '.' . $extension;
     file_unmanaged_move($tmp_file, $destination, FILE_CREATE_DIRECTORY);
 
-    $min = explode('x', $min_size);
-    $max = explode('x', $max_size);
+    $min = explode('x', $min_resolution);
+    $max = explode('x', $max_resolution);
 
     $width = rand((int)$min[0], (int)$max[0]);
     $height = rand((int)$min[1], (int)$max[1]);
@@ -88,14 +88,14 @@ function devel_generate_image($extension = 'png', $min_size = array(), $max_size
       $color = imagecolorallocate($im, rand(0, 255), rand(0, 255), rand(0, 255));
       $x = (int)($half_width * ($n % 2));
       $y = (int)($half_height * (int) ($n >= 2));
-      imagefilledrectangle($im, $x, $y, $x + $half_width, $y + $half_height, $color);
+      imagefilledrectangle($im, intval($x), intval($y), intval($x + $half_width), intval($y + $half_height), $color);
     }
 
     // Make a perfect circle in the image middle.
     $color = imagecolorallocate($im, rand(0, 255), rand(0, 255), rand(0, 255));
     $smaller_dimension = min($width, $height);
     $smaller_dimension = (int)(($smaller_dimension % 2) ? $smaller_dimension : $smaller_dimension);
-    imageellipse($im, $half_width, $half_height, $smaller_dimension, $smaller_dimension, $color);
+    imageellipse($im, intval($half_width), intval($half_height), intval($smaller_dimension), intval($smaller_dimension), $color);
 
     $save_function = 'image'. ($extension == 'jpg' ? 'jpeg' : $extension);
     $save_function($im, backdrop_realpath($destination));
