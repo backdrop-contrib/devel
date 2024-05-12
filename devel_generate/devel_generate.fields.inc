@@ -13,7 +13,7 @@ function devel_generate_fields(&$object, $obj_type, $bundle) {
   $field_types = field_info_field_types();
   $instances = field_info_instances($obj_type, $bundle);
   $skips = function_exists('drush_get_option') ? drush_get_option('skip-fields', '') : @$_REQUEST['skip-fields'];
-  if (isset($skips)) {
+  if (!empty($skips)) {
     foreach (explode(',', $skips) as $skip) {
       unset($instances[$skip]);
     }
