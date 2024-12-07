@@ -302,6 +302,8 @@ function devel_admin_paths() {
     'user/*/devel/*' => TRUE,
     'taxonomy/term/*/devel' => TRUE,
     'taxonomy/term/*/devel/*' => TRUE,
+    'file/*/devel' => TRUE,
+    'file/*/devel/*' => TRUE,
   );
   return $paths;
 }
