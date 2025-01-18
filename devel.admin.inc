@@ -92,6 +92,12 @@ function devel_admin_settings() {
     '#default_value' => config_get('system.core', 'theme_debug'),
     '#description' => t('Adds HTML comments containing information about the template files used to render each part of the page. Useful for finding template suggestions when building a custom theme.'),
   );
+  $form['theme']['supplemental_css_selectors'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable configuration of supplemental css selectors in basis (requires >= 1.30.0)'),
+    '#default_value' => $config->get('supplemental_css_selectors'),
+    '#description' => t('Enables settings for Basis to control supplemental css selectors.'),
+  );
   $form['theme']['rebuild_theme_registry'] = array(
     '#type' => 'checkbox',
     '#title' => t('Rebuild the theme registry on every page load'),
@@ -198,7 +204,9 @@ function devel_admin_settings_submit($form, &$form_state) {
   $config->set('redirect_page', (bool) $values['redirect_page']);
   $config->set('permission_raw_names', (bool) $values['permission_raw_names']);
   $config->set('devel_error_handlers', array_values(array_filter($values['devel_error_handlers'])));
+  $config->set('supplemental_css_selectors', (bool) $values['supplemental_css_selectors']);
   $config->set('rebuild_theme_registry', (bool) $values['rebuild_theme_registry']);
+
 
   $config->save();
 
