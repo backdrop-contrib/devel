@@ -488,6 +488,9 @@ function devel_generate_word($length){
     $word .= $cons[mt_rand(0, $num_cons - 1)] . $vowels[mt_rand(0, $num_vowels - 1)];
   }
 
+  // Allow other modules to change the word.
+  backdrop_alter('devel_generate_word', $word);
+
   return substr($word, 0, $length);
 }
 
@@ -542,6 +545,10 @@ function devel_create_greeking($word_count, $title = FALSE) {
     "veniam", "venio", "vereor", "vero", "verto", "vicis", "vindico",
     "virtus", "voco", "volutpat", "vulpes", "vulputate", "wisi", "ymo",
     "zelus");
+
+  // Allow other modules to change the dictionary.
+  backdrop_alter('devel_generate_dictionary', $dictionary);
+
   $dictionary_flipped = array_flip($dictionary);
 
   $greeking = '';
