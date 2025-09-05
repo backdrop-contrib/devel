@@ -9,6 +9,7 @@
     "memory_display": false,
     "redirect_page": false,
     "permission_raw_names": false,
+    "supplemental_css_selectors": true,
     "error_handlers": [
         "standard"
     ],
