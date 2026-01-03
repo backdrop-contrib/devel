@@ -99,8 +99,6 @@ function devel_generate_image($extension = 'png', $min_resolution = 0, $max_reso
 
     $save_function = 'image'. ($extension == 'jpg' ? 'jpeg' : $extension);
     $save_function($im, backdrop_realpath($destination));
-
-    $images[$extension][$min_size][$max_size][$destination] = $destination;
   }
   return $destination;
 }
